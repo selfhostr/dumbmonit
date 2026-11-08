@@ -1,52 +1,44 @@
 /**
- * The wall's world: the whole screen is a city (Paris, New York, Tokyo or
- * Dubai) under a sky that follows the real hour, with the weather of the
- * network. Paris is the default; `auto` picks the closest city from the
- * browser's time zone (Paris when nothing fits) and `none` is an explicit
- * choice of a plain board. Remembered per browser, set in Settings or from the
- * wall's own "Backdrop" control; a `?city=` on a shared link overrides it for
- * that display without saving. Retired backdrops fold onto a kept one
- * (Zermatt and the Matterhorn onto Dubai, as on the status pages), so an old
- * saved choice or link still lands somewhere.
+ * The wall's world: the whole screen is Paris under a sky that follows the
+ * real hour, with the weather of the network, drawn by day and by night.
+ * Paris is the default and `none` is an explicit choice of a plain board.
+ * Remembered per browser, set in Settings or from the wall's own "Backdrop"
+ * control; a `?city=` on a shared link overrides it for that display without
+ * saving. Retired backdrops (New York, Tokyo, Dubai, `auto`, and the older
+ * ones before them) fold onto Paris, so an old saved choice or link still
+ * lands somewhere.
  *
  * Pure module (no Svelte): also loaded by `tests/wall-scene.test.mjs`.
  */
 
-export type WallCity = 'paris' | 'newyork' | 'tokyo' | 'dubai';
-export type WallSceneChoice = 'none' | 'auto' | WallCity;
+export type WallCity = 'paris';
+export type WallSceneChoice = 'none' | WallCity;
 
-export const WALL_CITY_IDS: readonly WallCity[] = ['paris', 'newyork', 'tokyo', 'dubai'];
-
-/** Retired backdrops → the one kept in their place. */
-const LEGACY_CITIES: Record<string, WallCity> = {
-	zermatt: 'dubai',
-	matterhorn: 'dubai',
-	london: 'paris',
-	rome: 'paris',
-	hongkong: 'tokyo',
-	kyoto: 'tokyo',
-	rio: 'newyork'
-};
+/** Retired backdrops → Paris, the one kept in their place. */
+const RETIRED_CITIES: readonly string[] = [
+	'auto',
+	'newyork',
+	'tokyo',
+	'dubai',
+	'zermatt',
+	'matterhorn',
+	'london',
+	'rome',
+	'hongkong',
+	'kyoto',
+	'rio'
+];
 
 const STORAGE_KEY = 'dumbmonit-wall-city';
 
 /** What a display shows until someone chooses otherwise. */
 export const DEFAULT_WALL_SCENE: WallSceneChoice = 'paris';
 
-/** Cities drawn by day as well as by night (the others are night scenes only). */
-const DAY_CITIES: readonly WallCity[] = ['paris'];
-
-/** True when the city has a daylight version (Paris); the others stay at night. */
-export function cityHasDay(city: WallCity | null): boolean {
-	return city !== null && DAY_CITIES.includes(city);
-}
-
 /** A saved or linked value as a choice, or null when it names nothing known. */
 export function toWallSceneChoice(value: string | null): WallSceneChoice | null {
 	if (value === null) return null;
-	if (value === 'none' || value === 'auto') return value;
-	if ((WALL_CITY_IDS as readonly string[]).includes(value)) return value as WallCity;
-	return LEGACY_CITIES[value] ?? null;
+	if (value === 'none' || value === 'paris') return value;
+	return RETIRED_CITIES.includes(value) ? 'paris' : null;
 }
 
 /** The saved choice; `fallback` (Paris) when nothing is saved. */
@@ -72,28 +64,7 @@ export function parseForcedWallScene(value: string | null): WallSceneChoice | nu
 	return toWallSceneChoice(value);
 }
 
-/** The closest city for a time zone (Paris when nothing fits). */
-export function cityForTimeZone(zone: string | undefined): WallCity {
-	const z = zone ?? '';
-	if (['Asia/Dubai', 'Asia/Muscat', 'Asia/Qatar', 'Asia/Bahrain', 'Asia/Kuwait', 'Asia/Riyadh'].includes(z)) {
-		return 'dubai';
-	}
-	if (z.startsWith('Asia/') || z.startsWith('Australia/') || z.startsWith('Pacific/')) return 'tokyo';
-	if (z.startsWith('America/')) return 'newyork';
-	return 'paris';
-}
-
 /** The city to draw for a choice, or null for none. */
-export function resolveWallScene(choice: WallSceneChoice, zone?: string): WallCity | null {
-	if (choice === 'none') return null;
-	if (choice !== 'auto') return choice;
-	let z = zone;
-	if (z === undefined) {
-		try {
-			z = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		} catch {
-			z = undefined;
-		}
-	}
-	return cityForTimeZone(z);
+export function resolveWallScene(choice: WallSceneChoice): WallCity | null {
+	return choice === 'none' ? null : 'paris';
 }

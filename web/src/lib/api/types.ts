@@ -2116,9 +2116,9 @@ export interface RuleOverridePayload {
 
 export type StatusPageTheme = 'auto' | 'light' | 'dark';
 /** Accent of a public page: a closed set, each checked for contrast in day and night. */
-/** Banner scenes a page can show; the server may add more, so unknown ids must be tolerated. */
+/** Legacy banner scene ids: still stored and accepted by the server, no longer drawn or edited by the UI. */
 export type StatusPageScene = string;
-/** How a page with several scenes picks the one on screen. */
+/** Legacy: how a page with several scenes picked the one on screen. */
 export type StatusPageSceneRotation = 'visit' | '1m' | '10m' | '1h';
 
 export type StatusPageAccent = 'default' | 'blue' | 'teal' | 'violet' | 'rose' | 'amber';
@@ -2170,11 +2170,11 @@ export interface StatusPage {
 	created_at: string;
 	updated_at: string;
 	accent: StatusPageAccent;
-	/** Ordered banner scenes; new pages start with `paris`, empty: no scene. */
+	/** Legacy: kept for compatibility, the UI neither shows nor sends it. */
 	scenes: string[];
-	/** Only used when `scenes` holds more than one. */
+	/** Legacy: kept for compatibility, the UI neither shows nor sends it. */
 	scene_rotation: StatusPageSceneRotation;
-	/** Simple mode: the public page has no scene, mascot or animation. */
+	/** Simple mode: the public page has no mascot or animation. */
 	simple: boolean;
 	/** Public 90-day calendar. */
 	show_calendar: boolean;
@@ -2459,10 +2459,10 @@ export interface PublicStatus {
 		step_secs: number;
 		updated_at: string;
 		accent: StatusPageAccent;
-		/** Ordered banner scenes; empty or absent: none. */
+		/** Legacy: no longer drawn by the UI. */
 		scenes: string[];
 		scene_rotation: StatusPageSceneRotation;
-		/** Simple mode: no scene, mascot or animation; light/dark follows the visitor. */
+		/** Simple mode: no mascot or animation; light/dark follows the visitor. */
 		simple: boolean;
 		/** Present (true) only when the page shows the calendar / response times. */
 		show_calendar?: boolean;

@@ -27,15 +27,14 @@ toda a frota.
 
 ## Fundo {#backdrop}
 
-A parede compartilha a aparência escura do console. O botão **Fundo** (no alto
-à direita, ao lado de Exit) pode desenhar uma das cidades à noite das
-[páginas de status](status-pages.md) atrás do veredito e do relógio: Paris,
-Nova York, Tóquio ou Dubai, ou *Auto* para a mais próxima do fuso horário do
-navegador. Ele vem desligado e é lembrado por navegador; `?city=paris` (ou
-`newyork`, `tokyo`, `dubai`, `none`) em um link escolhe só para aquela tela. O
-céu acompanha o painel: estrelas quando está tudo bem, nuvens com um aviso,
-tempestade com um alerta. No celular, ou com a aba oculta, a cidade fica
-parada. Um `zermatt` salvo ou em um link agora cai em Dubai.
+O mural compartilha o visual escuro do console. O botão **Backdrop** (no alto, à
+direita, ao lado de Exit) pode desenhar Paris atrás do veredito e do relógio, ou
+deixar um painel simples (*None*). Paris é a opção padrão e a escolha é lembrada
+por navegador; `?city=paris` (ou `none`) em um link a escolhe só para aquela
+tela. Uma escolha salva ou em link de um fundo aposentado (Nova York, Tóquio,
+Dubai, *Auto*) cai em Paris. O céu acompanha o painel: estrelas quando está tudo
+bem, nuvens em um aviso, tempestade em um alerta. Em um celular, ou com a aba
+oculta, a cidade fica parada.
 
 ## Música na parede {#music-on-the-wall}
 

@@ -27,7 +27,7 @@ unter `/s/<address>`.
 | **Description** | Ein Satz unter dem Titel. Optional. |
 | **Theme** | Day, Night, oder dem System des Besuchers folgen. |
 | **History** | Das längste von der Historienleiste abgedeckte Fenster (30, 60 oder 90 Tage). Die Leiste passt sich dem Alter der Daten der Seite an: Sie zeigt so viele Tage, wie der älteste Dienst überwacht wird, von 7 Tagen bis zu dieser Einstellung. Eine Seite sagt nie mehr als das — siehe [Badges](#badges). |
-| **Simple mode** | Eine schlichte Seite: keine Scene, kein Mascot, keine Animation und keine Easter Eggs. Hell oder dunkel folgt dem System des Besuchers, mit einem Umschalter im Header; die Theme-Einstellung der Seite wird ignoriert. |
+| **Simple mode** | Eine schlichte Seite: kein Mascot, keine Animation und keine Easter Eggs. Hell oder dunkel folgt dem System des Besuchers, mit einem Umschalter im Header; die Theme-Einstellung der Seite wird ignoriert. |
 | **Published** | Aus = Entwurf: Die Seite, ihre Badges und ihr Logo antworten Besuchern "not found", bis Sie es einschalten. |
 
 Kreuzen Sie dann die anzuzeigenden Monitore an. Für jedes setzen Sie
@@ -51,28 +51,6 @@ ohne sie für beliebigen Code zu öffnen:
 | **Accent** | Ink (Standard), blue, teal, violet, rose oder amber — die obere Linie, die Links und die Subscribe-Schaltfläche. Jede ist so gewählt, dass sie bei Tag und Nacht lesbar bleibt. |
 | **Organisation website** | Ein `http://`- oder `https://`-Link neben dem Titel, als Hostname der Site angezeigt. |
 | **Footer text** | Klartext unter der Seite, bis 280 Zeichen: wer sie betreibt, wie man sie erreicht. Zeilenumbrüche werden behalten; nichts wird als HTML oder Markdown interpretiert. |
-
-### Scene
-
-Die Einstellung **Scene** zeichnet eine Stadtsilhouette hinter dem Banner. Neue
-Seiten starten mit Paris; entfernen Sie das Häkchen für ein schlichtes Banner,
-oder aktivieren Sie **Simple mode**, um Scenes ganz fallen zu lassen. Wählen Sie
-so viele Sie wollen, in der gewünschten Reihenfolge. Vier Scenes werden
-mitgeliefert, vier Städte bei Nacht unter Mond und Sternen, ihr Wahrzeichen
-beleuchtet: Paris (der Eiffelturm), Tokio (der Tokyo Tower), New York (das
-Empire State und das Chrysler Building) und Dubai (der Burj Khalifa). Das
-Wetter folgt der Seite: Sternenhimmel, wenn alles in Ordnung ist, Wolken bei
-einer Warnung, Gewitter, wenn etwas ausgefallen ist. Da es Nachtszenen sind,
-nutzen Titel und Status darüber immer die dunklen Farben, unabhängig vom Theme
-der Seite. Dubai ersetzt das Matterhorn, und Seiten mit einer entfernten Scene
-wurden auf die nächstgelegene der vier umgestellt (europäische Städte und die
-Antike auf Paris, Asien, Meer und Weltraum auf Tokio, die Amerikas auf New York,
-die Alpen und der Norden auf Dubai), Sicherungen und API-Aufrufe eingeschlossen.
-Mit mehr als einer entscheidet **Rotation**, wann die Seite zur nächsten
-wechselt: bei jedem Besuch (Standard), jede Minute, alle zehn Minuten oder jede
-Stunde. Die Scenes sind eine geschlossene Menge von Zeichnungen, mit DumbMonit
-mitgeliefert — nichts wird hochgeladen oder interpretiert. Dieselben vier
-Städte können auch hinter dem Urteil der [Wand](wall.md) stehen.
 
 Es gibt absichtlich kein benutzerdefiniertes CSS oder HTML: Eine
 Statusseite ist öffentlich und lebt auf derselben Origin wie Ihre

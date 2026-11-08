@@ -27,7 +27,7 @@ di esse; l'editor si apre sulla propria rotta (`/settings/status/new`,
 | **Description** | Una frase sotto il titolo. Opzionale. |
 | **Theme** | Day, night, oppure segui il sistema del visitatore. |
 | **History** | La finestra più lunga che la barra della cronologia copre (30, 60 o 90 giorni). La barra si adatta all'età dei dati della pagina: mostra tanti giorni quanti il servizio più vecchio è stato monitorato, da 7 giorni fino a questa impostazione. Una pagina non dice mai più di questo — vedi [Badge](#badges). |
-| **Simple mode** | Una pagina semplice: nessuna scena, nessuna mascotte, nessuna animazione e nessun easter egg. Chiaro o scuro segue il sistema del visitatore, con un interruttore nell'intestazione; l'impostazione Theme della pagina viene ignorata. |
+| **Simple mode** | Una pagina semplice: nessuna mascotte, nessuna animazione e nessun easter egg. Chiaro o scuro segue il sistema del visitatore, con un interruttore nell'intestazione; l'impostazione Theme della pagina viene ignorata. |
 | **Published** | Off = bozza: la pagina, i suoi badge e il suo logo rispondono "not found" ai visitatori finché non la attivi. |
 
 Poi spunta i monitor da mostrare. Per ciascuno, imposta
@@ -51,27 +51,6 @@ aprirla a codice arbitrario:
 | **Accent** | Ink (predefinito), blue, teal, violet, rose o amber — la riga superiore, i link e il pulsante di iscrizione. Ognuno è scelto per restare leggibile di giorno e di notte. |
 | **Organisation website** | Un link `http://` o `https://` mostrato accanto al titolo, come il nome host del sito. |
 | **Footer text** | Testo semplice sotto la pagina, fino a 280 caratteri: chi la gestisce, come contattarli. Le interruzioni di riga vengono conservate; nulla viene interpretato come HTML o Markdown. |
-
-### Scene
-
-L'impostazione **Scene** disegna uno skyline cittadino dietro il banner. Le
-nuove pagine partono con Parigi; deselezionala per un banner semplice, oppure
-attiva **Simple mode** per fare a meno delle scene. Scegline quante vuoi,
-nell'ordine che vuoi. Sono incluse quattro scene, quattro città di notte sotto
-la luna e le stelle, con il loro monumento illuminato: Parigi (la torre
-Eiffel), Tokyo (la Tokyo Tower), New York (l'Empire State e il Chrysler
-Building) e Dubai (il Burj Khalifa). Il meteo segue la pagina: cielo stellato
-quando va tutto bene, nuvole con un avviso, temporale quando qualcosa è giù.
-Essendo scene notturne, il titolo e lo stato sopra usano sempre i colori scuri,
-qualunque sia il tema della pagina. Dubai sostituisce il Cervino, e le pagine
-che usavano una scena ritirata sono passate alla più vicina delle quattro (città
-europee e mondo antico a Parigi, Asia, mare e spazio a Tokyo, le Americhe a New
-York, le Alpi e il nord a Dubai), backup e chiamate API compresi. Con più di
-una, **Rotation** decide quando la pagina passa alla successiva: a ogni visita
-(predefinito), ogni minuto, ogni dieci minuti o ogni ora. Le scene sono un
-insieme chiuso di disegni forniti con DumbMonit — niente viene caricato o
-interpretato. Le stesse quattro città possono stare anche dietro al verdetto
-della [parete](wall.md).
 
 Non c'è deliberatamente alcun CSS o HTML personalizzato: una pagina di
 stato è pubblica e vive sulla stessa origine della tua interfaccia di

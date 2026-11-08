@@ -27,7 +27,7 @@ representação pública está em `/s/<address>`.
 | **Description** | Uma frase sob o título. Opcional. |
 | **Theme** | Dia, noite, ou seguir o sistema do visitante. |
 | **History** | A janela mais longa que a barra de histórico cobre (30, 60 ou 90 dias). A barra adapta-se à idade dos dados da página: mostra tantos dias quanto o serviço mais antigo tem sido monitorizado, de 7 dias até esta definição. Uma página nunca diz mais do que isto — ver [Emblemas](#badges). |
-| **Simple mode** | Uma página simples: sem cenário, sem mascote, sem animação e sem easter eggs. Claro ou escuro segue o sistema do visitante, com um alternador no cabeçalho; a definição Theme da página é ignorada. |
+| **Simple mode** | Uma página simples: sem mascote, sem animação e sem easter eggs. Claro ou escuro segue o sistema do visitante, com um alternador no cabeçalho; a definição Theme da página é ignorada. |
 | **Published** | Desligado = rascunho: a página, os seus emblemas e o seu logo respondem «not found» aos visitantes até a ativar. |
 
 Depois marque os monitores a mostrar. Para cada um, defina o
@@ -50,27 +50,6 @@ a código arbitrário:
 | **Accent** | Ink (predefinição), blue, teal, violet, rose ou amber — a regra do topo, as ligações e o botão de subscrição. Cada uma é escolhida para ficar legível de dia e de noite. |
 | **Organisation website** | Uma ligação `http://` ou `https://` mostrada junto ao título, como o nome de anfitrião do site. |
 | **Footer text** | Texto simples sob a página, até 280 caracteres: quem a gere, como contactar. As quebras de linha são mantidas; nada é interpretado como HTML ou Markdown. |
-
-### Scene {#scene}
-
-A definição **Scene** desenha um horizonte de cidade atrás da faixa. As páginas
-novas começam com Paris; desmarque-a para uma faixa simples, ou ative **Simple
-mode** para dispensar os cenários. Escolha quantos quiser, pela ordem que
-quiser. São incluídos quatro cenários, quatro cidades à noite sob a lua e as
-estrelas, com o seu monumento iluminado: Paris (a torre Eiffel), Tóquio (a
-Tokyo Tower), Nova Iorque (o Empire State e o Chrysler Building) e Dubai (o
-Burj Khalifa). O tempo segue a página: céu estrelado quando está tudo bem,
-nuvens com um aviso, trovoada quando algo está em baixo. Sendo cenários
-noturnos, o título e o estado por cima usam sempre as cores escuras, seja qual
-for o tema da página. O Dubai substitui o Matterhorn, e as páginas que usavam
-um cenário retirado passaram para o mais próximo dos quatro (cidades europeias e
-mundo antigo para Paris, Ásia, mar e espaço para Tóquio, as Américas para Nova
-Iorque, os Alpes e o norte para o Dubai), cópias de segurança e chamadas à API
-incluídas. Com mais de um, **Rotation** decide quando a página passa ao
-seguinte: em cada visita (predefinição), a cada minuto, a cada dez minutos ou a
-cada hora. Os cenários são um conjunto fechado de desenhos incluídos no
-DumbMonit — nada é carregado nem interpretado. As mesmas quatro cidades podem
-também ficar por trás do veredicto da [parede](wall.md).
 
 Não há, de propósito, CSS ou HTML personalizado: uma página de estado
 é pública e vive na mesma origem que a sua interface de administração,

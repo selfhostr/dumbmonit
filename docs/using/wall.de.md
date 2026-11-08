@@ -29,15 +29,14 @@ erhält die Wand nicht, da sie die gesamte Flotte zeigt.
 ## Hintergrund {#backdrop}
 
 Die Wand teilt das dunkle Erscheinungsbild der Konsole. Die Schaltfläche
-**Hintergrund** (oben rechts, neben Exit) kann eine der Nachtstädte der
-[Statusseiten](status-pages.md) hinter Urteil und Uhr zeichnen: Paris, New York,
-Tokio oder Dubai, oder *Auto* für die der Zeitzone des Browsers nächstgelegene.
-Sie ist standardmäßig aus und wird pro Browser gemerkt; `?city=paris` (oder
-`newyork`, `tokyo`, `dubai`, `none`) in einem Link wählt sie nur für diese
-Anzeige. Der Himmel folgt der Übersicht: Sterne, wenn alles gut ist, Wolken bei
-einem Hinweis, Gewitter bei einer Warnung. Auf einem Telefon oder in einem
-verborgenen Tab steht die Stadt still. Ein gespeichertes oder verlinktes
-`zermatt` landet jetzt auf Dubai.
+**Backdrop** (oben rechts, neben Exit) kann Paris hinter Urteil und Uhr zeichnen
+oder eine schlichte Tafel (*None*) lassen. Paris ist die Voreinstellung, die
+Wahl wird pro Browser gemerkt; `?city=paris` (oder `none`) in einem Link wählt
+sie nur für diesen Bildschirm. Eine gespeicherte oder verlinkte Wahl eines
+ausgemusterten Hintergrunds (New York, Tokio, Dubai, *Auto*) landet auf Paris.
+Der Himmel folgt der Tafel: Sterne, wenn alles in Ordnung ist, Wolken bei einem
+Hinweis, ein Sturm bei einer Warnung. Auf einem Smartphone oder bei verborgenem
+Tab steht die Stadt still.
 
 ## Musik an der Wand {#music-on-the-wall}
 

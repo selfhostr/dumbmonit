@@ -31,11 +31,6 @@
 	import DayDetail from '#lib/components/status/DayDetail.svelte';
 	import { periodParts } from '#lib/components/status/period.js';
 	import StatusMascot from '#lib/components/status/StatusMascot.svelte';
-	import { useSceneLive } from '#lib/scene/live.svelte.js';
-	import { toneFrom, type MoodSnapshot, type SceneTone } from '#lib/scene/mood.js';
-	import SceneBackdrop from '#lib/components/status/scenes/SceneBackdrop.svelte';
-	import { NIGHT_SCENES, knownScenes } from '#lib/components/status/scenes/registry.js';
-	import { withDefaultScene } from '#lib/components/status/scenes/nightScene.js';
 	import { tallyItems } from '#lib/components/status/tally.js';
 	import { accentClass, homepageHost, isClosed, overallBanner } from '#lib/components/status/words.js';
 
@@ -57,7 +52,6 @@
 	let loading = $state(true);
 	let error = $state<unknown>(null);
 	let lastChecked = $state<Date | null>(null);
-	const live = useSceneLive();
 
 	async function load(signal?: AbortSignal) {
 		try {
@@ -159,62 +153,8 @@
 	const subscribeServices = $derived(status ? status.groups.flatMap((g) => g.items.map((item) => ({ key: item.key, label: item.label }))) : []);
 	const serviceCount = $derived(status ? status.groups.reduce((n, g) => n + g.items.length, 0) : 0);
 
-	// Banner scene: an empty (or unknown) list shows the default scene (Paris).
-	const sceneIds = $derived(withDefaultScene(knownScenes(status?.page.scenes)));
-	// Simple mode: no scene, no pigeon, no animation, only a light/dark toggle.
+	// Simple mode: no pigeon, no animation, only a light/dark toggle.
 	const simple = $derived(status?.page.simple ?? false);
-	let activeScene = $state<string | null>(null);
-	const nightScene = $derived(activeScene !== null && NIGHT_SCENES.has(activeScene));
-	const withScene = $derived(!simple);
-
-	// Scene mood and gestures from the published state: a service down or a major
-	// incident is critical, anything degraded or any open incident is a warning.
-	const sceneSnapshot = $derived.by((): { tone: SceneTone; snapshot: MoodSnapshot } | null => {
-		if (!status) return null;
-		const items = status.groups.flatMap((g) => g.items);
-		const down = new Set(items.filter((i) => i.state === 'down').map((i) => `item:${i.key}`));
-		const open = status.incidents.filter((i) => !isClosed(i.status));
-		const issues = new Set([
-			...down,
-			...items.filter((i) => i.state === 'degraded').map((i) => `item:${i.key}`),
-			...open.map((i) => `incident:${i.starts_at}:${i.title}`)
-		]);
-		const tone = toneFrom({
-			down: down.size,
-			critical: open.filter((i) => i.severity === 'major').length,
-			warnings: issues.size
-		});
-		return { tone, snapshot: { down, issues } };
-	});
-	$effect(() => {
-		const current = sceneSnapshot;
-		if (current) live.feed(current.snapshot);
-	});
-	const sceneTone = $derived(live.tone ?? sceneSnapshot?.tone ?? 'ok');
-
-	// The sentence on the scene keeps its last word in the tone's colour.
-	const TONE_WORD: Record<string, string> = {
-		signal: 'text-signal-ink',
-		advisory: 'text-advisory-ink',
-		warning: 'text-warning-ink',
-		info: 'text-info-ink',
-		ghost: 'text-ink-2'
-	};
-	const TONE_VAR: Record<string, string> = {
-		signal: 'var(--c-signal)',
-		advisory: 'var(--c-advisory)',
-		warning: 'var(--c-warning)',
-		info: 'var(--c-info)'
-	};
-	const BAR_TONE: Record<string, string> = {
-		signal: 'border-signal/30 bg-signal-soft',
-		advisory: 'border-advisory/35 bg-advisory-soft',
-		warning: 'border-warning/35 bg-warning-soft',
-		info: 'border-info/30 bg-info-soft',
-		ghost: 'border-line bg-surface-2'
-	};
-	const labelHead = $derived(banner ? banner.label.slice(0, banner.label.lastIndexOf(' ') + 1) : '');
-	const labelTail = $derived(banner ? banner.label.slice(banner.label.lastIndexOf(' ') + 1) : '');
 
 	// One line above the services: counts by state and the mean uptime over the bars' days.
 	const tally = $derived.by(() => {
@@ -282,7 +222,7 @@
 	{/if}
 {/snippet}
 
-{#snippet services(compact: boolean)}
+{#snippet services()}
 	{#if status}
 		<section class="rise-in mt-8" style="--rise-delay: 120ms" aria-labelledby="services">
 			<div class="flex items-baseline justify-between gap-3">
@@ -295,7 +235,7 @@
 			{#if serviceCount === 0}
 				<EmptyState class="mt-3" icon={Megaphone} title={m.status_public_no_service_title()} description={m.status_public_no_service_description()} />
 			{:else}
-				<div class={`mt-3 grid ${compact ? 'gap-3' : 'gap-4'}`}>
+				<div class="mt-3 grid gap-4">
 					{#each status.groups as group (group.name)}
 						<div class="rounded-[var(--radius-card)] border border-line bg-surface shadow-lift">
 							{#if group.name}
@@ -303,7 +243,7 @@
 							{/if}
 							<ul class="divide-y divide-line" role="list">
 								{#each group.items as item (item.label)}
-									<ServiceRow {item} {days} {windowSecs} {stepSecs} {periodLabel} onselectday={compact ? undefined : showDay} {compact} />
+									<ServiceRow {item} {days} {windowSecs} {stepSecs} {periodLabel} onselectday={showDay} />
 								{/each}
 							</ul>
 						</div>
@@ -357,173 +297,89 @@
 	</footer>
 {/snippet}
 
-<div class={`min-h-full bg-canvas text-ink ${error || loading || !status || !withScene ? 'border-t-4 border-accent' : ''} ${accentClass(status?.page.accent)}`}>
-	{#if !error && !loading && status && banner && withScene}
-		<!-- Banner scene: the head of the page sits on the city, the column starts on its fade. -->
-		<div
-			class="relative h-[380px] overflow-hidden sm:h-[570px]"
-			style={`--scene-tone: ${TONE_VAR[bannerTone] ?? 'var(--c-signal)'}`}
-		>
-			<SceneBackdrop scenes={sceneIds} rotation={status.page.scene_rotation} mood={sceneTone} pulse={live.pulse} bind:active={activeScene} />
-			<div class={`relative z-[2] mx-auto w-full max-w-3xl px-4 pt-6 sm:px-6 ${nightScene ? 'tokens-night' : ''}`}>
-				<header class="flex flex-wrap items-center gap-x-4 gap-y-2">
-					<div class="flex min-w-0 items-center gap-3">
-						{#if status.page.logo_url}
-							<img src={status.page.logo_url} alt={status.page.brand_name ?? ''} class="size-10 shrink-0 rounded-lg object-contain" />
-						{/if}
-						<div class="min-w-0">
-							{#if status.page.brand_name && status.page.brand_name !== status.page.title}
-								<p class="text-xs font-semibold text-ink-2 [overflow-wrap:anywhere]">{status.page.brand_name}</p>
-							{/if}
-							<h1 class="text-lg leading-tight font-semibold tracking-tight break-words text-ink">{status.page.title}</h1>
-							{#if status.page.description}
-								<p class="max-w-prose text-xs text-ink-2">{status.page.description}</p>
-							{/if}
-						</div>
-					</div>
-					<div class="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-2">
-						{#if lastChecked}
-							<span class="hidden sm:inline">{m.status_public_checked()} <time class="tnum" datetime={lastChecked.toISOString()} title={formatDateTime(lastChecked)}>{formatRelative(lastChecked)}</time></span>
-						{/if}
-						{#if status.page.homepage_url}
-							<a class="inline-flex min-h-10 items-center gap-1 font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink sm:min-h-0" href={withBase(status.page.homepage_url)} rel="noopener noreferrer nofollow">
-								{homepageHost(status.page.homepage_url)}
-								<ExternalLink class="size-3" aria-hidden="true" />
-							</a>
-						{/if}
-						<a class="inline-flex min-h-10 items-center font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink sm:min-h-0" href={withBase(`/api/public/status/${encodeURIComponent(status.page.slug)}/rss`)}>{m.status_public_rss()}</a>
-						{#if status.page.subscribe}
-							<a class="inline-flex min-h-10 items-center font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink sm:min-h-0" href="#updates">{m.status_public_email()}</a>
-						{/if}
-					</div>
-				</header>
-
-				<section class="hero-block rise-in relative mt-8 max-w-[21rem] sm:mt-12 sm:max-w-md" aria-live="polite" aria-label={m.status_public_current_status()}>
-					<Plate tone={bannerTone} size="md" label={banner.plate} />
-					<p class="display mt-3 text-3xl text-balance text-ink sm:text-5xl">
-						{labelHead}<span class={TONE_WORD[bannerTone] ?? 'text-ink'}>{labelTail}</span>
-					</p>
-				</section>
+<div class={`min-h-full bg-canvas text-ink border-t-4 border-accent ${accentClass(status?.page.accent)}`}>
+	<main class="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
+		{#if error && notFound}
+			<EmptyState mascot="dizzy" title={m.status_public_not_found_title()} description={m.status_public_not_found_description()} />
+		{:else if error && gate}
+			<AccessGate {slug} access={gate} onunlocked={() => { error = null; loading = true; void load(); }} />
+		{:else if error}
+			<ErrorNotice {error} title={m.status_public_load_error()} onretry={() => void load()} />
+		{:else if loading || !status || !banner}
+			<div class="grid gap-6" aria-busy="true" aria-label={m.status_public_loading()}>
+				<Skeleton class="h-9 w-2/3" />
+				<Skeleton class="h-20 w-full" />
+				<Skeleton class="h-28 w-full" />
+				<Skeleton class="h-28 w-full" />
 			</div>
-		</div>
+		{:else}
+			<header class="rise-in flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+				<div class="flex min-w-0 items-center gap-4">
+					{#if status.page.logo_url}
+						<img src={status.page.logo_url} alt={status.page.brand_name ?? ''} class="size-12 shrink-0 rounded-lg object-contain sm:size-14" />
+					{/if}
+					<div class="min-w-0">
+						{#if status.page.brand_name && status.page.brand_name !== status.page.title}
+							<p class="text-sm font-semibold text-ink-2 [overflow-wrap:anywhere]">{status.page.brand_name}</p>
+						{/if}
+						<h1 class="display text-3xl break-words text-ink sm:text-4xl">{status.page.title}</h1>
+						{#if status.page.description}
+							<p class="mt-1.5 max-w-prose text-base text-ink-2">{status.page.description}</p>
+						{/if}
+					</div>
+				</div>
+				{#if status.page.homepage_url}
+					<a
+						class="inline-flex min-h-10 items-center gap-1.5 rounded-md py-1 text-sm font-semibold text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
+						href={withBase(status.page.homepage_url)}
+						rel="noopener noreferrer nofollow"
+					>
+						{homepageHost(status.page.homepage_url)}
+						<ExternalLink class="size-3.5" aria-hidden="true" />
+					</a>
+				{/if}
+				{#if simple}
+					<button
+						type="button"
+						class="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-sm font-semibold text-ink hover:border-line-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+						onclick={() => theme.toggle()}
+						aria-label={theme.resolved === 'dark' ? m.status_public_switch_light() : m.status_public_switch_dark()}
+					>
+						{#if theme.resolved === 'dark'}<Sun class="size-4" aria-hidden="true" />{m.status_public_light()}{:else}<Moon class="size-4" aria-hidden="true" />{m.status_public_dark()}{/if}
+					</button>
+				{/if}
+			</header>
 
-		<main class="relative z-[3] mx-auto -mt-[34px] w-full max-w-3xl px-4 pb-16 sm:px-6">
-			{#if tally.total > 0}
-				<section
-					class={`rise-in flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-[var(--radius-card)] border px-4 py-3.5 font-semibold shadow-lift sm:px-5 ${BAR_TONE[bannerTone] ?? BAR_TONE.signal}`}
-					style="--rise-delay: 40ms"
-				>
-					<p class="text-base text-ink sm:text-lg">{tally.headline}</p>
-					<p class="tnum text-xs font-medium text-ink-2">{tally.detail}</p>
-				</section>
+			<!-- Overall banner: the one-second answer. -->
+			<section
+				class={`rise-in mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border px-4 py-4 shadow-lift sm:px-5 ${bannerTone === 'signal' ? 'border-signal/30 bg-signal-soft' : bannerTone === 'advisory' ? 'border-advisory/35 bg-advisory-soft' : bannerTone === 'warning' ? 'border-warning/35 bg-warning-soft' : 'border-info/30 bg-info-soft'}`}
+				style="--rise-delay: 40ms"
+				aria-live="polite"
+				aria-label={m.status_public_current_status()}
+			>
+				<div class="flex min-w-0 items-center gap-3">
+					<Plate tone={bannerTone} size="md" label={banner.plate} />
+					<p class="display text-xl text-ink sm:text-2xl">
+						{#if simple}{banner.label}{:else}<DecryptText text={banner.label} tag="span" />{/if}
+					</p>
+				</div>
+				{#if lastChecked}
+					<p class="text-[0.8125rem] text-ink-2">
+						{m.status_public_checked()} <time class="tnum" datetime={lastChecked.toISOString()} title={formatDateTime(lastChecked)}>{formatRelative(lastChecked)}</time>
+					</p>
+				{/if}
+			</section>
+
+			{#if !simple}
+				<StatusMascot tone={bannerTone} />
 			{/if}
+
 			{@render announcements()}
-			{@render services(true)}
+			{@render services()}
 			{@render pastIncidents()}
 			<StatusUpdates slug={status.page.slug} kinds={status.page.subscribe_kinds ?? []} services={subscribeServices} />
-			{@render pageFooter()}
-		</main>
-	{:else}
-		<main class="mx-auto w-full max-w-3xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
-			{#if error && notFound}
-				<EmptyState mascot="dizzy" title={m.status_public_not_found_title()} description={m.status_public_not_found_description()} />
-			{:else if error && gate}
-				<AccessGate {slug} access={gate} onunlocked={() => { error = null; loading = true; void load(); }} />
-			{:else if error}
-				<ErrorNotice {error} title={m.status_public_load_error()} onretry={() => void load()} />
-			{:else if loading || !status || !banner}
-				<div class="grid gap-6" aria-busy="true" aria-label={m.status_public_loading()}>
-					<Skeleton class="h-9 w-2/3" />
-					<Skeleton class="h-20 w-full" />
-					<Skeleton class="h-28 w-full" />
-					<Skeleton class="h-28 w-full" />
-				</div>
-			{:else}
-				<header class="rise-in flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
-					<div class="flex min-w-0 items-center gap-4">
-						{#if status.page.logo_url}
-							<img src={status.page.logo_url} alt={status.page.brand_name ?? ''} class="size-12 shrink-0 rounded-lg object-contain sm:size-14" />
-						{/if}
-						<div class="min-w-0">
-							{#if status.page.brand_name && status.page.brand_name !== status.page.title}
-								<p class="text-sm font-semibold text-ink-2 [overflow-wrap:anywhere]">{status.page.brand_name}</p>
-							{/if}
-							<h1 class="display text-3xl break-words text-ink sm:text-4xl">{status.page.title}</h1>
-							{#if status.page.description}
-								<p class="mt-1.5 max-w-prose text-base text-ink-2">{status.page.description}</p>
-							{/if}
-						</div>
-					</div>
-					{#if status.page.homepage_url}
-						<a
-							class="inline-flex min-h-10 items-center gap-1.5 rounded-md py-1 text-sm font-semibold text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent"
-							href={withBase(status.page.homepage_url)}
-							rel="noopener noreferrer nofollow"
-						>
-							{homepageHost(status.page.homepage_url)}
-							<ExternalLink class="size-3.5" aria-hidden="true" />
-						</a>
-					{/if}
-					{#if simple}
-						<button
-							type="button"
-							class="inline-flex min-h-10 items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-sm font-semibold text-ink hover:border-line-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-							onclick={() => theme.toggle()}
-							aria-label={theme.resolved === 'dark' ? m.status_public_switch_light() : m.status_public_switch_dark()}
-						>
-							{#if theme.resolved === 'dark'}<Sun class="size-4" aria-hidden="true" />{m.status_public_light()}{:else}<Moon class="size-4" aria-hidden="true" />{m.status_public_dark()}{/if}
-						</button>
-					{/if}
-				</header>
+		{/if}
 
-				<!-- Overall banner: the one-second answer. -->
-				<section
-					class={`rise-in mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border px-4 py-4 shadow-lift sm:px-5 ${bannerTone === 'signal' ? 'border-signal/30 bg-signal-soft' : bannerTone === 'advisory' ? 'border-advisory/35 bg-advisory-soft' : bannerTone === 'warning' ? 'border-warning/35 bg-warning-soft' : 'border-info/30 bg-info-soft'}`}
-					style="--rise-delay: 40ms"
-					aria-live="polite"
-				>
-					<div class="flex min-w-0 items-center gap-3">
-						<Plate tone={bannerTone} size="md" label={banner.plate} />
-						<p class="display text-xl text-ink sm:text-2xl">
-							{#if simple}{banner.label}{:else}<DecryptText text={banner.label} tag="span" />{/if}
-						</p>
-					</div>
-					{#if lastChecked}
-						<p class="text-[0.8125rem] text-ink-2">
-							{m.status_public_checked()} <time class="tnum" datetime={lastChecked.toISOString()} title={formatDateTime(lastChecked)}>{formatRelative(lastChecked)}</time>
-						</p>
-					{/if}
-				</section>
-
-				{#if !simple}
-					<StatusMascot tone={bannerTone} />
-				{/if}
-
-				{@render announcements()}
-				{@render services(false)}
-				{@render pastIncidents()}
-				<StatusUpdates slug={status.page.slug} kinds={status.page.subscribe_kinds ?? []} services={subscribeServices} />
-			{/if}
-
-			{@render pageFooter()}
-		</main>
-	{/if}
+		{@render pageFooter()}
+	</main>
 </div>
-
-<style>
-	/* A soft veil in the canvas colour behind the title and the plate: whatever
-	   the scene draws there (storm clouds, a sun, a landmark) stays a backdrop. */
-	.hero-block::before {
-		content: '';
-		position: absolute;
-		z-index: -1;
-		inset: -2.25rem -3.5rem -1.75rem -3rem;
-		pointer-events: none;
-				background: radial-gradient(
-			ellipse closest-side at 50% 50%,
-			color-mix(in srgb, var(--c-canvas) 86%, transparent) 0%,
-			color-mix(in srgb, var(--c-canvas) 72%, transparent) 55%,
-			transparent 100%
-		);
-	}
-</style>

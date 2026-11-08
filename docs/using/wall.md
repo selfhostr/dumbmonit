@@ -28,13 +28,13 @@ shows the whole fleet.
 ## Backdrop
 
 The wall shares the console's dark look. The **Backdrop** button (top right,
-next to Exit) can draw one of the [status pages](status-pages.md)' night cities
-behind the verdict and the clock: Paris, New York, Tokyo or Dubai, or *Auto* for
-the closest to the browser's time zone. It is off by default and remembered per
-browser; `?city=paris` (or `newyork`, `tokyo`, `dubai`, `none`) on a link
-chooses it for that display only. The sky follows the board: stars when all is
-well, clouds on an advisory, a storm on a warning. On a phone, or while the tab
-is hidden, the city holds still. A saved or linked `zermatt` now lands on Dubai.
+next to Exit) can draw Paris behind the verdict and the clock, or leave a plain
+board (*None*). Paris is the default and the choice is remembered per browser;
+`?city=paris` (or `none`) on a link chooses it for that display only. A saved or
+linked choice for a retired backdrop (New York, Tokyo, Dubai, *Auto*) lands on
+Paris. The sky follows the board: stars when all is well, clouds on an advisory,
+a storm on a warning. On a phone, or while the tab is hidden, the city holds
+still.
 
 ## Music on the wall {#music-on-the-wall}
 

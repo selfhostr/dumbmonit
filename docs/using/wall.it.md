@@ -27,16 +27,14 @@ l'intera flotta.
 
 ## Sfondo {#backdrop}
 
-La parete condivide l'aspetto scuro della console. Il pulsante **Sfondo** (in
-alto a destra, accanto a Exit) può disegnare una delle città di notte delle
-[pagine di stato](status-pages.md) dietro al verdetto e all'orologio: Parigi,
-New York, Tokyo o Dubai, oppure *Auto* per la più vicina al fuso orario del
-browser. È spento per impostazione predefinita e ricordato per browser;
-`?city=paris` (o `newyork`, `tokyo`, `dubai`, `none`) in un link lo sceglie solo
-per quello schermo. Il cielo segue il quadro: stelle quando va tutto bene,
-nuvole con un avviso, temporale con un allarme. Su un telefono, o con la scheda
-nascosta, la città resta ferma. Uno `zermatt` salvato o in un link ora porta a
-Dubai.
+Il muro condivide l'aspetto scuro della console. Il pulsante **Backdrop** (in
+alto a destra, accanto a Exit) può disegnare Parigi dietro il verdetto e
+l'orologio, oppure lasciare un pannello semplice (*None*). Parigi è la scelta
+predefinita, ricordata per browser; `?city=paris` (o `none`) in un link la
+sceglie solo per quello schermo. Una scelta salvata o collegata di uno sfondo
+ritirato (New York, Tokyo, Dubai, *Auto*) ricade su Parigi. Il cielo segue il
+pannello: stelle quando tutto va bene, nuvole su un avviso, tempesta su un
+allarme. Su un telefono, o a scheda nascosta, la città resta ferma.
 
 ## Musica sul wall {#music-on-the-wall}
 

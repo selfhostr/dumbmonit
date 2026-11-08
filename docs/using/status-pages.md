@@ -26,7 +26,7 @@ links forward here.
 | **Description** | One sentence under the title. Optional. |
 | **Theme** | Day, night, or follow the visitor's system. |
 | **History** | The period the history bars cover: 24 hours, 7, 30, 60 or 90 days. See [The history bar](#the-history-bar). A page never says more than this — see [Badges](#badges). |
-| **Simple mode** | A plain page: no scene, no mascot, no animation and no easter eggs. Light or dark follows the visitor's system, with a toggle in the header; the page's Theme setting is ignored. |
+| **Simple mode** | A plain page: no mascot, no animation and no easter eggs. Light or dark follows the visitor's system, with a toggle in the header; the page's Theme setting is ignored. |
 | **Daily calendar** | Off by default. Adds a 90-day calendar under the services: one small cell per day, all services combined. See [The 90-day calendar](#the-90-day-calendar). |
 | **Response times** | Off by default. Adds a small response-time graph (24 h / 7 days) to each service that has latency data. See [Response times](#response-times). |
 | **Published** | Off = draft: the page, its badges and its logo answer "not found" to visitors until you switch it on. |
@@ -66,16 +66,6 @@ opening it to arbitrary code:
 | **Accent** | Ink (default), blue, teal, violet, rose or amber — the top rule, the links and the subscribe button. Each one is chosen to stay readable by day and by night. |
 | **Organisation website** | An `http://` or `https://` link shown next to the title, as the site's host name. |
 | **Footer text** | Plain text under the page, up to 280 characters: who runs it, how to reach them. Line breaks are kept; nothing is interpreted as HTML or Markdown. |
-
-### Scene
-
-The **Scene** setting draws a city skyline behind the banner. New pages start with Paris,
-and existing pages that had no scene now show it too; untick it for a plain
-banner, or turn on **Simple mode** to drop scenes altogether. Pick as many as you like, in the order you want them. Four scenes ship, all four cities at night under the moon and the stars, their landmark lit: Paris (the Eiffel Tower), Tokyo (Tokyo Tower), New York (the Empire State and Chrysler buildings) and Dubai (the Burj Khalifa). The weather follows the page: a clear starry sky when all is well, clouds on a warning, a storm when something is down. Being night scenes, the title and status over them always use the dark colours, whatever the page theme. Dubai replaced the Matterhorn: pages that showed it (or one of the scenes folded onto it) now show Dubai. Pages that used one of the retired scenes (the other cities, the wonders, the Swiss towns and the playful ones) were moved to the nearest of the four: European cities and the ancient world to Paris, Asia and the sea or space scenes to Tokyo, the Americas to New York, the Alps and the north to Dubai; the same goes for backups and API calls that still name them. With more than one, **Rotation** decides when the page
-moves to the next: at every visit (default), every minute, every ten minutes or
-every hour. The scenes are a closed set of drawings shipped with DumbMonit —
-nothing is uploaded or interpreted. The same four cities can also sit behind the [wall](wall.md#backdrop)'s verdict
-(**Backdrop**).
 
 There is deliberately no custom CSS or HTML: a status page is public and lives
 on the same origin as your admin interface, under the same
