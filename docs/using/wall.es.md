@@ -28,16 +28,14 @@ porque muestra toda la flota.
 
 ## Fondo {#backdrop}
 
-La pared comparte el aspecto oscuro de la consola. El botón **Fondo** (arriba a
-la derecha, junto a Exit) puede dibujar una de las ciudades de noche de las
-[páginas de estado](status-pages.md) detrás del veredicto y el reloj: París,
-Nueva York, Tokio o Dubái, o *Auto* para la más cercana a la zona horaria del
-navegador. Está desactivado por defecto y se recuerda por navegador;
-`?city=paris` (o `newyork`, `tokyo`, `dubai`, `none`) en un enlace lo elige solo
-para esa pantalla. El cielo sigue al tablero: estrellas cuando todo va bien,
-nubes con un aviso, tormenta con una alerta. En un teléfono, o con la pestaña
-oculta, la ciudad se queda quieta. Un `zermatt` guardado o en un enlace cae ahora
-en Dubái.
+El muro comparte el aspecto oscuro de la consola. El botón **Backdrop** (arriba
+a la derecha, junto a Exit) puede dibujar París detrás del veredicto y el reloj,
+o dejar un tablero liso (*None*). París es la opción por defecto y la elección
+se recuerda por navegador; `?city=paris` (o `none`) en un enlace la elige solo
+para esa pantalla. Una elección guardada o enlazada de un fondo retirado (Nueva
+York, Tokio, Dubái, *Auto*) acaba en París. El cielo sigue al tablero: estrellas
+cuando todo va bien, nubes ante un aviso, tormenta ante una alerta. En un móvil,
+o con la pestaña oculta, la ciudad se queda quieta.
 
 ## Música en la pared {#music-on-the-wall}
 

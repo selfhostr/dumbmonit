@@ -4,7 +4,7 @@
 	 * the page itself (title, address, description, theme, history, published),
 	 * its services (search to add, then rename, group and order them in a list
 	 * that is always visible), its appearance (logo, accent, footer, link,
-	 * what the page shows, the banner scene) and the subscribers / domain
+	 * what the page shows) and the subscribers / domain
 	 * settings. Nothing is folded away. A sticky bar keeps Save in reach and
 	 * says when something is not saved yet. Saves the page, its logo, then its
 	 * services.
@@ -26,7 +26,6 @@
 		type StatusPageAccess,
 		type StatusPageSeo,
 		type StatusPageAccent,
-		type StatusPageSceneRotation,
 		type StatusPageTheme,
 		type Target
 	} from '#lib/api/index.js';
@@ -39,9 +38,6 @@
 	import SeoSection from './SeoSection.svelte';
 	import { pageUrl } from './seo';
 	import { PERIOD_CHOICES } from './period';
-	import SceneDefs from './scenes/SceneDefs.svelte';
-	import { SCENE_CHOICES, SCENE_COMPONENTS, SCENE_ROTATIONS } from './scenes/registry';
-	import { DEFAULT_SCENE } from './scenes/nightScene';
 
 	interface Props {
 		/** `null` creates a page. */
@@ -74,12 +70,9 @@
 	let accessError = $state<string | null>(null);
 	let showDays = $state(initial?.show_uptime_days ?? 90);
 	let accent = $state<StatusPageAccent>(initial?.accent ?? 'default');
-	// Banner scenes in the order they were ticked; none keeps the plain page. New pages start on one.
-	let scenes = $state<string[]>([...(initial?.scenes ?? [DEFAULT_SCENE])]);
 	let simple = $state(initial?.simple ?? false);
 	let showCalendar = $state(initial?.show_calendar ?? false);
 	let showLatency = $state(initial?.show_latency ?? false);
-	let sceneRotation = $state<StatusPageSceneRotation>(initial?.scene_rotation ?? 'visit');
 	let footerText = $state(initial?.footer_text ?? '');
 	let homepageUrl = $state(initial?.homepage_url ?? '');
 	let subscribeChannel = $state<number | null>(initial?.subscribe_channel_id ?? null);
@@ -144,14 +137,6 @@
 	}
 
 	let homepageError = $state<string | null>(null);
-
-	// The scene picker shows the chosen scenes; "Change" opens the grid of the four scenes.
-	let scenePickerOpen = $state(false);
-	const chosenScenes = $derived(scenes.flatMap((id) => SCENE_CHOICES.filter((c) => c.value === id)));
-
-	function toggleScene(id: string, on: boolean) {
-		scenes = on ? [...scenes.filter((s) => s !== id), id] : scenes.filter((s) => s !== id);
-	}
 
 	// Picker state: per target, whether it is shown and how.
 	let picks = $state<Map<number, ServicePick>>(
@@ -220,8 +205,6 @@
 			accessPassword,
 			showDays,
 			accent,
-			scenes,
-			sceneRotation,
 			simple,
 			showCalendar,
 			showLatency,
@@ -309,8 +292,6 @@
 				published,
 				show_uptime_days: showDays,
 				accent,
-				scenes,
-				scene_rotation: sceneRotation,
 				simple,
 				show_calendar: showCalendar,
 				show_latency: showLatency,
@@ -592,7 +573,7 @@
 		{/if}
 	</Panel>
 
-	<!-- 3. Appearance: branding on the left; the scene and what the page shows on the right. -->
+	<!-- 3. Appearance: branding on the left; what the page shows on the right. -->
 	<Panel title={m.status_edit_section_appearance()} description={m.status_edit_section_appearance_help()}>
 		<div class="grid items-start gap-x-8 gap-y-6 lg:grid-cols-2">
 			<fieldset class="grid gap-5" disabled={saving}>
@@ -644,70 +625,6 @@
 			</fieldset>
 
 			<div class="grid min-w-0 gap-6 lg:border-l lg:border-line lg:pl-8">
-				<fieldset class="grid min-w-0 gap-3" disabled={saving || simple}>
-					<legend class={`${SUBHEAD} mb-1.5`}>{m.status_form_scene()}</legend>
-					<p class="text-[0.8125rem] text-ink-2">{m.status_form_scene_help_default()}</p>
-					{#if simple}
-						<p class="text-[0.8125rem] text-advisory-ink">{m.status_edit_scene_simple()}</p>
-					{/if}
-					<SceneDefs />
-					<div class="flex flex-wrap items-center gap-3">
-						{#if chosenScenes.length === 0}
-							<p class="text-sm text-ink-2">{m.status_form_scene_none_default()}</p>
-						{/if}
-						{#each chosenScenes as choice, index (choice.value)}
-							{@const Preview = SCENE_COMPONENTS[choice.value]}
-							<span class="grid w-32 gap-1 rounded-lg border border-ink bg-surface-2 p-1.5">
-								<span class="relative block h-14 overflow-hidden rounded-md border border-line" aria-hidden="true"><Preview /></span>
-								<span class="flex items-center justify-between gap-1 px-0.5 text-sm text-ink">
-									<span class="truncate">{choice.label}</span>
-									{#if chosenScenes.length > 1}<span class="text-[0.6875rem] font-semibold text-ink-2">{index + 1}</span>{/if}
-								</span>
-							</span>
-						{/each}
-						<Button variant="secondary" size="sm" onclick={() => (scenePickerOpen = !scenePickerOpen)} aria-expanded={scenePickerOpen}>
-							{scenePickerOpen ? m.status_form_scene_done() : m.status_form_scene_change()}
-						</Button>
-					</div>
-					{#if scenePickerOpen}
-						<div class="grid grid-cols-2 gap-3">
-							{#each SCENE_CHOICES as choice (choice.value)}
-								{@const Preview = SCENE_COMPONENTS[choice.value]}
-								{@const rank = scenes.indexOf(choice.value)}
-								<label
-									class={`group relative grid cursor-pointer gap-1.5 rounded-lg border p-1.5 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${rank >= 0 ? 'border-ink bg-surface-2' : 'border-line hover:border-line-strong'}`}
-								>
-									<input
-										type="checkbox"
-										class="sr-only"
-										checked={rank >= 0}
-										onchange={(event) => toggleScene(choice.value, event.currentTarget.checked)}
-									/>
-									<span class="relative block h-20 overflow-hidden rounded-md border border-line" aria-hidden="true">
-										<Preview />
-									</span>
-									<span class="flex items-center justify-between gap-2 px-0.5 text-sm text-ink">
-										{choice.label}
-										{#if rank >= 0}
-											<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[0.6875rem] font-semibold text-canvas" aria-label={scenes.length > 1 ? m.status_form_scene_position({ position: rank + 1 }) : m.status_form_scene_selected()}>
-												{scenes.length > 1 ? rank + 1 : '✓'}
-											</span>
-										{/if}
-									</span>
-								</label>
-							{/each}
-						</div>
-					{/if}
-					{#if scenes.length > 1}
-						<Field label={m.status_form_rotation()} for="{idPrefix}-rotation" help={m.status_form_rotation_help()}>
-							<select id="{idPrefix}-rotation" class="input" bind:value={sceneRotation} disabled={saving}>
-								{#each SCENE_ROTATIONS as option (option.value)}
-									<option value={option.value}>{option.label}</option>
-								{/each}
-							</select>
-						</Field>
-					{/if}
-				</fieldset>
 				<div class="grid gap-1.5">
 					<span class={SUBHEAD} aria-hidden="true">{m.status_edit_appearance_shows()}</span>
 					<ul class="divide-y divide-line rounded-lg border border-line">

@@ -27,7 +27,7 @@ ellas; el editor se abre en su propia ruta (`/settings/status/new`,
 | **Description** | Una frase bajo el título. Opcional. |
 | **Theme** | Day, night, o sigue el sistema del visitante. |
 | **History** | La ventana más larga que cubre la barra de historial (30, 60 o 90 días). La barra se adapta a la antigüedad de los datos de la página: muestra tantos días como el servicio más antiguo ha sido monitorizado, desde 7 días hasta este ajuste. Una página nunca dice más que esto — consulta [Badges](#badges). |
-| **Simple mode** | Una página plana: sin escena, sin mascota, sin animación y sin huevos de pascua. Claro u oscuro sigue el sistema del visitante, con un interruptor en la cabecera; el ajuste Theme de la página se ignora. |
+| **Simple mode** | Una página plana: sin mascota, sin animación y sin huevos de pascua. Claro u oscuro sigue el sistema del visitante, con un interruptor en la cabecera; el ajuste Theme de la página se ignora. |
 | **Published** | Desactivado = borrador: la página, sus badges y su logo responden «not found» a los visitantes hasta que la activas. |
 
 Luego marca los monitores a mostrar. Para cada uno, define la
@@ -51,27 +51,6 @@ abrirla a código arbitrario:
 | **Accent** | Ink (por defecto), blue, teal, violet, rose o amber — la línea superior, los enlaces y el botón de suscripción. Cada uno se elige para seguir siendo legible de día y de noche. |
 | **Organisation website** | Un enlace `http://` o `https://` mostrado junto al título, como el nombre de host del sitio. |
 | **Footer text** | Texto plano bajo la página, hasta 280 caracteres: quién la gestiona, cómo contactarlos. Los saltos de línea se conservan; nada se interpreta como HTML o Markdown. |
-
-### Scene
-
-El ajuste **Scene** dibuja un horizonte de ciudad detrás del banner. Las
-páginas nuevas empiezan con París; desmárcalo para un banner liso, o activa
-**Simple mode** para prescindir de las escenas. Elige tantas como quieras, en el
-orden que quieras. Se incluyen cuatro escenas, cuatro ciudades de noche bajo la
-luna y las estrellas, con su monumento iluminado: París (la torre Eiffel),
-Tokio (la Tokyo Tower), Nueva York (el Empire State y el edificio Chrysler) y
-Dubái (el Burj Khalifa). El tiempo sigue a la página: cielo estrellado cuando
-todo va bien, nubes con un aviso, tormenta cuando algo está caído. Al ser
-escenas nocturnas, el título y el estado encima usan siempre los colores
-oscuros, sea cual sea el tema de la página. Dubái sustituye al Cervino, y las
-páginas que usaban una escena retirada pasaron a la más cercana de las cuatro
-(ciudades europeas y mundo antiguo a París, Asia, el mar y el espacio a Tokio,
-las Américas a Nueva York, los Alpes y el norte a Dubái), copias de seguridad y
-llamadas a la API incluidas. Con más de una, **Rotation** decide cuándo pasa la
-página a la siguiente: en cada visita (por defecto), cada minuto, cada diez
-minutos o cada hora. Las escenas son un conjunto cerrado de dibujos incluidos
-con DumbMonit — no se sube ni se interpreta nada. Las mismas cuatro ciudades
-pueden ir también detrás del veredicto de la [pared](wall.md).
 
 Deliberadamente no hay CSS o HTML personalizado: una página de estado
 es pública y vive en el mismo origen que tu interfaz de

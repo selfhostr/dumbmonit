@@ -1,4 +1,4 @@
-// The wall's world: Paris by default, four cities, `none` as an explicit choice, old choices folded. Run: npm test
+// The wall's world: Paris by default, `none` as an explicit choice, retired backdrops folded onto Paris. Run: npm test
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -6,8 +6,6 @@ import {
 	writeWallScene,
 	parseForcedWallScene,
 	resolveWallScene,
-	cityForTimeZone,
-	cityHasDay,
 	DEFAULT_WALL_SCENE
 } from '../src/lib/components/wall/wallScene.ts';
 
@@ -27,17 +25,17 @@ test('nothing saved, or junk, is Paris', () => {
 	assert.equal(resolveWallScene(readWallScene()), 'paris');
 });
 
-test('a saved Zermatt or Matterhorn lands on Dubai', () => {
-	store.set('dumbmonit-wall-city', 'zermatt');
-	assert.equal(readWallScene(), 'dubai');
-	assert.equal(parseForcedWallScene('matterhorn'), 'dubai');
+test('every retired backdrop, and auto, lands on Paris', () => {
+	for (const old of ['auto', 'newyork', 'tokyo', 'dubai', 'zermatt', 'matterhorn', 'london', 'rome', 'hongkong', 'kyoto', 'rio']) {
+		store.set('dumbmonit-wall-city', old);
+		assert.equal(readWallScene('none'), 'paris', old);
+		assert.equal(parseForcedWallScene(old), 'paris', old);
+	}
 });
 
 test('choices round-trip, and a plain board is a stored choice', () => {
-	writeWallScene('tokyo');
-	assert.equal(readWallScene(), 'tokyo');
-	writeWallScene('auto');
-	assert.equal(readWallScene(), 'auto');
+	writeWallScene('paris');
+	assert.equal(readWallScene('none'), 'paris');
 	writeWallScene('none');
 	assert.equal(store.get('dumbmonit-wall-city'), 'none');
 	assert.equal(readWallScene(), 'none');
@@ -46,23 +44,7 @@ test('choices round-trip, and a plain board is a stored choice', () => {
 
 test('a ?city= value names a choice, junk names nothing', () => {
 	assert.equal(parseForcedWallScene('none'), 'none');
-	assert.equal(parseForcedWallScene('newyork'), 'newyork');
+	assert.equal(parseForcedWallScene('paris'), 'paris');
 	assert.equal(parseForcedWallScene('atlantis'), null);
 	assert.equal(parseForcedWallScene(null), null);
-});
-
-test('only Paris is drawn by day', () => {
-	assert.equal(cityHasDay('paris'), true);
-	assert.equal(cityHasDay('tokyo'), false);
-	assert.equal(cityHasDay(null), false);
-});
-
-test('auto follows the time zone, none draws nothing', () => {
-	assert.equal(resolveWallScene('none'), null);
-	assert.equal(resolveWallScene('paris', 'Asia/Tokyo'), 'paris');
-	assert.equal(resolveWallScene('auto', 'Asia/Dubai'), 'dubai');
-	assert.equal(cityForTimeZone('Asia/Tokyo'), 'tokyo');
-	assert.equal(cityForTimeZone('America/Chicago'), 'newyork');
-	assert.equal(cityForTimeZone('Europe/Zurich'), 'paris');
-	assert.equal(cityForTimeZone(undefined), 'paris');
 });

@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import {
 	weatherFor,
 	sceneMoodFor,
-	nightToneFor,
 	weatherForTone,
 	parseForcedWeather
 } from '../src/lib/components/wall/wallWeather.ts';
@@ -31,9 +30,8 @@ test('two critical alerts, or three things down or critical, are a thunderstorm'
 	assert.equal(weatherFor(sky(5, 0, 3)), 'thunder');
 });
 
-test('each scene family reads the weather in its own words', () => {
+test('the scene reads the weather in its own words', () => {
 	assert.deepEqual(['clear', 'cloudy', 'rain', 'thunder'].map(sceneMoodFor), ['calm', 'clouded', 'storm', 'storm']);
-	assert.deepEqual(['clear', 'cloudy', 'rain', 'thunder'].map(nightToneFor), ['ok', 'warn', 'critical', 'critical']);
 	assert.deepEqual(['ok', 'warn', 'critical'].map(weatherForTone), ['clear', 'cloudy', 'thunder']);
 });
 
