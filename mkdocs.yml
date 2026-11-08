@@ -25,9 +25,8 @@ theme:
   custom_dir: overrides
   logo: assets/logo.svg
   favicon: assets/logo.svg
-  font:
-    text: Geist
-    code: Geist Mono
+  # Inter and JetBrains Mono are self-hosted (assets/fonts.css): no Google Fonts request.
+  font: false
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -49,6 +48,7 @@ theme:
     - content.code.copy
 
 extra_css:
+  - assets/fonts.css
   - assets/extra.css
 
 markdown_extensions:
