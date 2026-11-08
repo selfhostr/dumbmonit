@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} está em baixo.",
-	"console_banner_egg": "O pombo deu uma cambalhota. Disponibilidade intacta.",
 	"console_banner_empty": "Ainda nada para monitorizar.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Estado",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Cutucar o pombo",
 	"console_banner_sent": "Alerta enviado.",
 	"console_banner_up_of": "{up} de {total} monitores ativos.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "AO VIVO",
 	"console_live_off": "Atualizações em direto em pausa. Selecione para retomar.",
 	"console_live_on": "Atualizações em direto ativas. Selecione para pausar.",
-	"console_new_monitor": "Novo monitor",
 	"console_panel_attention": "Requer atenção",
 	"console_panel_oncall": "Prevenção",
 	"console_panel_oncall_unknown": "Alguém",

@@ -8,10 +8,10 @@
 	 * the logo and the name lead home and a "close the menu" icon sits at the
 	 * right (Ctrl/⌘ B does the same). The choice is remembered in this browser.
 	 * Settings, wall mode, the docs, GitHub and the account share the foot of
-	 * the rail. Above the page a header: the pigeon (asleep, watching or on
-	 * alert, like the network), the breadcrumb, LIVE, the client picker in MSP
-	 * mode, the time range on the Overview, the command palette and the main
-	 * action.
+	 * the rail. Above the page a header: the pigeon with one line of status
+	 * (asleep, watching or on alert, like the network), the breadcrumb, LIVE,
+	 * the client picker in MSP mode, the time range on the Overview and the
+	 * command palette (Ctrl/⌘ K).
 	 *
 	 * Phones get the same five destinations as a bottom tab bar and the account
 	 * in the header; wall mode and the docs are in Settings there.
@@ -23,14 +23,14 @@
 	import { tick, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { scale } from 'svelte/transition';
-	import { BookOpen, Building2, PanelLeftClose, PanelLeftOpen, Plus, Search, Tv } from 'lucide-svelte';
+	import { BookOpen, PanelLeftClose, PanelLeftOpen, Search, Tv } from 'lucide-svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { alertsStore } from '#lib/stores/alerts.svelte.js';
 	import { palette } from '#lib/stores/palette.svelte.js';
 	import { instanceStore } from '#lib/stores/instance.svelte.js';
 	import { CONSOLE_RANGES, consoleState } from '#lib/stores/console.svelte.js';
-	import { calmMotion, sparkle } from '#lib/ui/index.js';
+	import { calmMotion } from '#lib/ui/index.js';
 	import UserMenu from '#lib/components/UserMenu.svelte';
 	import GithubMark from '#lib/components/GithubMark.svelte';
 	import Logo from '#lib/components/Logo.svelte';
@@ -38,7 +38,7 @@
 	import VersionTag from '#lib/components/VersionTag.svelte';
 	import { isTypingTarget } from '#lib/palette/logic.js';
 	import PigeonStatus from './PigeonStatus.svelte';
-	import { CLIENTS_ENTRY, NAV, homeHref, isActive, visible, type NavEntry } from './nav.js';
+	import { NAV, homeHref, isActive, visible, type NavEntry } from './nav.js';
 
 	/** `banner`: notices drawn above the top bar, in the page column (demo, cleartext session). */
 	let { children, banner }: { children: Snippet; banner?: Snippet } = $props();
@@ -106,7 +106,6 @@
 	const current = $derived(entries.find((entry) => isActive(entry, path)) ?? null);
 	const onOverview = $derived(path === '/');
 	const home = $derived(homeHref());
-	const showClients = $derived(visible(CLIENTS_ENTRY));
 	// Accounts limited by their teams have no wall (the layout sends them back).
 	const showWall = $derived(!auth.scoped);
 	// Not on the wall (a kiosk with nothing to spare at its edges) nor on the Status pages.
@@ -147,8 +146,6 @@
 		`rail-item relative flex h-10 w-full min-w-0 items-center gap-3 rounded-[10px] px-2.5 text-sm font-medium transition-colors duration-150 ${active ? 'bg-surface-2 text-ink' : 'text-ink-2 hover:bg-surface-2 hover:text-ink'}`;
 	/** Unfolded, the name sits beside the icon; folded, it becomes the tooltip. */
 	const labelClass = $derived(expanded ? 'rail-label min-w-0 flex-1 truncate text-left' : 'rail-tip');
-	const iconButton =
-		'flex size-10 shrink-0 items-center justify-center rounded-lg text-ink-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink';
 </script>
 
 {#snippet railLink(entry: NavEntry)}
@@ -267,8 +264,7 @@
 	<div class="flex min-w-0 flex-1 flex-col">
 		{@render banner?.()}
 		<header class="vt-nav-top sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-canvas/95 px-4 backdrop-blur sm:gap-3 sm:px-5">
-			<!-- The Overview's banner already shows the pigeon. -->
-			{#if !onOverview}<PigeonStatus />{/if}
+			<PigeonStatus />
 			<nav aria-label={m.console_breadcrumb()} class="flex min-w-0 items-center gap-2 text-sm text-ink-2">
 				<span class="truncate max-sm:hidden">{instanceStore.displayName}</span>
 				{#if current || offRail}
@@ -300,11 +296,6 @@
 			<div class="ml-auto flex min-w-0 items-center gap-2">
 				<!-- MSP mode: which client every page shows (hidden when there is nothing to pick). -->
 				<div class="empty:hidden max-sm:hidden"><ClientSwitcher id="client-switcher-console" /></div>
-				{#if showClients}
-					<a href={withBase(CLIENTS_ENTRY.href)} class={`${iconButton} max-sm:hidden`} aria-label={CLIENTS_ENTRY.label()} title={CLIENTS_ENTRY.label()}>
-						<Building2 class="size-[18px]" strokeWidth={1.75} aria-hidden="true" />
-					</a>
-				{/if}
 				{#if onOverview}
 					<div role="group" aria-label={m.console_range()} class="flex h-10 overflow-hidden rounded-lg border border-line max-md:hidden">
 						{#each CONSOLE_RANGES as range (range)}
@@ -320,25 +311,14 @@
 				<button
 					type="button"
 					onclick={() => palette.open()}
-					class="flex h-10 w-10 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-ink-2 transition-colors duration-150 hover:text-ink lg:w-72 lg:justify-start"
+					class="flex h-10 w-10 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-2.5 text-ink-2 transition-colors duration-150 hover:text-ink lg:w-80 lg:justify-start xl:w-[28rem]"
 					aria-label={m.misc_nav_palette_open()}
+					aria-keyshortcuts="Control+K Meta+K"
 				>
 					<Search class="size-4 shrink-0" aria-hidden="true" />
 					<span class="flex-1 truncate text-left text-sm max-lg:hidden">{m.console_search_placeholder()}</span>
 					<kbd class="rounded border border-line-strong px-1.5 py-px font-mono text-[0.6875rem] text-ink-2 max-lg:hidden">{palette.shortcutLabel}</kbd>
 				</button>
-				<!-- Monitors and the add page carry their own "Add a monitor": no second one up here. -->
-				{#if auth.isAdmin && path !== '/targets' && !path.startsWith('/targets/new')}
-					<a
-						href={withBase('/targets/new')}
-						use:sparkle
-						class="flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-on-primary transition-[filter] duration-150 hover:brightness-110 max-sm:px-0"
-						aria-label={m.console_new_monitor()}
-					>
-						<Plus class="size-4 sm:hidden" aria-hidden="true" />
-						<span class="max-sm:hidden">{m.console_new_monitor()}</span>
-					</a>
-				{/if}
 				<div class="sm:hidden"><UserMenu /></div>
 			</div>
 		</header>
