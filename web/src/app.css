@@ -1,7 +1,6 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/bricolage-grotesque/opsz.css';
-@import '@fontsource-variable/geist/wght.css';
-@import '@fontsource-variable/geist-mono/wght.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 @import 'uplot/dist/uPlot.min.css';
 
 /* The manual toggle puts the `dark` class on <html>; `prefers-color-scheme`
@@ -72,8 +71,8 @@
 
 	/* The console's two faces, on every page: charts and stacked tables read
 	   them too, so no axis ever falls back to the status pages' display face. */
-	--font-ui: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-code: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+	--font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-code: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
 html.dark,
@@ -238,7 +237,7 @@ html.obsidian body {
 	font-size: 0.8125rem;
 }
 
-/* Bricolage's display voice belongs to the bulletin; the console speaks Geist. */
+/* The console's headings share the bulletin's face, only tighter. */
 html.obsidian .display {
 	font-variation-settings: normal;
 	letter-spacing: -0.02em;
@@ -248,7 +247,7 @@ html.obsidian :where(code, kbd, pre, samp, .font-mono) {
 	font-family: var(--font-code);
 }
 
-/* `font-sans` is the status pages' display face; the console speaks Geist only. */
+/* `font-sans` is the status pages' display face; the console speaks one face. */
 html.obsidian .font-sans {
 	font-family: var(--font-ui);
 }
@@ -346,12 +345,8 @@ html.obsidian .font-sans {
 	--shadow-lift: var(--shadow-lift);
 	--shadow-float: var(--shadow-float);
 
-	--font-sans:
-		'Bricolage Grotesque Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
-		sans-serif;
-	--font-mono:
-		ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono',
-		monospace;
+	--font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
 	--radius-plate: 6px;
 	--radius-card: 14px;
@@ -413,9 +408,6 @@ body {
 	background-color: var(--c-canvas);
 	color: var(--c-ink);
 	font-family: var(--font-sans);
-	font-optical-sizing: auto;
-	font-variation-settings: 'wdth' 100;
-	font-feature-settings: 'ss01', 'cv11';
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	caret-color: var(--c-signal);
@@ -461,15 +453,12 @@ time,
 	font-variant-numeric: tabular-nums;
 }
 
-/* Display type: the bulletin voice. Bricolage opens up at large optical sizes. */
+/* Display type: the bulletin voice, Inter semibold. */
 .display {
 	font-weight: 600;
 	letter-spacing: -0.025em;
 	line-height: 1.02;
 	text-wrap: balance;
-	font-variation-settings:
-		'wdth' 100,
-		'opsz' 96;
 }
 
 .label-tape {

@@ -125,7 +125,7 @@
 		return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 	}
 
-	/** Axes and labels speak the interface face (Geist), never the status pages' display face. */
+	/** Axes and labels speak the interface face (Inter), never the status pages' display face. */
 	function uiFont(): string {
 		return cssVar('--font-ui') || 'system-ui, sans-serif';
 	}

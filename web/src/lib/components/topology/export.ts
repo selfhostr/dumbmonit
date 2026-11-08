@@ -80,7 +80,7 @@ export function sheetSvg(sheet: SVGSVGElement): string {
 	const { w, h } = viewBoxSize(clone.getAttribute('viewBox'));
 	clone.setAttribute('width', String(w));
 	clone.setAttribute('height', String(h));
-	clone.setAttribute('font-family', "'Bricolage Grotesque Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif");
+	clone.setAttribute('font-family', "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif");
 	return `<?xml version="1.0" encoding="UTF-8"?>\n${xmlSafe(new XMLSerializer().serializeToString(clone))}`;
 }
 

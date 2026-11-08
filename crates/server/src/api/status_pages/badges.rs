@@ -81,7 +81,7 @@ pub(super) fn render(label: &str, value: &str, colour: &str) -> String {
             "<rect width=\"{label_w}\" height=\"20\" fill=\"{label_bg}\"/>",
             "<rect x=\"{label_w}\" width=\"{value_w}\" height=\"20\" fill=\"{colour}\"/></g>",
             "<g fill=\"#fff\" text-anchor=\"middle\" ",
-            "font-family=\"Verdana,Geneva,DejaVu Sans,sans-serif\" font-size=\"11\">",
+            "font-family=\"Inter,system-ui,-apple-system,Segoe UI,sans-serif\" font-size=\"11\">",
             "<text x=\"{label_x}\" y=\"14\">{label}</text>",
             "<text x=\"{value_x}\" y=\"14\">{value}</text></g></svg>"
         ),
