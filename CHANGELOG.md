@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Changed
+
+- **One typeface family everywhere: Inter and JetBrains Mono.** The console, the status pages, the
+  topology exports and the documentation now use Inter (headings in semibold) and JetBrains Mono
+  for code and figures, replacing Geist and Bricolage Grotesque. Both are open source (SIL OFL 1.1)
+  and served from DumbMonit itself; the documentation no longer loads anything from Google Fonts.
+
 ## 0.17.1 — 2026-11-04
 
 ### Changed

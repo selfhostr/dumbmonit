@@ -2,6 +2,8 @@
    Dark is the reference (near-black ground, cool grey ink); light is its
    daytime counterpart with the same hues and the same sober borders. */
 :root {
+  --md-text-font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --md-code-font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --dm-radius: 6px;
   --dm-radius-card: 10px;
   --dm-info: #7da9ff;
@@ -127,7 +129,7 @@ input {
 .md-typeset code,
 .md-typeset kbd,
 .md-typeset pre {
-  font-family: var(--md-code-font-family), ui-monospace, monospace;
+  font-family: var(--md-code-font-family);
 }
 
 .md-typeset .highlight,

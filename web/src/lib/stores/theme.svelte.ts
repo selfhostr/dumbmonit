@@ -1,7 +1,7 @@
 /**
  * Light / dark theme.
  *
- * The app is one console (the `obsidian` class on `<html>`: Geist, the
+ * The app is one console (the `obsidian` class on `<html>`: Inter, the
  * console's tokens). It is deep black by default; Settings › Appearance can
  * turn it light (`console-light` alongside `obsidian`) or make it follow the
  * system. The wall, a room monitor, stays dark. That choice is kept per
