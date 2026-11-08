@@ -64,8 +64,7 @@ The dev server needs the Rust server running (`docker compose -f docker-compose.
 API calls. Never run two `vite build`s at once: they share `.svelte-kit/output`.
 
 To see a page as CI and users see it, use the headless browser skill in
-`web/tools/README.md` (Chromium + puppeteer in Docker,
-screenshots of every route in both themes and both viewports).
+`web/tools/README.md` (Chromium + puppeteer in Docker).
 
 ## Branches
 
@@ -293,7 +292,7 @@ restarts`, `docs: ...`, `chore(deps): ...`. Scopes are free-form; the crate or
 area name is a good one.
 
 **Pull requests**: one topic per PR. Small and focused beats large and complete.
-UI changes include before/after screenshots (light and dark). Fill in the PR
+Fill in the PR
 template; link the issue if there is one.
 
 **Code language**: comments in the Rust crates are in French — that is the
