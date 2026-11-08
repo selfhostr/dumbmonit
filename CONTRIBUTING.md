@@ -63,9 +63,6 @@ npm run build      # static build into web/build, embedded by rust_embed at carg
 The dev server needs the Rust server running (`docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`) to answer
 API calls. Never run two `vite build`s at once: they share `.svelte-kit/output`.
 
-To see a page as CI and users see it, use the headless browser skill in
-`web/tools/README.md` (Chromium + puppeteer in Docker).
-
 ## Branches
 
 - **`dev`** is where work lands: open pull requests against `dev`. Every push

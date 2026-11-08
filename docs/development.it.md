@@ -158,17 +158,6 @@ vengono copiate come `tag_*`.
    titolo il cui slug corrisponda all'ancora `doc_url`: l'interfaccia rimanda
    direttamente a quell'ancora nella documentazione online.
 
-## Screenshot headless
-
-`web/tools/README.md` descrive come renderizzare ogni pagina in un Chromium
-headless eseguito in Docker (`zenika/alpine-chrome:with-puppeteer`, nessun
-browser locale necessario): accedi con `curl` per ottenere il cookie
-`dumbmonit_session`, poi esegui `web/tools/screenshot.js` sul server di anteprima
-o direttamente su `:8080`. Scrive `web/shots/<page>-<theme>-<viewport>.png` per
-entrambi i temi e entrambi i viewport, ed è così che l'interfaccia viene
-controllata dopo una modifica e così sono stati realizzati gli screenshot di
-questa documentazione.
-
 ## Documentazione
 
 Questo sito è costruito con MkDocs e Material for MkDocs a partire da `docs/`

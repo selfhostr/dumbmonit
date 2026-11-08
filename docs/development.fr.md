@@ -159,17 +159,6 @@ comme `tag_*`.
    rubrique dont le slug correspond à l'ancre `doc_url` : l'interface Web
    établit directement un lien vers cette ancre dans la documentation en ligne.
 
-## Captures d'écran sans tête
-
-`web/tools/README.md` décrit comment rendre chaque page
-dans un Chromium sans tête s'exécutant dans Docker (`zenika/alpine-chrome:with-puppeteer`,
-aucun navigateur local nécessaire) : connectez-vous avec `curl` pour obtenir le
-cookie `dumbmonit_session`, puis exécutez `web/tools/screenshot.js` contre le
-serveur d'aperçu ou directement contre `:8080`. Elle écrit
-`web/shots/<page>-<theme>-<viewport>.png` pour les deux thèmes et les deux
-fenêtres de visualisation, c'est ainsi que l'interface Web est vérifiée après
-un changement et comment les captures d'écran de cette documentation ont été prises.
-
 ## Documentation
 
 Ce site est construit avec MkDocs et Material for MkDocs à partir de `docs/`

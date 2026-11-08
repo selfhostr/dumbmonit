@@ -167,18 +167,6 @@ listadas para el tipo en `api/collectors.rs` no se copian como `tag_*`.
    un encabezado cuyo slug coincida con el ancla `doc_url`: la UI enlaza
    directamente a ese ancla en la documentación en línea.
 
-## Capturas sin interfaz {#headless-screenshots}
-
-`web/tools/README.md` describe cómo renderizar cada página en un
-Chromium sin interfaz ejecutándose en Docker
-(`zenika/alpine-chrome:with-puppeteer`, sin necesidad de navegador
-local): inicia sesión con `curl` para obtener la cookie
-`dumbmonit_session`, y luego ejecuta `web/tools/screenshot.js` contra el
-servidor de vista previa o directamente contra `:8080`. Escribe
-`web/shots/<page>-<theme>-<viewport>.png` para ambos temas y ambos
-viewports, que es cómo se comprueba la UI tras un cambio y cómo se
-hicieron las capturas de esta documentación.
-
 ## Documentación {#documentation}
 
 Este sitio se construye con MkDocs y Material for MkDocs desde `docs/`

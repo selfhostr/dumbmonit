@@ -136,7 +136,7 @@ pub struct PlakarReport {
 /// configuration où Plakar doit résoudre un éventuel `@nom`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Kloset {
-    /// Étiquette `kloset` des séries : `@diskext`, `/home/noe/.plakar`, ou la
+    /// Étiquette `kloset` des séries : `@diskext`, `~/.plakar`, ou la
     /// valeur explicite de la configuration.
     pub label: String,
     /// Argument de `plakar at`.

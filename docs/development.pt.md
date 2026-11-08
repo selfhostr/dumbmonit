@@ -160,17 +160,6 @@ opções listadas para o tipo em `api/collectors.rs` não são copiadas como
    cujo slug corresponda à âncora `doc_url`: a interface liga diretamente a essa
    âncora na documentação online.
 
-## Capturas de ecrã sem interface {#headless-screenshots}
-
-O `web/tools/README.md` descreve como renderizar todas as páginas num Chromium
-sem interface a correr no Docker (`zenika/alpine-chrome:with-puppeteer`, sem
-precisar de navegador local): inicie sessão com `curl` para obter o cookie
-`dumbmonit_session`, depois execute `web/tools/screenshot.js` contra o servidor
-de pré-visualização ou diretamente contra `:8080`. Escreve
-`web/shots/<page>-<theme>-<viewport>.png` para ambos os temas e ambas as
-janelas de visualização, que é como a interface é verificada após uma alteração
-e como foram feitas as capturas de ecrã desta documentação.
-
 ## Documentação {#documentation}
 
 Este site é construído com MkDocs e Material for MkDocs a partir de `docs/`

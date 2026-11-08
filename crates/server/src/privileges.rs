@@ -777,13 +777,13 @@ mod tests {
     #[test]
     fn messages_selon_la_cause() {
         let dir = Path::new("/data");
-        let bind = MountKind::Bind("/home/noe/dumbmonit".into());
+        let bind = MountKind::Bind("/home/me/dumbmonit".into());
 
         // Bind mount à root, image en 65532 : d'abord `--user 0:0`, puis chown sur l'hôte.
         let text = explain_not_writable(dir, &diagnosis(Some((0, 0, 0o755)), bind.clone()));
         assert!(text.contains("--user 0:0"), "{text}");
         assert!(text.find("--user 0:0") < text.find("sudo chown"), "{text}");
-        assert!(text.contains("sudo chown -R 65532:65532 /home/noe/dumbmonit"), "{text}");
+        assert!(text.contains("sudo chown -R 65532:65532 /home/me/dumbmonit"), "{text}");
         assert!(text.contains(":Z"), "{text}");
         assert!(!text.contains("docker run --rm -v"), "{text}");
 
