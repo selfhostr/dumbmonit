@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} está caído.",
-	"console_banner_egg": "La paloma dio una voltereta. El uptime sigue intacto.",
 	"console_banner_empty": "Todavía no hay nada que vigilar.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Estado",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Tocar a la paloma",
 	"console_banner_sent": "Alerta enviada.",
 	"console_banner_up_of": "{up} de {total} monitores activos.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "EN VIVO",
 	"console_live_off": "Actualización en vivo en pausa. Selecciona para reanudar.",
 	"console_live_on": "Actualización en vivo activa. Selecciona para pausar.",
-	"console_new_monitor": "Nuevo monitor",
 	"console_panel_attention": "Requiere atención",
 	"console_panel_oncall": "Guardia",
 	"console_panel_oncall_unknown": "Alguien",

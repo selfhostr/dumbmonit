@@ -828,7 +828,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} 已宕机。",
-	"console_banner_egg": "鸽子转了个圈。可用性不受影响。",
 	"console_banner_empty": "暂无监控对象。",
 	"console_banner_held": [
 		{
@@ -858,7 +857,6 @@
 			}
 		}
 	],
-	"console_banner_label": "状态",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -873,7 +871,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "戳一下鸽子",
 	"console_banner_sent": "告警已发送。",
 	"console_banner_up_of": "{total} 个监控项中 {up} 个正常。",
 	"console_banner_waiting": [
@@ -907,7 +904,6 @@
 	"console_live": "实时",
 	"console_live_off": "实时更新已暂停。选择以恢复。",
 	"console_live_on": "实时更新已开启。选择以暂停。",
-	"console_new_monitor": "新建监控项",
 	"console_panel_attention": "需要关注",
 	"console_panel_oncall": "值班",
 	"console_panel_oncall_unknown": "某人",
