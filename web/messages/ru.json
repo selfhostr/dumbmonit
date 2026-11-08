@@ -867,7 +867,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} не работает.",
-	"console_banner_egg": "Голубь сделал бочку. Аптайм не пострадал.",
 	"console_banner_empty": "Пока нечего отслеживать.",
 	"console_banner_held": [
 		{
@@ -903,7 +902,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Состояние",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -921,7 +919,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Ткнуть голубя",
 	"console_banner_sent": "Оповещение отправлено.",
 	"console_banner_up_of": "Работают {up} из {total} мониторов.",
 	"console_banner_waiting": [
@@ -958,7 +955,6 @@
 	"console_live": "ОНЛАЙН",
 	"console_live_off": "Обновления приостановлены. Нажмите, чтобы продолжить.",
 	"console_live_on": "Обновления включены. Нажмите, чтобы приостановить.",
-	"console_new_monitor": "Новый монитор",
 	"console_panel_attention": "Требует внимания",
 	"console_panel_oncall": "Дежурство",
 	"console_panel_oncall_unknown": "Кто-то",

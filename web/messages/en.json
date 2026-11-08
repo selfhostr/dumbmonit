@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} is down.",
-	"console_banner_egg": "The pigeon did a barrel roll. Uptime unaffected.",
 	"console_banner_empty": "Nothing to watch yet.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Status",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Poke the pigeon",
 	"console_banner_sent": "Alert sent.",
 	"console_banner_up_of": "{up} of {total} monitors up.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "LIVE",
 	"console_live_off": "Live updates paused. Select to resume.",
 	"console_live_on": "Live updates on. Select to pause.",
-	"console_new_monitor": "New monitor",
 	"console_panel_attention": "Needs attention",
 	"console_panel_oncall": "On call",
 	"console_panel_oncall_unknown": "Someone",

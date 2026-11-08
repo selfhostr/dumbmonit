@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} è giù.",
-	"console_banner_egg": "Il piccione ha fatto un avvitamento. Uptime invariato.",
 	"console_banner_empty": "Ancora niente da monitorare.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Stato",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Stuzzica il piccione",
 	"console_banner_sent": "Avviso inviato.",
 	"console_banner_up_of": "{up} monitor su {total} attivi.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "LIVE",
 	"console_live_off": "Aggiornamenti in tempo reale in pausa. Seleziona per riprendere.",
 	"console_live_on": "Aggiornamenti in tempo reale attivi. Seleziona per mettere in pausa.",
-	"console_new_monitor": "Nuovo monitor",
 	"console_panel_attention": "Richiede attenzione",
 	"console_panel_oncall": "Reperibilità",
 	"console_panel_oncall_unknown": "Qualcuno",

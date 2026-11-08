@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} est hors service.",
-	"console_banner_egg": "Le pigeon a fait un tonneau. Disponibilité intacte.",
 	"console_banner_empty": "Rien à surveiller pour l’instant.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "État",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Chatouiller le pigeon",
 	"console_banner_sent": "Alerte envoyée.",
 	"console_banner_up_of": "{up} moniteurs sur {total} en service.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "DIRECT",
 	"console_live_off": "Mises à jour en direct en pause. Sélectionnez pour reprendre.",
 	"console_live_on": "Mises à jour en direct actives. Sélectionnez pour mettre en pause.",
-	"console_new_monitor": "Nouveau moniteur",
 	"console_panel_attention": "À traiter",
 	"console_panel_oncall": "Astreinte",
 	"console_panel_oncall_unknown": "Quelqu'un",

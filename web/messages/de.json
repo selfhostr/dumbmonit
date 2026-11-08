@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} ist ausgefallen.",
-	"console_banner_egg": "Die Taube hat eine Rolle gedreht. Verfügbarkeit unberührt.",
 	"console_banner_empty": "Noch nichts zu überwachen.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Status",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Die Taube anstupsen",
 	"console_banner_sent": "Alarm gesendet.",
 	"console_banner_up_of": "{up} von {total} Monitoren in Betrieb.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "LIVE",
 	"console_live_off": "Live-Aktualisierung pausiert. Zum Fortsetzen auswählen.",
 	"console_live_on": "Live-Aktualisierung aktiv. Zum Pausieren auswählen.",
-	"console_new_monitor": "Neuer Monitor",
 	"console_panel_attention": "Braucht Aufmerksamkeit",
 	"console_panel_oncall": "Bereitschaft",
 	"console_panel_oncall_unknown": "Jemand",
