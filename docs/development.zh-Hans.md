@@ -153,16 +153,6 @@ timestamp_ms)`带`.with_label(k, v)`;身份标签(`target`、`host`、
    标题其 slug 匹配`doc_url`锚点:UI 链接直接到
    那个锚点在在线文档中。
 
-## 无头截图 {#headless-screenshots}
-
-`web/tools/README.md`描述如何呈现每个页面
-在 Docker 中运行的无头 Chromium(`zenika/alpine-chrome:with-puppeteer`,
-无需本地浏览器):用`curl`登录以获取`dumbmonit_session`
-cookie,然后针对预览服务器运行`web/tools/screenshot.js`或
-直接对`:8080`。它写`web/shots/<page>-<theme>-<viewport>.png`
-用于两个主题和两个视口,这是如何 UI 被检查后
-改变以及如何这个文档的截图被制作。
-
 ## 文档 {#documentation}
 
 此站点由 MkDocs 和 Material for MkDocs 从`docs/`构建

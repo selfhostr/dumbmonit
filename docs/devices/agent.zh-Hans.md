@@ -680,7 +680,7 @@ plakar_bin: /usr/bin/plakar          # 默认："plakar" 在 PATH 上
 plakar_klosets:                      # 明确列表：覆盖发现
   - /srv/backups/main
   - "@diskext"                       # 代理账户的命名存储
-plakar_home: /home/noe               # 可选：HOME（及配置目录）当运行 plakar 时使用
+plakar_home: /home/user              # 可选：HOME（及配置目录）当运行 plakar 时使用
 plakar_interval_secs: 600            # 最小 60
 ```
 

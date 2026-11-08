@@ -149,15 +149,6 @@ erhalten, und die für die Art in `api/collectors.rs` aufgeführten Optionen wer
    Überschrift, deren Slug zum `doc_url`-Anker passt: Die Oberfläche verlinkt direkt auf diesen
    Anker in der Online-Dokumentation.
 
-## Headless-Screenshots {#headless-screenshots}
-
-`web/tools/README.md` beschreibt, wie jede Seite in einem headless Chromium gerendert wird, der
-in Docker läuft (`zenika/alpine-chrome:with-puppeteer`, kein lokaler Browser nötig): Mit `curl`
-anmelden, um das Cookie `dumbmonit_session` zu erhalten, dann `web/tools/screenshot.js` gegen
-den Preview-Server oder direkt gegen `:8080` ausführen. Es schreibt
-`web/shots/<page>-<theme>-<viewport>.png` für beide Themes und beide Viewports; so wird die
-Oberfläche nach einer Änderung geprüft und so entstanden die Screenshots dieser Dokumentation.
-
 ## Dokumentation {#documentation}
 
 Diese Website wird mit MkDocs und Material for MkDocs aus `docs/` gebaut (`mkdocs.yml` im

@@ -154,16 +154,6 @@ kept as `exported_<name>`, and the options listed for the kind in
    heading whose slug matches the `doc_url` anchor: the UI links straight to
    that anchor in the online documentation.
 
-## Headless screenshots
-
-`web/tools/README.md` describes how to render every page
-in a headless Chromium running in Docker (`zenika/alpine-chrome:with-puppeteer`,
-no local browser needed): log in with `curl` to get the `dumbmonit_session`
-cookie, then run `web/tools/screenshot.js` against the preview server or
-directly against `:8080`. It writes `web/shots/<page>-<theme>-<viewport>.png`
-for both themes and both viewports, which is how the UI is checked after a
-change and how the screenshots of this documentation were made.
-
 ## Documentation
 
 This site is built with MkDocs and Material for MkDocs from `docs/`

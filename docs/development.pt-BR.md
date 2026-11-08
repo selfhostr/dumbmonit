@@ -161,17 +161,6 @@ timestamp_ms)` com `.with_label(k, v)`; rótulos de identidade (`target`,
    título cujo slug corresponda à âncora `doc_url`: a interface liga
    diretamente para essa âncora na documentação online.
 
-## Capturas de tela headless {#headless-screenshots}
-
-`web/tools/README.md` descreve como renderizar toda página em um Chromium
-headless rodando no Docker (`zenika/alpine-chrome:with-puppeteer`, sem
-necessidade de navegador local): faça login com `curl` para obter o
-cookie `dumbmonit_session`, depois execute `web/tools/screenshot.js`
-contra o servidor de preview ou diretamente contra `:8080`. Ele escreve
-`web/shots/<page>-<theme>-<viewport>.png` para ambos os temas e ambos os
-viewports, que é como a interface é verificada após uma mudança e como as
-capturas de tela desta documentação foram feitas.
-
 ## Documentação {#documentation}
 
 Este site é construído com MkDocs e Material for MkDocs a partir de

@@ -1020,7 +1020,7 @@ plakar_bin: /usr/bin/plakar          # default: "plakar" on PATH
 plakar_klosets:                      # explicit list: overrides discovery
   - /srv/backups/main
   - "@diskext"                       # a named store of the agent's account
-plakar_home: /home/noe               # optional: HOME (and config dir) used when running plakar
+plakar_home: /home/user              # optional: HOME (and config dir) used when running plakar
 plakar_interval_secs: 600            # minimum 60
 ```
 

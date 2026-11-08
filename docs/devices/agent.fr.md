@@ -1402,7 +1402,7 @@ plakar_bin: /usr/bin/plakar          # défaut : "plakar" sur PATH
 plakar_klosets:                      # liste explicite : remplace la découverte
   - /srv/backups/main
   - "@diskext"                       # un store nommé du compte de l'agent
-plakar_home: /home/noe               # optionnel : HOME (et répertoire de config) utilisé pour lancer plakar
+plakar_home: /home/user              # optionnel : HOME (et répertoire de config) utilisé pour lancer plakar
 plakar_interval_secs: 600            # minimum 60
 ```
 
