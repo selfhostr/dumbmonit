@@ -29,7 +29,7 @@ use async_trait::async_trait;
 use dumbmonit_proto::{Collector, ProbeError, Sample, Target};
 use tracing::debug;
 
-use super::mailbox::{self, Aborted, MAX_LINE_BYTES, Security};
+use super::mailbox::{self, Aborted, MAX_LINE_BYTES, Security, truncated};
 use super::outcome::{Failure, Report};
 use super::session::{Deadline, LineReader, Stream};
 use options::Options;
@@ -228,11 +228,6 @@ fn quote(text: &str) -> String {
     }
     out.push('"');
     out
-}
-
-/// Texte de serveur raccourci pour le journal.
-fn truncated(text: &str) -> String {
-    text.chars().take(120).collect()
 }
 
 #[cfg(test)]

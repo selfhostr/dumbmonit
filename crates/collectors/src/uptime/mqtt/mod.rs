@@ -49,6 +49,7 @@ use tracing::debug;
 
 use super::outcome::{Failure, Report};
 use super::session::{self, Deadline, SessionError, Stream};
+use super::truncate;
 use options::Options;
 use packet::{ConnectReturn, PacketError, Publication};
 
@@ -219,13 +220,6 @@ async fn session_exchange(
         return Err(Aborted);
     }
     Ok(())
-}
-
-fn truncate(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_string();
-    }
-    format!("{}…", text.chars().take(max).collect::<String>())
 }
 
 /// Attend le `SUBACK`, en acceptant qu'une publication le précède.

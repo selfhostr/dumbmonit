@@ -37,25 +37,9 @@ export function formatAgo(seconds: number | null | undefined): string {
 	return m.devicesb_opnsense_format_ago({ span: formatSpan(delta) });
 }
 
-/** A plain count, grouped: "1 204". */
-export function formatCount(value: number | null | undefined): string {
-	if (value === null || value === undefined || !Number.isFinite(value)) return '—';
-	return Math.round(value).toLocaleString('en-US').replace(/,/g, ' ');
-}
+export { formatGroupedCount as formatCount } from '#lib/format.js';
 
-/** Binary sizes, as the interface counters report them. */
-export function formatBytes(bytes: number | null | undefined): string {
-	if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) return '—';
-	const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
-	let value = bytes;
-	let index = 0;
-	while (value >= 1024 && index < units.length - 1) {
-		value /= 1024;
-		index += 1;
-	}
-	const digits = index === 0 || value >= 100 ? 0 : 1;
-	return `${value.toFixed(digits)} ${units[index]}`;
-}
+export { formatBinaryBytes as formatBytes } from '#lib/format.js';
 
 /** Percent of a total, or `null` when the total is missing or zero. */
 export function percentOf(used: number | null, total: number | null): number | null {

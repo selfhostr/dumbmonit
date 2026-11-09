@@ -16,14 +16,12 @@
 //! Les deux produisent exactement les mêmes séries, aux mêmes étiquettes : une
 //! règle écrite une fois vaut pour un iDRAC 8 comme pour un contrôleur de 2025.
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde_json::Value;
 
-use super::model::{Health, display_name, health, health_rollup, is_monitored, number, text};
+use crate::rest::gauge;
 
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
+use super::model::{Health, display_name, health, health_rollup, is_monitored, number, text};
 
 fn health_sample(name: &str, health: Option<Health>, ts_ms: i64) -> Option<Sample> {
     health.map(|h| gauge(name, h.value(), ts_ms))

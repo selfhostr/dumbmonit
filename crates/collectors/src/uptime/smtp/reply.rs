@@ -3,6 +3,8 @@
 //! Module purement fonctionnel — pas une socket en vue — donc entièrement
 //! vérifiable sans serveur de messagerie en face.
 
+use crate::uptime::truncate;
+
 /// Réponse complète d'un serveur SMTP, continuations rassemblées.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Reply {
@@ -58,13 +60,6 @@ impl ReplyError {
             Self::Malformed(detail) => detail.clone(),
         }
     }
-}
-
-fn truncate(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_string();
-    }
-    format!("{}…", text.chars().take(max).collect::<String>())
 }
 
 /// Une ligne de réponse : code, marqueur de continuation, texte.

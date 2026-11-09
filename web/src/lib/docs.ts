@@ -46,8 +46,3 @@ export function kindDocPage(kind: string): string {
 	const slug = kind in KIND_DOCS ? KIND_DOCS[kind] : kind;
 	return slug ? `devices/${slug}/` : 'devices/';
 }
-
-/** Page "Deploy with Active Directory" of the documentation, in the language of the UI. */
-export function adDeployDocsUrl(): string {
-	return `${docsRoot()}devices/agent-active-directory/`;
-}

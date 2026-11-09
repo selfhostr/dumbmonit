@@ -18,6 +18,7 @@
 		type Person,
 		type Schedule
 	} from '#lib/api/index.js';
+	import { pad2 } from '#lib/format.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { Button, DocLink, ErrorNotice, Plate, Skeleton } from '#lib/ui/index.js';
 
@@ -63,8 +64,7 @@
 	function firstHandoff(): string {
 		const day = new Date();
 		day.setDate(day.getDate() + ((8 - day.getDay()) % 7 || 7));
-		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}T09:00`;
+		return `${day.getFullYear()}-${pad2(day.getMonth() + 1)}-${pad2(day.getDate())}T09:00`;
 	}
 
 	function toggle(id: number, on: boolean) {

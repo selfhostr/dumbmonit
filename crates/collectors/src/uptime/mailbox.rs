@@ -19,6 +19,11 @@ use super::outcome::Report;
 use super::session::{self, Deadline, LineReader, SessionError, Stream};
 use super::tags;
 
+/// Texte de serveur raccourci pour le journal.
+pub(super) fn truncated(text: &str) -> String {
+    text.chars().take(120).collect()
+}
+
 /// Taille maximale d'une ligne de réponse.
 pub const MAX_LINE_BYTES: usize = 2048;
 
