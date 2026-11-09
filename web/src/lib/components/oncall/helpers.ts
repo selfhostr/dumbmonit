@@ -1,5 +1,6 @@
 /** Shared helpers of the on-call screens: names, colours, clocks, timezones, windows. */
 import type { Layer, Person, Window } from '#lib/api/index.js';
+import { pad2 } from '#lib/format.js';
 import { m } from '#lib/paraglide/messages.js';
 import { getLocale } from '#lib/paraglide/runtime.js';
 
@@ -37,8 +38,6 @@ export function personLook(people: Person[], id: number): string {
 	const rank = ids.indexOf(id);
 	return PERSON_LOOKS[(rank < 0 ? id : rank) % PERSON_LOOKS.length];
 }
-
-export const pad2 = (n: number) => String(n).padStart(2, '0');
 
 export function minutesToClock(minute: number): string {
 	return `${pad2(Math.floor(minute / 60))}:${pad2(minute % 60)}`;

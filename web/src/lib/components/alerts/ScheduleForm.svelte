@@ -13,6 +13,7 @@
 	import type { NthWeekday, Target, SilencePayload } from '#lib/api/index.js';
 	import { Button, Field, Panel } from '#lib/ui/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { pad2 } from '#lib/format.js';
 	import { dayName } from './helpers';
 
 	interface Props {
@@ -46,8 +47,7 @@
 
 	/** "2026-09-14T22:00" in local time, for a datetime-local default. */
 	function localInput(date: Date): string {
-		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+		return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 	}
 
 	/** The browser's own zone, which is the one the operator is thinking in. */
