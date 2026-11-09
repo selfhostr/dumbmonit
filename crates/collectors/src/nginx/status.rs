@@ -5,6 +5,8 @@
 
 use dumbmonit_proto::{MetricKind, Sample};
 
+use crate::rest::{counter, gauge};
+
 /// Les six compteurs de `stub_status`, tels que documentés par Nginx :
 /// <https://nginx.org/en/docs/http/ngx_http_stub_status_module.html>.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -73,14 +75,6 @@ fn parse_reading_writing_waiting(line: &str) -> Result<(f64, f64, f64), String> 
             raw.parse().map_err(|_| format!("invalid value after \"{expected}\": \"{raw}\""))?;
     }
     Ok((values[0], values[1], values[2]))
-}
-
-fn gauge(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Counter, ts_ms)
 }
 
 pub fn samples(status: &StubStatus, ts_ms: i64) -> Vec<Sample> {

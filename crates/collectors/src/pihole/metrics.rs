@@ -11,6 +11,8 @@ use std::collections::BTreeMap;
 use dumbmonit_proto::{MetricKind, Sample};
 use serde::Deserialize;
 
+use crate::rest::gauge;
+
 // ------------------------------------------------------------------ modèle
 
 /// `GET /api/stats/summary`.
@@ -201,10 +203,6 @@ pub struct LeasesReply {
 }
 
 // ------------------------------------------------------------------ mesures
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
 
 fn flag(value: bool) -> f64 {
     if value { 1.0 } else { 0.0 }

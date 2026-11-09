@@ -44,21 +44,14 @@ pub mod prom;
 pub mod victoria;
 
 use async_trait::async_trait;
-use dumbmonit_proto::{Collector, MetricKind, ProbeError, Sample, Target};
+use dumbmonit_proto::{Collector, ProbeError, Sample, Target};
 
+use crate::rest::{counter, gauge};
 use client::{Auth, HttpClient};
 use options::Options;
 use victoria::Flavour;
 
 pub use options::DEFAULT_REQUEST_TIMEOUT;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Counter, ts_ms)
-}
 
 fn ready_sample(name: &str, ready: bool, ts_ms: i64) -> Sample {
     gauge(name, if ready { 1.0 } else { 0.0 }, ts_ms)

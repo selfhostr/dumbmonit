@@ -29,6 +29,7 @@ use sqlx::Row;
 use sqlx::postgres::{PgConnection, PgRow};
 use tracing::debug;
 
+use crate::rest::{counter, gauge};
 use crate::uptime::session::Deadline;
 
 /// Bornes de cardinalité.
@@ -175,14 +176,6 @@ pub struct Archiver {
 }
 
 // ------------------------------------------------------------- traduction
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Counter, ts_ms)
-}
 
 fn flag(name: &str, value: bool, ts_ms: i64) -> Sample {
     gauge(name, if value { 1.0 } else { 0.0 }, ts_ms)

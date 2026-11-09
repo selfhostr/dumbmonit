@@ -41,12 +41,14 @@ pub mod protocol;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use dumbmonit_proto::{Collector, Credential, MetricKind, ProbeError, Sample, Target};
+use dumbmonit_proto::{Collector, Credential, ProbeError, Sample, Target};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpStream;
 use tracing::warn;
 
 use protocol::Session;
+
+use crate::rest::gauge;
 
 pub const DEFAULT_PORT: u16 = 3493;
 pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
@@ -134,10 +136,6 @@ fn parse_address(address: &str) -> Result<(String, Option<u16>), ProbeError> {
         Some(_) => Err(ProbeError::Config(format!("Invalid address: \"{address}\""))),
         None => Ok((rest.to_string(), None)),
     }
-}
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
 }
 
 /// L'échange complet, sur un flux déjà ouvert.

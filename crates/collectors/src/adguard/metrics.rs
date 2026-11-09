@@ -15,6 +15,8 @@ use chrono::{DateTime, Utc};
 use dumbmonit_proto::{MetricKind, Sample};
 use serde::Deserialize;
 
+use crate::rest::gauge;
+
 /// Au plus autant de listes de filtrage portent une série nommée.
 pub const MAX_FILTERS: usize = 32;
 
@@ -23,10 +25,6 @@ pub const MAX_UPSTREAMS: usize = 8;
 
 /// Longueur maximale d'une étiquette tirée d'un nom saisi par l'utilisateur.
 const MAX_LABEL: usize = 100;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
 
 fn flag(value: bool) -> f64 {
     if value { 1.0 } else { 0.0 }

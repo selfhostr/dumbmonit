@@ -14,11 +14,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde::Deserialize;
 use serde_json::Value;
 
 use crate::client_devices::Device;
+use crate::rest::gauge;
 
 use super::websocket::Issues;
 
@@ -89,10 +90,6 @@ pub struct Tuning {
     pub battery_threshold: f64,
     /// Domaines laissés hors des totaux d'entités indisponibles et inconnues.
     pub exclude_domains: Vec<String>,
-}
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
 }
 
 fn flag(value: bool) -> f64 {

@@ -14,17 +14,15 @@
 //! | `radio_channel_utilization_percent` | occupation du canal d'une radio (`ng`, `na`, `6e`) |
 //! | `wifi_clients_weak_signal` | clients Wi-Fi dont le signal est sous -75 dBm |
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde_json::Value;
+
+use crate::rest::gauge;
 
 use super::model::{DeviceState, classic_device};
 
 /// Signal en dessous duquel un client Wi-Fi décroche et ralentit (dBm).
 pub const WEAK_SIGNAL_DBM: f64 = -75.0;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
 
 fn num(value: Option<&Value>) -> Option<f64> {
     match value? {
