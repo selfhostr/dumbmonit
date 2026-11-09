@@ -194,22 +194,15 @@ impl PmgClient {
 /// ligne ». Un certificat refusé est classé en configuration, sans quoi toute
 /// passerelle en certificat auto-signé s'afficherait comme éteinte.
 fn map_transport(error: &reqwest::Error, path: &str, timeout: Duration) -> ProbeError {
-    if error.is_timeout() {
-        return ProbeError::Timeout(timeout);
-    }
-    if crate::http::is_certificate_error(error) {
-        return ProbeError::Config(
-            "TLS certificate rejected: a Proxmox Mail Gateway installation uses a \
-             self-signed certificate by default. Add the tag \"insecure_tls = true\" on \
-             the device to knowingly accept it, or install a trusted certificate on the \
-             gateway."
-                .to_string(),
-        );
-    }
-    if error.is_decode() {
-        return ProbeError::Protocol(format!("Unreadable response from {path}"));
-    }
-    ProbeError::Unreachable(format!("{path}: {}", crate::http::cause_chain(error)))
+    crate::http::map_transport(
+        error,
+        path,
+        timeout,
+        "TLS certificate rejected: a Proxmox Mail Gateway installation uses a \
+         self-signed certificate by default. Add the tag \"insecure_tls = true\" on \
+         the device to knowingly accept it, or install a trusted certificate on the \
+         gateway.",
+    )
 }
 
 /// Traduit un code de statut HTTP en `ProbeError`.

@@ -67,6 +67,30 @@ pub(crate) fn cause_chain(error: &reqwest::Error) -> String {
     message
 }
 
+/// Traduit une erreur de transport `reqwest` en `ProbeError`.
+///
+/// La distinction est structurante : seuls `Timeout` et `Unreachable` alimentent
+/// l'alerte « équipement hors ligne ». Un certificat refusé est classé en
+/// configuration (`certificate_message` explique quoi faire), sans quoi tout
+/// homelab en certificat auto-signé afficherait son équipement comme éteint.
+pub(crate) fn map_transport(
+    error: &reqwest::Error,
+    path: &str,
+    timeout: Duration,
+    certificate_message: &str,
+) -> ProbeError {
+    if error.is_timeout() {
+        return ProbeError::Timeout(timeout);
+    }
+    if is_certificate_error(error) {
+        return ProbeError::Config(certificate_message.to_string());
+    }
+    if error.is_decode() {
+        return ProbeError::Protocol(format!("Unreadable response from {path}"));
+    }
+    ProbeError::Unreachable(format!("{path}: {}", cause_chain(error)))
+}
+
 /// Vrai si l'échec de connexion vient de la validation du certificat présenté.
 ///
 /// `reqwest` range ces erreurs parmi les erreurs de connexion et n'expose pas de

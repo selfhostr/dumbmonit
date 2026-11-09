@@ -241,22 +241,15 @@ impl PveClient {
 /// configuration, sans quoi tout homelab en certificat auto-signé afficherait son
 /// hyperviseur comme éteint.
 fn map_transport(error: &reqwest::Error, path: &str, timeout: Duration) -> ProbeError {
-    if error.is_timeout() {
-        return ProbeError::Timeout(timeout);
-    }
-    if crate::http::is_certificate_error(error) {
-        return ProbeError::Config(
-            "TLS certificate rejected: a Proxmox installation uses a self-signed \
-             certificate by default. Add the tag \"insecure_tls = true\" on the device \
-             to knowingly accept it, or install a trusted certificate on the \
-             hypervisor."
-                .to_string(),
-        );
-    }
-    if error.is_decode() {
-        return ProbeError::Protocol(format!("Unreadable response from {path}"));
-    }
-    ProbeError::Unreachable(format!("{path}: {}", crate::http::cause_chain(error)))
+    crate::http::map_transport(
+        error,
+        path,
+        timeout,
+        "TLS certificate rejected: a Proxmox installation uses a self-signed \
+         certificate by default. Add the tag \"insecure_tls = true\" on the device \
+         to knowingly accept it, or install a trusted certificate on the \
+         hypervisor.",
+    )
 }
 
 /// Tournures par lesquelles Proxmox dit « cette fonctionnalité n'est pas là ».
