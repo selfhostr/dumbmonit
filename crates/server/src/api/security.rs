@@ -29,17 +29,13 @@ pub fn routes() -> Router<AppState> {
         .route("/security/settings", get(settings).put(set_settings))
 }
 
-fn internal(error: sqlx::Error) -> ApiError {
-    ApiError::Internal(error.into())
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SecuritySettings {
     pub enabled: bool,
 }
 
 async fn settings(State(state): State<AppState>) -> ApiResult<Json<SecuritySettings>> {
-    let enabled = security::setting_enabled(&state.pool).await.map_err(internal)?;
+    let enabled = security::setting_enabled(&state.pool).await?;
     Ok(Json(SecuritySettings { enabled }))
 }
 
@@ -47,7 +43,7 @@ async fn set_settings(
     State(state): State<AppState>,
     Json(payload): Json<SecuritySettings>,
 ) -> ApiResult<Json<SecuritySettings>> {
-    security::set_setting_enabled(&state.pool, payload.enabled).await.map_err(internal)?;
+    security::set_setting_enabled(&state.pool, payload.enabled).await?;
     Ok(Json(SecuritySettings { enabled: payload.enabled }))
 }
 
@@ -58,7 +54,7 @@ async fn target_security(
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
         .ok_or_else(|| ApiError::monitor_not_found(&id))?;
-    if !security::setting_enabled(&state.pool).await.map_err(internal)? {
+    if !security::setting_enabled(&state.pool).await? {
         return Ok(Json(Report::empty(target.id, &target.name, &target.kind, false, db::now())));
     }
     let facts = if security::provider_for(&target.kind).is_some() {
@@ -126,7 +122,7 @@ pub fn summarize(reports: Vec<Report>) -> Vec<SummaryRow> {
 }
 
 async fn summary(State(state): State<AppState>) -> ApiResult<Json<Summary>> {
-    if !security::setting_enabled(&state.pool).await.map_err(internal)? {
+    if !security::setting_enabled(&state.pool).await? {
         return Ok(Json(Summary { enabled: false, evaluated_at: db::now(), devices: Vec::new() }));
     }
     let reports = security::all_reports(&state).await?;

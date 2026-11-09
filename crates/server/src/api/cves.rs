@@ -38,10 +38,6 @@ pub fn routes() -> Router<AppState> {
         .route("/security/cves/ignores/{target_id}/{cve_id}", delete(remove_ignore))
 }
 
-fn internal(error: sqlx::Error) -> ApiError {
-    ApiError::Internal(error.into())
-}
-
 // ----------------------------------------------------------------- réglages
 
 #[derive(Debug, Serialize)]
@@ -59,8 +55,8 @@ pub struct CveSettingsInput {
 }
 
 async fn read_settings(state: &AppState) -> ApiResult<CveSettings> {
-    let enabled = vulns::enabled(&state.pool).await.map_err(internal)?;
-    let has_nvd_key = vulns::nvd_key(&state.pool, &state.cipher).await.map_err(internal)?.is_some();
+    let enabled = vulns::enabled(&state.pool).await?;
+    let has_nvd_key = vulns::nvd_key(&state.pool, &state.cipher).await?.is_some();
     Ok(CveSettings { enabled, has_nvd_key })
 }
 
@@ -79,8 +75,8 @@ async fn set_settings(
         }
         vulns::set_nvd_key(&state.pool, &state.cipher, key).await?;
     }
-    let was = vulns::enabled(&state.pool).await.map_err(internal)?;
-    vulns::set_enabled(&state.pool, input.enabled).await.map_err(internal)?;
+    let was = vulns::enabled(&state.pool).await?;
+    vulns::set_enabled(&state.pool, input.enabled).await?;
     if input.enabled && !was {
         // Premier passage tout de suite, sans attendre le prochain quart d'heure.
         vulns::request_refresh();
@@ -92,7 +88,7 @@ async fn refresh(
     State(state): State<AppState>,
     _: AdminIdentity,
 ) -> ApiResult<(StatusCode, Json<serde_json::Value>)> {
-    if !vulns::enabled(&state.pool).await.map_err(internal)? {
+    if !vulns::enabled(&state.pool).await? {
         return Err(ApiError::Conflict("The CVE scan is turned off.".into()));
     }
     vulns::request_refresh();
@@ -184,11 +180,11 @@ async fn all_findings(state: &AppState) -> ApiResult<Vec<CveFinding>> {
         .into_iter()
         .map(|t| (t.id, (t.name, t.kind)))
         .collect();
-    let infos = store::infos(pool).await.map_err(internal)?;
-    let kev = store::kev_all(pool).await.map_err(internal)?;
-    let ignores = store::ignores(pool).await.map_err(internal)?;
+    let infos = store::infos(pool).await?;
+    let kev = store::kev_all(pool).await?;
+    let ignores = store::ignores(pool).await?;
     let mut out = Vec::new();
-    for row in store::findings(pool).await.map_err(internal)? {
+    for row in store::findings(pool).await? {
         let Some((target_name, target_kind)) = targets.get(&row.target_id) else { continue };
         let info = infos.get(&row.cve_id);
         let cvss = info.and_then(|i| i.1);
@@ -257,7 +253,7 @@ async fn list(
     {
         return Err(ApiError::BadRequest(format!("Unknown state: {wanted}.")));
     }
-    let enabled = vulns::enabled(&state.pool).await.map_err(internal)?;
+    let enabled = vulns::enabled(&state.pool).await?;
     let visible = access.visible_targets(&state.pool).await?;
     let findings = all_findings(&state)
         .await?
@@ -332,7 +328,7 @@ async fn summary(
     // équipements.
     let visible = access.visible_targets(pool).await?;
     let keep = |id: TargetId| visible.as_ref().is_none_or(|v| v.contains(&id));
-    let enabled = vulns::enabled(pool).await.map_err(internal)?;
+    let enabled = vulns::enabled(pool).await?;
     let findings: Vec<CveFinding> = all_findings(&state)
         .await?
         .into_iter()
@@ -340,8 +336,7 @@ async fn summary(
         .filter(|f| keep(f.target_id))
         .collect();
     let components: Vec<store::ComponentRow> = store::components(pool)
-        .await
-        .map_err(internal)?
+        .await?
         .into_iter()
         .filter(|c| query.target.is_none_or(|t| t == c.target_id))
         .filter(|c| keep(c.target_id))
@@ -354,15 +349,15 @@ async fn summary(
         ("debian", "cve_debian"),
         ("kev", "cve_kev"),
     ] {
-        let source = store::source(pool, name).await.map_err(internal)?;
+        let source = store::source(pool, name).await?;
         sources.push(CveSource {
             name,
             last_success: source.last_success,
             last_error: source.last_error,
-            items: store::count(pool, table).await.map_err(internal)?,
+            items: store::count(pool, table).await?,
         });
     }
-    let last_refresh = store::source(pool, "scan").await.map_err(internal)?.last_success;
+    let last_refresh = store::source(pool, "scan").await?.last_success;
     Ok(Json(CveSummary {
         enabled,
         refreshing: enabled && vulns::is_refreshing(),
@@ -401,12 +396,11 @@ async fn inventory(
     let names: HashMap<TargetId, String> =
         db::targets::list(pool, &state.cipher).await?.into_iter().map(|t| (t.id, t.name)).collect();
     let mut per_component: HashMap<(TargetId, String), usize> = HashMap::new();
-    for finding in store::findings(pool).await.map_err(internal)? {
+    for finding in store::findings(pool).await? {
         *per_component.entry((finding.target_id, finding.component)).or_default() += 1;
     }
     let mut components: Vec<CveComponent> = store::components(pool)
-        .await
-        .map_err(internal)?
+        .await?
         .into_iter()
         .filter(|c| query.target.is_none_or(|t| t == c.target_id))
         .filter(|c| visible.as_ref().is_none_or(|v| v.contains(&c.target_id)))
@@ -466,8 +460,7 @@ async fn add_ignore(
         .await?
         .ok_or_else(|| ApiError::NotFound(format!("Monitor {} not found.", input.target_id)))?;
     store::add_ignore(&state.pool, input.target_id, &input.cve_id, note.trim(), &principal.label())
-        .await
-        .map_err(internal)?;
+        .await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -476,7 +469,7 @@ async fn remove_ignore(
     _: AdminIdentity,
     Path((target_id, cve_id)): Path<(TargetId, String)>,
 ) -> ApiResult<StatusCode> {
-    if store::remove_ignore(&state.pool, target_id, &cve_id).await.map_err(internal)? {
+    if store::remove_ignore(&state.pool, target_id, &cve_id).await? {
         Ok(StatusCode::NO_CONTENT)
     } else {
         Err(ApiError::NotFound("This vulnerability is not ignored on this monitor.".into()))
