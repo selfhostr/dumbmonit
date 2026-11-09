@@ -12,8 +12,6 @@ export type ConsoleTheme = 'dark' | 'light' | 'auto';
 /** Per browser; absent means the default, dark. */
 export const CONSOLE_THEME_KEY = 'dumbmonit-console-theme';
 
-export const CONSOLE_THEMES: readonly ConsoleTheme[] = ['dark', 'light', 'auto'];
-
 /** What was stored, or dark for anything else (nothing, an old value, garbage). */
 export function parseConsoleTheme(raw: string | null | undefined): ConsoleTheme {
 	return raw === 'light' || raw === 'auto' ? raw : 'dark';

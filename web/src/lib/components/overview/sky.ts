@@ -104,20 +104,6 @@ function alertRank(alert: Alert): number {
 	return severityRank(alert.severity);
 }
 
-/** True for a row the "Needs you" list files under "Acknowledged". */
-export function isAckedRow(row: SkyRow): boolean {
-	return row.kind === 'alert' && row.alert.acked;
-}
-
-/**
- * True for a row filed under "Snoozed": a maintenance window (quick or
- * scheduled) currently covers it. An acknowledged alert wins the "Acked"
- * heading instead — the two never show twice.
- */
-export function isSnoozedRow(row: SkyRow): boolean {
-	return row.kind === 'alert' && row.alert.silenced && !row.alert.acked;
-}
-
 export function readSky({ targets, probes, alerts, rules }: SkyInput): Sky {
 	const rulesMap = new Map(rules.map((rule) => [rule.uid, rule]));
 	const targetsMap = new Map(targets.map((target) => [target.id, target]));
