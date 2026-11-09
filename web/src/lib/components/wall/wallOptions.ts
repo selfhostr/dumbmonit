@@ -7,14 +7,10 @@ import { m } from '#lib/paraglide/messages.js';
 import type { WallSceneChoice } from '#lib/components/wall/wallScene.js';
 import type { WallTheme } from '#lib/components/wall/wallTheme.js';
 
-/** The four cities, then auto, then a plain board. */
+/** Paris, then a plain board. */
 export function wallSceneOptions(): { value: WallSceneChoice; label: string }[] {
 	return [
-		{ value: 'paris', label: m.status_scene_paris() },
-		{ value: 'newyork', label: m.status_scene_newyork() },
-		{ value: 'tokyo', label: m.status_scene_tokyo() },
-		{ value: 'dubai', label: m.status_scene_dubai() },
-		{ value: 'auto', label: m.wall_scene_auto() },
+		{ value: 'paris', label: m.wall_scene_paris() },
 		{ value: 'none', label: m.wall_scene_none() }
 	];
 }

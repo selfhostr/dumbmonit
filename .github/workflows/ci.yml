@@ -199,7 +199,9 @@ jobs:
       - if: env.RUN == 'true'
         uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
       - if: env.RUN == 'true'
-        uses: taiki-e/install-action@5d880190e41a7608c29a5c91c6b5d24561d53850 # cargo-deny
+        uses: taiki-e/install-action@1168f6810a3cb30a3514bf5756a3b7f0422c6df8 # v2.87.28
+        with:
+          tool: cargo-deny@0.20.2
       # Enforces the "100 % open source" promise: a dependency under a licence
       # that is not in deny.toml fails the build instead of being discovered
       # after publication.

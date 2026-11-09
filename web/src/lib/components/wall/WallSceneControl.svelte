@@ -1,8 +1,8 @@
 <script lang="ts">
 	/**
 	 * "Backdrop" and "Theme" on the wall: two quiet buttons beside Exit, each
-	 * opening a small panel. Backdrop chooses the world behind the board (one of
-	 * the four cities, auto from the time zone, or a plain board); Theme
+	 * opening a small panel. Backdrop chooses the world behind the board (Paris
+	 * or a plain board); Theme
 	 * chooses Night or Day. Both are remembered per browser and are the same
 	 * choices Settings sets as the default; a `?city=` or `?theme=` on a shared
 	 * link overrides them for that display without touching what is saved.
@@ -23,14 +23,12 @@
 		theme: WallTheme;
 		/** True when a `?theme=` link is choosing right now. */
 		themeForced: boolean;
-		/** False when the city is a night scene: Day has nothing to light. */
-		dayAvailable: boolean;
 		/** False on a plain board: there is no world to light. */
 		showTheme: boolean;
 		ontheme: (value: WallTheme) => void;
 	}
 
-	let { scene, sceneForced, onscene, theme, themeForced, dayAvailable, showTheme, ontheme }: Props = $props();
+	let { scene, sceneForced, onscene, theme, themeForced, showTheme, ontheme }: Props = $props();
 
 	let open = $state<'scene' | 'theme' | null>(null);
 	let root = $state<HTMLDivElement | null>(null);
@@ -40,7 +38,7 @@
 		{ value: 'dark', label: m.wall_theme_night(), icon: Moon },
 		{ value: 'light', label: m.wall_theme_day(), icon: Sun }
 	]);
-	const ThemeIcon = $derived(theme === 'light' && dayAvailable ? Sun : Moon);
+	const ThemeIcon = $derived(theme === 'light' ? Sun : Moon);
 
 	$effect(() => {
 		if (!open) return;
@@ -126,22 +124,19 @@
 			<p class="m-0 text-sm font-semibold text-ink">{m.wall_theme_title()}</p>
 			{#if themeForced}
 				<p class="m-0 mt-1 text-[0.8125rem] text-ink-2">{m.wall_theme_forced()}</p>
-			{:else if !dayAvailable}
-				<p class="m-0 mt-1 text-[0.8125rem] text-ink-2">{m.wall_theme_night_only()}</p>
 			{/if}
 			<div class="mt-3 grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={m.wall_theme_title()}>
 				{#each THEME_OPTIONS as option, i (option.value)}
-					{@const selected = option.value === 'dark' ? theme === 'dark' || !dayAvailable : theme === 'light' && dayAvailable}
+					{@const selected = theme === option.value}
 					{@const OptionIcon = option.icon}
 					<button
 						type="button"
 						role="radio"
 						aria-checked={selected}
 						tabindex={selected ? 0 : -1}
-						disabled={option.value === 'light' && !dayAvailable}
-						class={`${CHIP} flex items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50 ${selected ? CHIP_ON : CHIP_OFF}`}
+						class={`${CHIP} flex items-center justify-center gap-1.5 ${selected ? CHIP_ON : CHIP_OFF}`}
 						onclick={() => ontheme(option.value)}
-						onkeydown={(event) => arrow(event, i, THEME_OPTIONS.length, (next) => dayAvailable && ontheme(THEME_OPTIONS[next].value))}
+						onkeydown={(event) => arrow(event, i, THEME_OPTIONS.length, (next) => ontheme(THEME_OPTIONS[next].value))}
 					>
 						<OptionIcon class="size-4 shrink-0" aria-hidden="true" />
 						{option.label}

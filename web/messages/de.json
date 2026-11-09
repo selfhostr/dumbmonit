@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} ist ausgefallen.",
-	"console_banner_egg": "Die Taube hat eine Rolle gedreht. Verfügbarkeit unberührt.",
 	"console_banner_empty": "Noch nichts zu überwachen.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Status",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Die Taube anstupsen",
 	"console_banner_sent": "Alarm gesendet.",
 	"console_banner_up_of": "{up} von {total} Monitoren in Betrieb.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "LIVE",
 	"console_live_off": "Live-Aktualisierung pausiert. Zum Fortsetzen auswählen.",
 	"console_live_on": "Live-Aktualisierung aktiv. Zum Pausieren auswählen.",
-	"console_new_monitor": "Neuer Monitor",
 	"console_panel_attention": "Braucht Aufmerksamkeit",
 	"console_panel_oncall": "Bereitschaft",
 	"console_panel_oncall_unknown": "Jemand",
@@ -1020,7 +1016,7 @@
 	"demo_tour_s6_title": "Der Agent",
 	"demo_tour_s7_body": "Veröffentlichen Sie eine öffentliche Seite für Ihre Nutzer, mit Vorfällen, Verfügbarkeits-Badges und E-Mail-Abos – ohne den Rest der Instanz offenzulegen.",
 	"demo_tour_s7_title": "Statusseiten",
-	"demo_tour_s8_body": "Für einen Bildschirm im Raum: die Übersicht der Konsole im Vollbild, aus der Ferne lesbar, auf Wunsch mit einer nächtlichen Stadt dahinter. Das war der Rundgang – schauen Sie sich um, nichts, was Sie anklicken, kann etwas kaputt machen.",
+	"demo_tour_s8_body": "Für einen Bildschirm im Raum: die Übersicht der Konsole im Vollbild, aus der Ferne lesbar, auf Wunsch mit Paris als Kulisse dahinter. Das war der Rundgang – schauen Sie sich um, nichts, was Sie anklicken, kann etwas kaputt machen.",
 	"demo_tour_s8_link": "Wandmodus öffnen",
 	"demo_tour_s8_title": "Wandmodus",
 	"deviceform_agentflow_another": "Weitere Maschine hinzufügen",
@@ -7866,9 +7862,8 @@
 	"status_edit_new_title": "Neue Statusseite",
 	"status_edit_open_public": "Öffentliche Seite öffnen",
 	"status_edit_page_title": "{title} · DumbMonit",
-	"status_edit_scene_simple": "Der einfache Modus ist an: Die Seite zeigt keine Szene.",
 	"status_edit_section_appearance": "Aussehen",
-	"status_edit_section_appearance_help": "Ihr Logo und Ihre Farbe, was die Seite zeigt, und das Bild hinter dem Titel.",
+	"status_edit_section_appearance_help": "Ihr Logo und Ihre Farbe sowie was die Seite zeigt.",
 	"status_edit_section_connect_help": "Besucher können Neuigkeiten per E-Mail erhalten, und die Seite kann unter einer eigenen Adresse laufen.",
 	"status_edit_section_page": "Seite",
 	"status_edit_section_page_help": "Was Besucher zuerst lesen, und die Adresse, unter der sie die Seite finden.",
@@ -7944,17 +7939,8 @@
 	"status_form_published": "Veröffentlicht",
 	"status_form_published_off": "Entwurf: Besucher erhalten 404.",
 	"status_form_published_on": "Jeder mit dem Link kann sie sehen.",
-	"status_form_rotation": "Szenenwechsel",
-	"status_form_rotation_help": "Bei mehreren angekreuzten Szenen: welche ein Besucher sieht und wann sie wechselt. Sie folgen der Reihenfolge, in der Sie sie angekreuzt haben.",
 	"status_form_save": "Änderungen speichern",
 	"status_form_save_error": "Seite konnte nicht gespeichert werden",
-	"status_form_scene": "Szene",
-	"status_form_scene_change": "Ändern",
-	"status_form_scene_done": "Fertig",
-	"status_form_scene_help_default": "Eine illustrierte Stadt hinter dem Titel der öffentlichen Seite. Ohne Auswahl zeigt die Seite Paris; für eine schlichte Seite den einfachen Modus aktivieren. Mehrere ankreuzen, um zu wechseln.",
-	"status_form_scene_none_default": "Nichts angekreuzt: Die Seite zeigt Paris",
-	"status_form_scene_position": "Position {position}",
-	"status_form_scene_selected": "Ausgewählt",
 	"status_form_section_connect": "Abonnenten und Domain",
 	"status_form_services": "Dienste",
 	"status_form_services_count": "{count} ausgewählt",
@@ -7963,7 +7949,7 @@
 	"status_form_services_no_match": "Kein Dienst gefunden.",
 	"status_form_services_search": "Dienst suchen",
 	"status_form_simple": "Einfacher Modus",
-	"status_form_simple_help": "Eine schlichte Seite: keine Szene, kein Maskottchen, keine Animation. Hell oder dunkel folgt dem System des Besuchers, mit Umschalter.",
+	"status_form_simple_help": "Eine schlichte Seite: kein Maskottchen, keine Animation. Hell oder dunkel folgt dem System des Besuchers, mit Umschalter.",
 	"status_form_slug_rule": "2 bis 40 Zeichen: Kleinbuchstaben, Ziffern und Bindestriche.",
 	"status_form_subscribers": "E-Mail-Abonnenten",
 	"status_form_subscribers_help": "Besucher bestätigen ihre Adresse per E-Mail, und jedes Update enthält einen Ein-Klick-Abmeldelink.",
@@ -8113,7 +8099,6 @@
 	"status_public_checked": "Geprüft",
 	"status_public_current_status": "Aktueller Status",
 	"status_public_dark": "Dunkel",
-	"status_public_email": "E-Mail",
 	"status_public_last_30": "Letzte 30 Tage.",
 	"status_public_light": "Hell",
 	"status_public_load_error": "Statusseite konnte nicht geladen werden",
@@ -8125,7 +8110,6 @@
 	"status_public_not_found_title": "Diese Statusseite existiert nicht.",
 	"status_public_past": "Frühere Störungen",
 	"status_public_powered_by": "Bereitgestellt von",
-	"status_public_rss": "RSS",
 	"status_public_services": "Dienste",
 	"status_public_switch_dark": "Zum dunklen Design wechseln",
 	"status_public_switch_light": "Zum hellen Design wechseln",
@@ -8196,14 +8180,6 @@
 	"status_public_title": "Status",
 	"status_public_title_with_page": "{title} · Status",
 	"status_public_uptime_last": "Verfügbarkeit der letzten {days} Tage",
-	"status_scene_dubai": "Dubai",
-	"status_scene_newyork": "New York",
-	"status_scene_paris": "Paris",
-	"status_scene_rotation_10m": "Alle 10 Minuten",
-	"status_scene_rotation_1h": "Jede Stunde",
-	"status_scene_rotation_1m": "Jede Minute",
-	"status_scene_rotation_visit": "Bei jedem Besuch",
-	"status_scene_tokyo": "Tokio",
 	"status_seo_ai_copied": "Prompt kopiert",
 	"status_seo_ai_copy": "Prompt für eine KI kopieren",
 	"status_seo_ai_copy_failed": "Das Kopieren wurde vom Browser blockiert. Erlauben Sie den Zugriff auf die Zwischenablage und versuchen Sie es erneut.",
@@ -8888,10 +8864,10 @@
 	"wall_problems_no_data": "Keine Daten seit {duration}",
 	"wall_problems_parent_down": "{rule} · {parent} ist ausgefallen",
 	"wall_problems_times": "×{count}",
-	"wall_scene_auto": "Auto",
 	"wall_scene_button": "Hintergrund",
 	"wall_scene_forced": "Ein Link legt dies gerade fest; hier wird nichts gespeichert.",
 	"wall_scene_none": "Keiner",
+	"wall_scene_paris": "Paris",
 	"wall_scene_sign_problems": [
 		{
 			"declarations": [
@@ -8907,7 +8883,7 @@
 			}
 		}
 	],
-	"wall_scene_world_hint": "Auto wählt die Stadt, die der Zeitzone dieses Bildschirms am nächsten liegt. Keiner zeigt eine schlichte Tafel.",
+	"wall_scene_world_hint": "Paris zeichnet die Stadt hinter der Tafel. Keiner zeigt eine schlichte Tafel.",
 	"wall_scene_world_title": "Stadt hinter der Tafel",
 	"wall_status_empty": "Noch nichts zu überwachen",
 	"wall_status_ok": "Alles in Ordnung",
@@ -8918,7 +8894,6 @@
 	"wall_theme_day": "Tag",
 	"wall_theme_forced": "Ein Link legt dieses Design vorübergehend fest; es wird hier nicht gespeichert.",
 	"wall_theme_night": "Nacht",
-	"wall_theme_night_only": "Diese Stadt wird nur bei Nacht gezeichnet.",
 	"wall_theme_title": "Design auf diesem Display",
 	"wall_updated_relative": "Aktualisiert {when}",
 	"wall_updated_seconds": "Vor {seconds} s aktualisiert",

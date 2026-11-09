@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { withBase } from '#lib/paths.js';
 	/**
-	 * Overview: the night-sky banner with its pigeon and one line of status,
-	 * four figures, then what needs attention (only what is broken, with its
+	 * Overview: four figures, then what needs attention (only what is broken, with its
 	 * quick action, and the week ahead) beside the health river, then two
 	 * charts worth reading — the fleet's response time over the range, the
 	 * alerts of the last seven days. The whole fleet lives on Monitors. A fresh
@@ -24,8 +23,6 @@
 	import NeedsAttention from '#lib/components/overview/NeedsAttention.svelte';
 	import FleetLatency from '#lib/components/overview/FleetLatency.svelte';
 	import AlertTrend from '#lib/components/overview/AlertTrend.svelte';
-	import { bannerLine, type BannerLine } from './banner.js';
-	import StatusBanner from './StatusBanner.svelte';
 	import { fleetStore } from './fleet.svelte.js';
 	import { mean } from './fleet.js';
 	import HealthRiver from './HealthRiver.svelte';
@@ -101,44 +98,9 @@
 		}
 	]);
 
-	// --- The banner's one line ---------------------------------------------------
-	function words(line: BannerLine): { headline: string; sub: string } {
-		switch (line.kind) {
-			case 'empty':
-				return { headline: m.console_banner_empty(), sub: '' };
-			case 'down':
-				return {
-					headline: line.name !== null ? m.console_banner_down_one({ name: line.name }) : m.console_banner_down_many({ count: line.count }),
-					sub:
-						line.held > 0
-							? line.sent
-								? m.console_banner_held_sent({ count: line.held })
-								: m.console_banner_held({ count: line.held })
-							: line.sent
-								? m.console_banner_sent()
-								: ''
-				};
-			case 'attention':
-				if (line.count === 0) return { headline: m.console_banner_alerts({ count: line.alerts }), sub: '' };
-				return {
-					headline: line.name !== null ? m.console_banner_attention_one({ name: line.name }) : m.console_banner_attention_many({ count: line.count }),
-					sub: line.alerts > 0 ? m.console_banner_alerts({ count: line.alerts }) : ''
-				};
-			case 'waiting':
-				return { headline: m.console_banner_up_of({ up: line.up, total: line.total }), sub: m.console_banner_waiting({ count: line.waiting }) };
-			case 'up':
-				if (line.count === 0) return { headline: m.console_banner_all_paused(), sub: '' };
-				return { headline: m.console_banner_all_up({ count: line.count }), sub: line.paused > 0 ? m.console_banner_paused({ count: line.paused }) : '' };
-		}
-	}
-
+	// --- Empty state -------------------------------------------------------------
 	/** Nothing read yet: the line waits rather than say "nothing to watch". */
 	const reading = $derived(alertsStore.loading && alertsStore.targets.length === 0);
-	const line = $derived(bannerLine(monitors, alertsStore.alerts));
-	const banner = $derived(reading ? { headline: '', sub: '' } : words(line));
-	const mood = $derived<'sleep' | 'watch' | 'alert'>(
-		line.kind === 'down' ? 'alert' : line.kind === 'attention' || line.kind === 'waiting' ? 'watch' : 'sleep'
-	);
 	const noMonitors = $derived(!reading && alertsStore.available && alertsStore.targets.length === 0);
 
 	// --- Phones: the river behind a tap ------------------------------------------
@@ -191,8 +153,6 @@
 
 <div class="flex min-h-0 flex-1 flex-col gap-4">
 	<h1 class="sr-only">{m.misc_nav_overview()}</h1>
-
-	<StatusBanner headline={banner.headline} sub={banner.sub} {mood} />
 
 	{#if showGuide && onboarding}
 		<!-- The guide replaces the console until it is done: one thing to do at a time. -->

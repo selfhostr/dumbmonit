@@ -27,7 +27,7 @@ Réglages : `/settings/status` et ses liens redirigent ici.
 | **Description** | Une phrase sous le titre. Optionnel. |
 | **Thème** | Jour, nuit, ou suivre le système du visiteur. |
 | **Historique** | La fenêtre la plus longue que la barre d'historique couvre (30, 60 ou 90 jours). La barre s'adapte à l'ancienneté des données de la page : elle montre autant de jours que le service le plus ancien a été surveillé, de 7 jours jusqu'à ce réglage. Une page ne dit jamais plus que ça — voir [Badges](#badges). |
-| **Mode simple** | Une page nue : pas de scène, pas de mascotte, pas d'animation et pas d'easter eggs. Clair ou sombre suit le système du visiteur, avec un interrupteur dans l'en-tête ; le réglage Thème de la page est ignoré. |
+| **Mode simple** | Une page nue : pas de mascotte, pas d'animation et pas d'easter eggs. Clair ou sombre suit le système du visiteur, avec un interrupteur dans l'en-tête ; le réglage Thème de la page est ignoré. |
 | **Publiée** | Désactivé = brouillon : la page, ses badges et son logo répondent « not found » aux visiteurs jusqu'à ce que vous l'activiez. |
 
 Puis cochez les surveillances à montrer. Pour chacune, réglez le **libellé**
@@ -69,20 +69,6 @@ sans l'ouvrir à du code arbitraire :
 | **Accent** | Encre (défaut), bleu, teal, violet, rose ou ambre — la règle du haut, les liens et le bouton d'abonnement. Chacun est choisi pour rester lisible de jour comme de nuit. |
 | **Site web de l'organisation** | Un lien `http://` ou `https://` montré à côté du titre, comme le nom d'hôte du site. |
 | **Texte de pied de page** | Texte brut sous la page, jusqu'à 280 caractères : qui la gère, comment la contacter. Les retours à la ligne sont gardés ; rien n'est interprété comme HTML ou Markdown. |
-
-### Scène
-
-Le réglage **Scène** dessine une silhouette de ville derrière la
-bannière. Les nouvelles pages démarrent avec Paris, et les pages
-existantes qui n'avaient pas de scène la montrent aussi maintenant ;
-décochez-la pour une bannière nue, ou activez **Mode simple** pour
-abandonner les scènes complètement. Choisissez-en autant que vous
-voulez, dans l'ordre que vous voulez. Quatre scènes sont fournies, quatre villes de nuit sous la lune et les étoiles, leur monument illuminé : Paris (la tour Eiffel), Tokyo (la Tokyo Tower), New York (l'Empire State et le Chrysler Building) et Dubaï (la Burj Khalifa). La météo suit la page : ciel étoilé quand tout va bien, nuages sur un avertissement, orage quand quelque chose est en panne. Ce sont des scènes de nuit : le titre et l'état par-dessus gardent toujours les couleurs sombres, quel que soit le thème de la page. Dubaï remplace le Cervin : les pages qui l'affichaient (ou une scène repliée sur lui) affichent maintenant Dubaï. Les pages qui utilisaient une scène retirée (les autres villes, les merveilles, les villes suisses et les scènes ludiques) ont été déplacées vers la plus proche des quatre : villes d'Europe et monde antique vers Paris, Asie et scènes marines ou spatiales vers Tokyo, les Amériques vers New York, les Alpes et le nord vers Dubaï ; il en va de même pour les sauvegardes et les appels d'API qui les nomment encore. Avec plus d'une, **Rotation** décide quand la
-page passe à la suivante : à chaque visite (défaut), chaque minute,
-toutes les dix minutes ou chaque heure. Les scènes sont un ensemble
-fermé de dessins fournis avec DumbMonit — rien n'est téléchargé ni
-interprété. Les mêmes quatre villes peuvent aussi s'afficher derrière le verdict du
-[mur](wall.md#backdrop) (**Décor**).
 
 Il n'y a délibérément pas de CSS ou HTML personnalisé : une page d'état
 est publique et vit sur la même origine que votre interface

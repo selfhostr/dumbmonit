@@ -855,7 +855,6 @@
 		}
 	],
 	"console_banner_down_one": "{name} è giù.",
-	"console_banner_egg": "Il piccione ha fatto un avvitamento. Uptime invariato.",
 	"console_banner_empty": "Ancora niente da monitorare.",
 	"console_banner_held": [
 		{
@@ -887,7 +886,6 @@
 			}
 		}
 	],
-	"console_banner_label": "Stato",
 	"console_banner_paused": [
 		{
 			"declarations": [
@@ -903,7 +901,6 @@
 			}
 		}
 	],
-	"console_banner_poke": "Stuzzica il piccione",
 	"console_banner_sent": "Avviso inviato.",
 	"console_banner_up_of": "{up} monitor su {total} attivi.",
 	"console_banner_waiting": [
@@ -938,7 +935,6 @@
 	"console_live": "LIVE",
 	"console_live_off": "Aggiornamenti in tempo reale in pausa. Seleziona per riprendere.",
 	"console_live_on": "Aggiornamenti in tempo reale attivi. Seleziona per mettere in pausa.",
-	"console_new_monitor": "Nuovo monitor",
 	"console_panel_attention": "Richiede attenzione",
 	"console_panel_oncall": "Reperibilità",
 	"console_panel_oncall_unknown": "Qualcuno",
@@ -1020,7 +1016,7 @@
 	"demo_tour_s6_title": "L'agente",
 	"demo_tour_s7_body": "Pubblica una pagina pubblica per i tuoi utenti, con incidenti, badge di uptime e iscrizioni via email, senza esporre il resto dell'istanza.",
 	"demo_tour_s7_title": "Pagine di stato",
-	"demo_tour_s8_body": "Per uno schermo in sala: il quadro della console a schermo intero, leggibile da lontano, con una città di notte sullo sfondo se vuoi. Il tour finisce qui: guardati intorno, niente di ciò che clicchi può rompersi.",
+	"demo_tour_s8_body": "Per uno schermo in sala: il quadro della console a schermo intero, leggibile da lontano, con Parigi sullo sfondo se vuoi. Il tour finisce qui: guardati intorno, niente di ciò che clicchi può rompersi.",
 	"demo_tour_s8_link": "Apri la modalità parete",
 	"demo_tour_s8_title": "Modalità parete",
 	"deviceform_agentflow_another": "Aggiungi un'altra macchina",
@@ -7866,9 +7862,8 @@
 	"status_edit_new_title": "Nuova pagina di stato",
 	"status_edit_open_public": "Apri pagina pubblica",
 	"status_edit_page_title": "{title} · DumbMonit",
-	"status_edit_scene_simple": "La modalità semplice è attiva: la pagina non mostra alcuna scena.",
 	"status_edit_section_appearance": "Aspetto",
-	"status_edit_section_appearance_help": "Il tuo logo e il tuo colore, cosa mostra la pagina e l'immagine dietro il titolo.",
+	"status_edit_section_appearance_help": "Il tuo logo e il tuo colore, e cosa mostra la pagina.",
 	"status_edit_section_connect_help": "Lascia che i visitatori ricevano gli aggiornamenti via email e servi la pagina su un indirizzo tutto suo.",
 	"status_edit_section_page": "Pagina",
 	"status_edit_section_page_help": "Ciò che i visitatori leggono per primo, e l'indirizzo dove la trovano.",
@@ -7944,17 +7939,8 @@
 	"status_form_published": "Pubblicata",
 	"status_form_published_off": "Bozza: risponde 404 ai visitatori.",
 	"status_form_published_on": "Chiunque abbia il link può vederla.",
-	"status_form_rotation": "Cambio di scena",
-	"status_form_rotation_help": "Con più scene selezionate, quale vede il visitatore e quando cambia. Seguono l'ordine in cui le hai selezionate.",
 	"status_form_save": "Salva modifiche",
 	"status_form_save_error": "Impossibile salvare la pagina",
-	"status_form_scene": "Scena",
-	"status_form_scene_change": "Cambia",
-	"status_form_scene_done": "Fatto",
-	"status_form_scene_help_default": "Una città illustrata dietro il titolo della pagina pubblica. Senza scelta la pagina mostra Parigi; attiva la modalità semplice per una pagina semplice. Selezionane più di una per alternarle.",
-	"status_form_scene_none_default": "Nessuna selezione: la pagina mostra Parigi",
-	"status_form_scene_position": "Posizione {position}",
-	"status_form_scene_selected": "Selezionata",
 	"status_form_section_connect": "Iscritti e dominio",
 	"status_form_services": "Servizi",
 	"status_form_services_count": "{count} selezionati",
@@ -7963,7 +7949,7 @@
 	"status_form_services_no_match": "Nessun servizio corrisponde.",
 	"status_form_services_search": "Cerca un servizio",
 	"status_form_simple": "Modalità semplice",
-	"status_form_simple_help": "Una pagina semplice: niente scena, mascotte o animazioni. Chiaro o scuro segue il sistema del visitatore, con un interruttore.",
+	"status_form_simple_help": "Una pagina semplice: niente mascotte o animazioni. Chiaro o scuro segue il sistema del visitatore, con un interruttore.",
 	"status_form_slug_rule": "Da 2 a 40 caratteri: lettere minuscole, cifre e trattini.",
 	"status_form_subscribers": "Iscritti via e-mail",
 	"status_form_subscribers_help": "I visitatori confermano l'indirizzo via e-mail e ogni aggiornamento contiene un link di disiscrizione con un clic.",
@@ -8113,7 +8099,6 @@
 	"status_public_checked": "Verificato",
 	"status_public_current_status": "Stato attuale",
 	"status_public_dark": "Scuro",
-	"status_public_email": "E-mail",
 	"status_public_last_30": "Ultimi 30 giorni.",
 	"status_public_light": "Chiaro",
 	"status_public_load_error": "Impossibile caricare la pagina di stato",
@@ -8125,7 +8110,6 @@
 	"status_public_not_found_title": "Questa pagina di stato non esiste.",
 	"status_public_past": "Incidenti passati",
 	"status_public_powered_by": "Realizzato con",
-	"status_public_rss": "RSS",
 	"status_public_services": "Servizi",
 	"status_public_switch_dark": "Passa al tema scuro",
 	"status_public_switch_light": "Passa al tema chiaro",
@@ -8196,14 +8180,6 @@
 	"status_public_title": "Stato",
 	"status_public_title_with_page": "{title} · Stato",
 	"status_public_uptime_last": "Disponibilità negli ultimi {days} giorni",
-	"status_scene_dubai": "Dubai",
-	"status_scene_newyork": "New York",
-	"status_scene_paris": "Parigi",
-	"status_scene_rotation_10m": "Ogni 10 minuti",
-	"status_scene_rotation_1h": "Ogni ora",
-	"status_scene_rotation_1m": "Ogni minuto",
-	"status_scene_rotation_visit": "A ogni visita",
-	"status_scene_tokyo": "Tokyo",
 	"status_seo_ai_copied": "Prompt copiato",
 	"status_seo_ai_copy": "Copia il prompt per un’IA",
 	"status_seo_ai_copy_failed": "La copia è stata bloccata dal browser. Consenti l’accesso agli appunti e riprova.",
@@ -8888,10 +8864,10 @@
 	"wall_problems_no_data": "Nessun dato da {duration}",
 	"wall_problems_parent_down": "{rule} · {parent} non è attivo",
 	"wall_problems_times": "×{count}",
-	"wall_scene_auto": "Auto",
 	"wall_scene_button": "Sfondo",
 	"wall_scene_forced": "Un link l'ha impostato per ora; non viene salvato qui.",
 	"wall_scene_none": "Nessuno",
+	"wall_scene_paris": "Parigi",
 	"wall_scene_sign_problems": [
 		{
 			"declarations": [
@@ -8907,7 +8883,7 @@
 			}
 		}
 	],
-	"wall_scene_world_hint": "Auto sceglie la città più vicina al fuso orario di questo schermo. Nessuno lascia un pannello semplice.",
+	"wall_scene_world_hint": "Parigi disegna la città dietro il pannello. Nessuno lascia un pannello semplice.",
 	"wall_scene_world_title": "Città dietro il pannello",
 	"wall_status_empty": "Ancora nulla da monitorare",
 	"wall_status_ok": "Tutto a posto",
@@ -8918,7 +8894,6 @@
 	"wall_theme_day": "Giorno",
 	"wall_theme_forced": "Un link ha impostato questo per ora; non viene salvato qui.",
 	"wall_theme_night": "Notte",
-	"wall_theme_night_only": "Questa città è disegnata solo di notte.",
 	"wall_theme_title": "Tema su questo schermo",
 	"wall_updated_relative": "Aggiornato {when}",
 	"wall_updated_seconds": "Aggiornato {seconds} s fa",

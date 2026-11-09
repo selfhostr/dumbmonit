@@ -61,14 +61,6 @@
 	--shadow-lift: 0 1px 2px rgb(22 33 58 / 0.06), 0 6px 18px -8px rgb(22 33 58 / 0.22);
 	--shadow-float: 0 2px 6px rgb(22 33 58 / 0.08), 0 18px 40px -16px rgb(22 33 58 / 0.32);
 
-	/* The Overview banner: a fixed night sky, the same in every theme. */
-	--c-banner-line: #1d2a45;
-	--c-banner-sky: linear-gradient(90deg, #0a1330 0%, #13244a 60%, #1c3160 100%);
-	--c-banner-ink: #eceef1;
-	--c-banner-ink-2: #b9c6e4;
-	--c-banner-star: #fbf9f4;
-	--c-banner-moon: #f1e6c8;
-
 	/* The console's two faces, on every page: charts and stacked tables read
 	   them too, so no axis ever falls back to the status pages' display face. */
 	--font-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;

@@ -26,7 +26,7 @@ delas; o editor abre em sua própria rota (`/settings/status/new`,
 | **Descrição** | Uma frase abaixo do título. Opcional. |
 | **Tema** | Dia, noite, ou seguir o sistema do visitante. |
 | **Histórico** | A janela mais longa que a barra de histórico cobre (30, 60 ou 90 dias). A barra se adapta à idade dos dados da página: mostra tantos dias quanto o serviço mais antigo foi monitorado, de 7 dias até esta configuração. Uma página nunca diz mais que isso — veja [Badges](#badges). |
-| **Modo simples** | Uma página simples: sem cenário, sem mascote, sem animação e sem easter eggs. Claro ou escuro segue o sistema do visitante, com um alternador no cabeçalho; a configuração de Tema da página é ignorada. |
+| **Modo simples** | Uma página simples: sem mascote, sem animação e sem easter eggs. Claro ou escuro segue o sistema do visitante, com um alternador no cabeçalho; a configuração de Tema da página é ignorada. |
 | **Publicada** | Desligado = rascunho: a página, seus badges e seu logo respondem "não encontrado" aos visitantes até você ativá-la. |
 
 Depois marque os monitores a mostrar. Para cada um, defina o
@@ -49,27 +49,6 @@ a código arbitrário:
 | **Destaque** | Tinta (padrão), azul, verde-água, violeta, rosa ou âmbar — a régua superior, os links e o botão de inscrição. Cada um é escolhido para permanecer legível de dia e de noite. |
 | **Site da organização** | Um link `http://` ou `https://` mostrado ao lado do título, como o nome de host do site. |
 | **Texto de rodapé** | Texto simples abaixo da página, até 280 caracteres: quem a administra, como contatá-los. Quebras de linha são mantidas; nada é interpretado como HTML ou Markdown. |
-
-### Cenário {#scene}
-
-A configuração **Cenário** desenha um horizonte de cidade atrás do banner.
-Páginas novas começam com Paris; desmarque-a para um banner simples, ou ative o
-**Modo simples** para dispensar os cenários. Escolha quantos quiser, na ordem
-que quiser. Vêm quatro cenários, quatro cidades à noite sob a lua e as
-estrelas, com seu monumento iluminado: Paris (a torre Eiffel), Tóquio (a Tokyo
-Tower), Nova York (o Empire State e o Chrysler Building) e Dubai (o Burj
-Khalifa). O tempo acompanha a página: céu estrelado quando está tudo bem,
-nuvens com um aviso, tempestade quando algo está fora do ar. Como são cenários
-noturnos, o título e o status por cima usam sempre as cores escuras, qualquer
-que seja o tema da página. Dubai substitui o Matterhorn, e as páginas que
-usavam um cenário retirado passaram para o mais próximo dos quatro (cidades
-europeias e mundo antigo para Paris, Ásia, mar e espaço para Tóquio, as
-Américas para Nova York, os Alpes e o norte para Dubai), backups e chamadas de
-API incluídos. Com mais de um, **Rotação** decide quando a página passa ao
-próximo: a cada visita (padrão), a cada minuto, a cada dez minutos ou a cada
-hora. Os cenários são um conjunto fechado de desenhos que vêm com o DumbMonit —
-nada é enviado nem interpretado. As mesmas quatro cidades também podem ficar
-atrás do veredito da [parede](wall.md).
 
 Deliberadamente não há CSS ou HTML personalizado: uma página de status
 é pública e vive na mesma origem que sua interface administrativa, sob a

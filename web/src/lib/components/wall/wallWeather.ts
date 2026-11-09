@@ -37,13 +37,6 @@ export function sceneMoodFor(weather: WallWeather): 'calm' | 'clouded' | 'storm'
 	return 'storm';
 }
 
-/** The night cities' vocabulary: they have clear, clouds, and a storm with lightning. */
-export function nightToneFor(weather: WallWeather): 'ok' | 'warn' | 'critical' {
-	if (weather === 'clear') return 'ok';
-	if (weather === 'cloudy') return 'warn';
-	return 'critical';
-}
-
 /** The weather a dev override (`?mood=ok|warn|critical`) stands for. */
 export function weatherForTone(tone: 'ok' | 'warn' | 'critical'): WallWeather {
 	return tone === 'ok' ? 'clear' : tone === 'warn' ? 'cloudy' : 'thunder';

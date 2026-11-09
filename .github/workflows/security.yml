@@ -59,12 +59,13 @@ jobs:
       # Scorecard sees it; the branch it is started from by hand.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # A known vulnerability fails the job (exit 1) once the SARIF is
-      # written. Exceptions with a reason go in osv-scanner.toml.
+      # written. Exceptions with a reason go in osv-scanner.toml, applied to
+      # every lockfile (fuzz/, web/) through --config.
       - name: Scan
         run: |
           docker run --rm -v "$PWD:/src" -w /src \
             ghcr.io/google/osv-scanner:v2.7.0@sha256:4f3b7e2c64b9d38a5febc5a7e4a3dfef1d1362f726dea7a2ef4762b46469fcd0 \
-            --recursive --format sarif --output-file /src/osv.sarif /src
+            --recursive --config /src/osv-scanner.toml --format sarif --output-file /src/osv.sarif /src
       - uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
         if: always() && hashFiles('osv.sarif') != ''
         with:

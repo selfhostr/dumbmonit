@@ -62,7 +62,6 @@
 	import MusicDock from '#lib/components/wall/MusicDock.svelte';
 	import {
 		DEFAULT_WALL_SCENE,
-		cityHasDay,
 		parseForcedWallScene,
 		readWallScene,
 		resolveWallScene,
@@ -468,8 +467,7 @@
 	// --- The world -------------------------------------------------------------
 	// Settings sets the default, the Backdrop and Theme buttons change it for this
 	// browser, and a link (`?city=`, `?theme=`) decides for one display only.
-	// The public demo shows the city closest to the viewer; everywhere else it is Paris.
-	let sceneChoice = $state<WallSceneChoice>(readWallScene(auth.demo ? 'auto' : DEFAULT_WALL_SCENE));
+	let sceneChoice = $state<WallSceneChoice>(readWallScene(DEFAULT_WALL_SCENE));
 	const forcedScene = $derived(parseForcedWallScene(page.url.searchParams.get('city')));
 	const sceneCity = $derived(resolveWallScene(forcedScene ?? sceneChoice));
 	function setScene(choice: WallSceneChoice) {
@@ -478,9 +476,7 @@
 	}
 	let themeChoice = $state<WallTheme>(readWallTheme());
 	const forcedTheme = $derived(parseForcedWallTheme(page.url.searchParams.get('theme')));
-	const dayAvailable = $derived(cityHasDay(sceneCity));
-	// Day lights Paris; the other cities are night scenes.
-	const worldTheme = $derived<WallTheme>(dayAvailable ? (forcedTheme ?? themeChoice) : 'dark');
+	const worldTheme = $derived<WallTheme>(forcedTheme ?? themeChoice);
 	function setTheme(choice: WallTheme) {
 		themeChoice = choice;
 		writeWallTheme(choice);
@@ -544,8 +540,6 @@
 		attentionBaseline = attention;
 	});
 
-	// The Eiffel Tower sparkles for the first five minutes of every hour.
-	const onTheHour = $derived(now.getMinutes() < 5);
 	let tabHidden = $state(false);
 	$effect(() => {
 		const sync = () => (tabHidden = document.visibilityState !== 'visible');
@@ -602,7 +596,6 @@
 						{startle}
 						paused={sceneStill}
 						pulse={live.pulse}
-						sparkle={onTheHour}
 						focus={1360}
 					/>
 				{/if}
@@ -712,7 +705,6 @@
 				onscene={setScene}
 				theme={forcedTheme ?? themeChoice}
 				themeForced={forcedTheme !== null}
-				{dayAvailable}
 				showTheme={sceneCity !== null}
 				ontheme={setTheme}
 			/>

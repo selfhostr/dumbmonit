@@ -27,16 +27,14 @@ mostra toda a frota.
 
 ## Fundo {#backdrop}
 
-A parede partilha o aspeto escuro da consola. O botão **Fundo** (em cima à
-direita, ao lado de Exit) pode desenhar uma das cidades à noite das
-[páginas de estado](status-pages.md) por trás do veredicto e do relógio: Paris,
-Nova Iorque, Tóquio ou Dubai, ou *Auto* para a mais próxima do fuso horário do
-navegador. Está desligado por predefinição e é lembrado por navegador;
-`?city=paris` (ou `newyork`, `tokyo`, `dubai`, `none`) numa ligação escolhe-o só
-para esse ecrã. O céu segue o painel: estrelas quando está tudo bem, nuvens com
-um aviso, trovoada com um alerta. Num telemóvel, ou com o separador escondido, a
-cidade fica parada. Um `zermatt` guardado ou numa ligação vai agora dar ao
-Dubai.
+O mural partilha o aspeto escuro da consola. O botão **Backdrop** (em cima, à
+direita, junto a Exit) pode desenhar Paris por trás do veredicto e do relógio,
+ou deixar um painel simples (*None*). Paris é a opção por omissão e a escolha é
+guardada por navegador; `?city=paris` (ou `none`) numa ligação escolhe-a só
+para esse ecrã. Uma escolha guardada ou ligada de um fundo retirado (Nova Iorque,
+Tóquio, Dubai, *Auto*) passa para Paris. O céu acompanha o painel: estrelas
+quando está tudo bem, nuvens num aviso, tempestade num alerta. Num telemóvel, ou
+com o separador oculto, a cidade fica parada.
 
 ## Música na parede {#music-on-the-wall}
 

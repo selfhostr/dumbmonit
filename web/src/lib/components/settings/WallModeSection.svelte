@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * Settings → Wall display: what the room monitor is, the way in, and what it
-	 * shows by default in this browser: the city behind the board (Paris unless
+	 * shows by default in this browser: the backdrop behind the board (Paris unless
 	 * chosen otherwise) and its theme (Night unless chosen otherwise). The wall's
 	 * own Backdrop and Theme buttons change the same two choices, and a link
 	 * (`?city=`, `?theme=`) overrides them for one display.
@@ -10,11 +10,10 @@
 	import { m } from '#lib/paraglide/messages.js';
 	import { Button, DocLink, Panel } from '#lib/ui/index.js';
 	import { wallSceneOptions, wallThemeOptions } from '#lib/components/wall/wallOptions.js';
-	import { auth } from '#lib/stores/auth.svelte.js';
 	import { DEFAULT_WALL_SCENE, readWallScene, writeWallScene, type WallSceneChoice } from '#lib/components/wall/wallScene.js';
 	import { readWallTheme, writeWallTheme, type WallTheme } from '#lib/components/wall/wallTheme.js';
 
-	let scene = $state<WallSceneChoice>(readWallScene(auth.demo ? 'auto' : DEFAULT_WALL_SCENE));
+	let scene = $state<WallSceneChoice>(readWallScene(DEFAULT_WALL_SCENE));
 	let theme = $state<WallTheme>(readWallTheme());
 
 	const SCENE_OPTIONS = $derived(wallSceneOptions());
