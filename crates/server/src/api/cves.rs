@@ -458,7 +458,7 @@ async fn add_ignore(
     }
     db::targets::get(&state.pool, &state.cipher, input.target_id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {} not found.", input.target_id)))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&input.target_id))?;
     store::add_ignore(&state.pool, input.target_id, &input.cve_id, note.trim(), &principal.label())
         .await?;
     Ok(StatusCode::NO_CONTENT)
