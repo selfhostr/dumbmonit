@@ -412,7 +412,7 @@ fn map_transport(error: &reqwest::Error, api: &str, timeout: Duration) -> ProbeE
     if error.is_decode() {
         return ProbeError::Protocol(format!("Unreadable response from \"{api}\""));
     }
-    ProbeError::Unreachable(format!("{api}: {}", cause_chain(error)))
+    ProbeError::Unreachable(format!("{api}: {}", crate::http::cause_chain(error)))
 }
 
 /// Message affiché quand le certificat du NAS n'est pas vérifiable.
@@ -421,17 +421,6 @@ pub const SELF_SIGNED_HINT: &str = "TLS certificate rejected: a Synology NAS pre
      \"insecure_tls = true\" on the device to knowingly accept it, install a \
      trusted certificate on the NAS (Let's Encrypt is built into DSM), or switch \
      the device to \"scheme = http\".";
-
-fn cause_chain(error: &reqwest::Error) -> String {
-    let mut message = error.to_string();
-    let mut source = std::error::Error::source(error);
-    while let Some(cause) = source {
-        message.push_str(": ");
-        message.push_str(&cause.to_string());
-        source = cause.source();
-    }
-    message
-}
 
 /// Traduit un statut HTTP en `ProbeError`.
 ///

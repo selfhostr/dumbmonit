@@ -257,7 +257,7 @@ pub fn map_transport(error: &reqwest::Error, what: &str, timeout: Duration) -> P
     if error.is_timeout() {
         return ProbeError::Timeout(timeout);
     }
-    let chain = cause_chain(error);
+    let chain = crate::http::cause_chain(error);
     let lower = chain.to_lowercase();
     if ["certificate", "unknownissuer", "notvalidfor", "certexpired"]
         .iter()
@@ -273,17 +273,6 @@ pub fn map_transport(error: &reqwest::Error, what: &str, timeout: Duration) -> P
         return ProbeError::Protocol(format!("Unreadable response from {what}"));
     }
     ProbeError::Unreachable(format!("{what}: {chain}"))
-}
-
-fn cause_chain(error: &reqwest::Error) -> String {
-    let mut message = error.to_string();
-    let mut source = std::error::Error::source(error);
-    while let Some(cause) = source {
-        message.push_str(": ");
-        message.push_str(&cause.to_string());
-        source = cause.source();
-    }
-    message
 }
 
 #[cfg(test)]

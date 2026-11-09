@@ -54,6 +54,19 @@ pub(crate) fn form_urlencoded(pairs: &[(&str, &str)]) -> String {
     encoded.join("&")
 }
 
+/// Déroule la chaîne de causes d'une erreur `reqwest` : le détail utile (refus de
+/// connexion, certificat, DNS) se trouve tout au fond, pas dans le message de tête.
+pub(crate) fn cause_chain(error: &reqwest::Error) -> String {
+    let mut message = error.to_string();
+    let mut source = std::error::Error::source(error);
+    while let Some(cause) = source {
+        message.push_str(": ");
+        message.push_str(&cause.to_string());
+        source = cause.source();
+    }
+    message
+}
+
 /// Vrai si l'échec de connexion vient de la validation du certificat présenté.
 ///
 /// `reqwest` range ces erreurs parmi les erreurs de connexion et n'expose pas de
