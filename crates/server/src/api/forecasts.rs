@@ -82,7 +82,7 @@ async fn list(
         .map_err(anyhow::Error::from)?
         .is_some();
     if !exists {
-        return Err(ApiError::NotFound(format!("Monitor {id} not found.")));
+        return Err(ApiError::monitor_not_found(&id));
     }
 
     // Les réglages de la règle livrée, si elle existe encore : la page dit alors

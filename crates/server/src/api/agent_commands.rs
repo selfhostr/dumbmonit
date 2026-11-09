@@ -466,7 +466,7 @@ fn to_view(
 async fn agent_target(state: &AppState, id: TargetId) -> ApiResult<dumbmonit_proto::Target> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     if target.kind != "agent" {
         return Err(ApiError::NotFound(format!("Monitor {id} has no agent.")));
     }
@@ -485,7 +485,7 @@ struct DockerTargets {
 async fn docker_targets(state: &AppState, id: TargetId) -> ApiResult<DockerTargets> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     match target.kind.as_str() {
         "agent" => {
             let child = modules::states(&state.pool, id)

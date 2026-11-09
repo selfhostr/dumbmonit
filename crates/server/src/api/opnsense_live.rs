@@ -379,7 +379,7 @@ async fn live(
 ) -> ApiResult<Json<LiveView>> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     if target.kind != "opnsense" {
         return Err(ApiError::BadRequest("This monitor is not an OPNsense firewall.".into()));
     }

@@ -168,7 +168,7 @@ async fn nas_prefix(state: &AppState, id: i64) -> ApiResult<(String, &'static st
         .fetch_optional(&state.pool)
         .await
         .map_err(anyhow::Error::from)?;
-    let kind = kind.ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+    let kind = kind.ok_or_else(|| ApiError::monitor_not_found(&id))?;
     let prefix = lun_prefix(&kind).ok_or_else(|| {
         ApiError::NotFound(format!("Monitor {id} is not a NAS with iSCSI LUNs or zvols."))
     })?;

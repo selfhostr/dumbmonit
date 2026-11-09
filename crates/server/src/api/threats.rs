@@ -209,7 +209,7 @@ async fn threats(
             .is_some();
         // Hors des équipes du compte : comme s'il n'existait pas.
         if !exists || visible.as_ref().is_some_and(|v| !v.contains(&id)) {
-            return Err(ApiError::NotFound(format!("Monitor {id} not found.")));
+            return Err(ApiError::monitor_not_found(&id));
         }
     }
     let keep = |id: TargetId| {
