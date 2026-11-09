@@ -21,6 +21,8 @@ use dumbmonit_proto::ProbeError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 
+use crate::http::form_urlencoded;
+
 use super::auth::{Credentials, Session};
 use super::error;
 use super::model::{ApiCatalog, Envelope, LoginData};
@@ -376,36 +378,6 @@ fn parse_envelope<T: DeserializeOwned>(body: &[u8], api: &str) -> Result<T, ApiF
         )))
     })?;
     envelope.data.ok_or(ApiFailure::Malformed)
-}
-
-/// Encode un corps `application/x-www-form-urlencoded`.
-///
-/// Écrit à la main faute d'encodeur dans les fonctionnalités retenues de
-/// `reqwest`. Un mot de passe DSM contient volontiers `+`, `&` ou `%` : le laisser
-/// passer tel quel produirait un refus incompréhensible à la connexion.
-fn form_urlencoded(pairs: &[(&str, &str)]) -> String {
-    let mut body = String::new();
-    for (index, (key, value)) in pairs.iter().enumerate() {
-        if index > 0 {
-            body.push('&');
-        }
-        encode_into(&mut body, key);
-        body.push('=');
-        encode_into(&mut body, value);
-    }
-    body
-}
-
-fn encode_into(out: &mut String, value: &str) {
-    for byte in value.as_bytes() {
-        match byte {
-            // Caractères « non réservés » de la RFC 3986, seuls à passer tels quels.
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(*byte as char)
-            }
-            _ => out.push_str(&format!("%{byte:02X}")),
-        }
-    }
 }
 
 /// Construit le client HTTP.

@@ -26,6 +26,34 @@ pub const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 /// chaque fois, ce qui est la part la plus coûteuse d'une collecte Proxmox.
 const POOL_IDLE_TIMEOUT: Duration = Duration::from_secs(120);
 
+/// Encode un segment de chemin ou une valeur de formulaire : tout sauf les
+/// caractères « non réservés » de la RFC 3986 (`A-Z a-z 0-9 - _ . ~`).
+pub(crate) fn percent_encode(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    for byte in text.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(byte as char);
+            }
+            other => out.push_str(&format!("%{other:02X}")),
+        }
+    }
+    out
+}
+
+/// Encode un corps `application/x-www-form-urlencoded`.
+///
+/// Écrit à la main faute d'encodeur dans les fonctionnalités retenues de
+/// `reqwest`. Un mot de passe contient volontiers `+`, `&` ou `%` : le laisser
+/// passer tel quel produirait un refus incompréhensible à l'authentification.
+pub(crate) fn form_urlencoded(pairs: &[(&str, &str)]) -> String {
+    let encoded: Vec<String> = pairs
+        .iter()
+        .map(|(key, value)| format!("{}={}", percent_encode(key), percent_encode(value)))
+        .collect();
+    encoded.join("&")
+}
+
 /// Vrai si l'échec de connexion vient de la validation du certificat présenté.
 ///
 /// `reqwest` range ces erreurs parmi les erreurs de connexion et n'expose pas de

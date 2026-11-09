@@ -68,6 +68,7 @@ use tracing::debug;
 use super::guard;
 use super::outcome::{Failure, Report};
 use super::session::Deadline;
+use super::truncate;
 use options::{Options, SslMode};
 use verdict::{Engine, Scalar, Stage};
 
@@ -343,13 +344,6 @@ fn finish(report: &mut Report, options: &Options, rows: usize, first: Option<&Sc
             format!("the query returned no row, so nothing could be compared to \"{expected}\""),
         ),
     }
-}
-
-fn truncate(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_string();
-    }
-    format!("{}…", text.chars().take(max).collect::<String>())
 }
 
 fn timed_out(report: &mut Report, stage: Stage) {

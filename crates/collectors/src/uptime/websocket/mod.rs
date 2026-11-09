@@ -48,6 +48,7 @@ use tracing::debug;
 
 use super::outcome::{Failure, Report};
 use super::session::{self, Deadline, LineReader, SessionError, Stream};
+use super::truncate;
 use frame::Opcode;
 use options::Options;
 
@@ -273,13 +274,6 @@ async fn exchange(
 
     let _ = stream.write_all(&frame::close_frame(mask_from(seed))).await;
     Ok(())
-}
-
-fn truncate(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_string();
-    }
-    format!("{}…", text.chars().take(max).collect::<String>())
 }
 
 /// Masque des trames envoyées. La norme l'exige d'un client ; il ne protège rien

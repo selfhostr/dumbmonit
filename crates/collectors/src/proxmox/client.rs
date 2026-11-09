@@ -10,6 +10,8 @@ use dumbmonit_proto::ProbeError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 
+use crate::http::form_urlencoded;
+
 use super::auth::{AuthMode, Ticket};
 use super::model::{Envelope, TicketResponse};
 
@@ -229,36 +231,6 @@ impl PveClient {
         })?;
 
         Ok(Ticket { ticket: envelope.data.ticket, acquired_at: now_s })
-    }
-}
-
-/// Encode un corps `application/x-www-form-urlencoded`.
-///
-/// Écrit à la main faute d'encodeur dans les fonctionnalités retenues de
-/// `reqwest`. Un mot de passe contient volontiers `+`, `&` ou `%` : le laisser
-/// passer tel quel produirait un refus incompréhensible à l'authentification.
-fn form_urlencoded(pairs: &[(&str, &str)]) -> String {
-    let mut body = String::new();
-    for (index, (key, value)) in pairs.iter().enumerate() {
-        if index > 0 {
-            body.push('&');
-        }
-        encode_into(&mut body, key);
-        body.push('=');
-        encode_into(&mut body, value);
-    }
-    body
-}
-
-fn encode_into(out: &mut String, value: &str) {
-    for byte in value.as_bytes() {
-        match byte {
-            // Caractères « non réservés » de la RFC 3986, seuls à passer tels quels.
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(*byte as char)
-            }
-            _ => out.push_str(&format!("%{byte:02X}")),
-        }
     }
 }
 

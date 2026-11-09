@@ -76,6 +76,7 @@ use serde::de::DeserializeOwned;
 use tokio::sync::Semaphore;
 use tracing::{debug, warn};
 
+use crate::http::percent_encode;
 use auth::AuthMode;
 use client::PdmClient;
 use model::{
@@ -388,20 +389,6 @@ async fn remote_version(
     let path = format!("/remotes/remote/{}/version", percent_encode(remote));
     let version: RemoteVersion = pdm.get(&path, &[]).await?;
     Ok(version.version)
-}
-
-/// Encode un segment de chemin : tout sauf les caractères non réservés.
-fn percent_encode(segment: &str) -> String {
-    let mut out = String::with_capacity(segment.len() * 3);
-    for byte in segment.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(byte as char);
-            }
-            other => out.push_str(&format!("%{other:02X}")),
-        }
-    }
-    out
 }
 
 /// Un appel facultatif : `None` si l'option est désactivée ou si le serveur
