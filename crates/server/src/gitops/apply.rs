@@ -82,7 +82,7 @@ pub async fn apply(
 
     let bundle = Bundle {
         version: VERSION,
-        created_at: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        created_at: crate::db::now(),
         source_version: env!("CARGO_PKG_VERSION").to_string(),
         targets: desired.targets.clone(),
         rules: desired.rules.clone(),

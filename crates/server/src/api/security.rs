@@ -51,10 +51,6 @@ async fn set_settings(
     Ok(Json(SecuritySettings { enabled: payload.enabled }))
 }
 
-fn now() -> String {
-    chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
 async fn target_security(
     State(state): State<AppState>,
     Path(id): Path<TargetId>,
@@ -63,7 +59,7 @@ async fn target_security(
         .await?
         .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
     if !security::setting_enabled(&state.pool).await.map_err(internal)? {
-        return Ok(Json(Report::empty(target.id, &target.name, &target.kind, false, now())));
+        return Ok(Json(Report::empty(target.id, &target.name, &target.kind, false, db::now())));
     }
     let facts = if security::provider_for(&target.kind).is_some() {
         security::facts_for(&state, &target).await?
@@ -131,10 +127,10 @@ pub fn summarize(reports: Vec<Report>) -> Vec<SummaryRow> {
 
 async fn summary(State(state): State<AppState>) -> ApiResult<Json<Summary>> {
     if !security::setting_enabled(&state.pool).await.map_err(internal)? {
-        return Ok(Json(Summary { enabled: false, evaluated_at: now(), devices: Vec::new() }));
+        return Ok(Json(Summary { enabled: false, evaluated_at: db::now(), devices: Vec::new() }));
     }
     let reports = security::all_reports(&state).await?;
-    Ok(Json(Summary { enabled: true, evaluated_at: now(), devices: summarize(reports) }))
+    Ok(Json(Summary { enabled: true, evaluated_at: db::now(), devices: summarize(reports) }))
 }
 
 #[cfg(test)]

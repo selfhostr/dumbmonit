@@ -521,7 +521,7 @@ async fn compute(state: &AppState, components: &[Component]) -> anyhow::Result<V
     let data = Data::load(pool, components).await?;
     let candidates = evaluate(components, &data);
     let now = Utc::now();
-    let stamp = store::now();
+    let stamp = crate::db::now();
     let findings: Vec<store::FindingRow> = candidates
         .iter()
         .filter(|c| {

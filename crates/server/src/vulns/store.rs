@@ -5,13 +5,11 @@ use std::collections::{HashMap, HashSet};
 use dumbmonit_proto::{SoftwareInventory, TargetId};
 use sqlx::{Row, SqlitePool};
 
+use crate::db::{self, now};
+
 use super::debian;
 use super::nvd::{CpeRange, CveInfo};
 use super::osv;
-
-pub fn now() -> String {
-    chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string()
-}
 
 // ------------------------------------------------------------- inventaire
 
@@ -21,10 +19,10 @@ pub async fn save_agent_inventory(
     target_id: TargetId,
     inventory: &SoftwareInventory,
 ) -> sqlx::Result<()> {
-    let collected_at = chrono::DateTime::from_timestamp_millis(inventory.collected_at_ms)
-        .unwrap_or_else(chrono::Utc::now)
-        .format("%Y-%m-%d %H:%M:%S")
-        .to_string();
+    let collected_at = db::timestamp(
+        chrono::DateTime::from_timestamp_millis(inventory.collected_at_ms)
+            .unwrap_or_else(chrono::Utc::now),
+    );
     let json = serde_json::to_string(inventory).unwrap_or_default();
     sqlx::query(
         "INSERT INTO agent_inventory (target_id, collected_at, received_at, inventory) \

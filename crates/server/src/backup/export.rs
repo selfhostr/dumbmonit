@@ -52,7 +52,7 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
 
     Ok(Bundle {
         version: VERSION,
-        created_at: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        created_at: crate::db::now(),
         source_version: env!("CARGO_PKG_VERSION").to_string(),
         targets: targets(pool, cipher, &refs).await?,
         rules: rules(pool, &refs, &channel_names).await?,

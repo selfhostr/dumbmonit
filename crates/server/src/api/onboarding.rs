@@ -25,7 +25,6 @@
 
 use axum::Json;
 use axum::extract::State;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::{Row, SqlitePool};
 
@@ -99,7 +98,7 @@ pub async fn get(State(state): State<AppState>) -> ApiResult<Json<OnboardingStat
     let facts = read_facts(&state.pool).await?;
 
     if stored.completed_at.is_none() {
-        let now = Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+        let now = crate::db::now();
         // Un parc déjà en place à la première lecture n'a rien à apprendre ici.
         let established = stored.started_at.is_none() && facts.has_target && facts.has_channel;
         if stored.started_at.is_none() {
