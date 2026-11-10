@@ -45,14 +45,25 @@ pub const HOST_PATHS: &[&str] = &[
 ];
 /// `guest.ipAddress` : l'adresse principale que VMware Tools rapporte (vide
 /// sans Tools) ; la carte s'en sert pour relier la VM à ce qui tourne dessus.
+/// `runtime.consolidationNeeded` et `snapshot.rootSnapshotList` : les disques
+/// à consolider et l'arbre des instantanés (absent d'une VM qui n'en a pas).
 pub const VM_PATHS: &[&str] = &[
     "name",
     "runtime.powerState",
+    "runtime.consolidationNeeded",
     "overallStatus",
     "guest.toolsStatus",
     "guest.ipAddress",
     "config.template",
+    SNAPSHOT_TREE,
 ];
+/// L'arbre des instantanés d'une VM (`VirtualMachineSnapshotTree`, imbriqués
+/// par `childSnapshotList`). Résumé à la lecture en deux propriétés simples.
+pub const SNAPSHOT_TREE: &str = "snapshot.rootSnapshotList";
+/// Nombre d'instantanés de l'arbre, tous niveaux confondus.
+pub const SNAPSHOT_COUNT: &str = "snapshot.count";
+/// Création du plus ancien instantané, en secondes Unix.
+pub const SNAPSHOT_OLDEST: &str = "snapshot.oldestCreateTime";
 pub const DATASTORE_PATHS: &[&str] =
     &["name", "summary.capacity", "summary.freeSpace", "summary.accessible", "overallStatus"];
 
@@ -402,10 +413,22 @@ pub fn decode_page(response: Node) -> Result<Page, ProbeError> {
         for prop in children(object, "propSet") {
             let name = text_of(child(prop, "name"));
             // Les valeurs composées (tableaux) sont lues à part ; ici, le texte.
-            if let Some(val) = child(prop, "val")
-                && val.children().all(|n| !n.is_element())
-            {
+            let Some(val) = child(prop, "val") else { continue };
+            if val.children().all(|n| !n.is_element()) {
                 props.insert(name, val.text().unwrap_or_default().trim().to_string());
+            } else if name == SNAPSHOT_TREE {
+                // Chaque instantané de l'arbre porte exactement un `createTime`.
+                let created: Vec<i64> = val
+                    .descendants()
+                    .filter(|n| n.is_element() && n.tag_name().name() == "createTime")
+                    .filter_map(|n| n.text())
+                    .filter_map(|t| chrono::DateTime::parse_from_rfc3339(t.trim()).ok())
+                    .map(|at| at.timestamp())
+                    .collect();
+                props.insert(SNAPSHOT_COUNT.to_string(), created.len().to_string());
+                if let Some(oldest) = created.iter().min() {
+                    props.insert(SNAPSHOT_OLDEST.to_string(), oldest.to_string());
+                }
             }
         }
         let missing = children(object, "missingSet")
@@ -472,6 +495,9 @@ mod tests {
     // Forme documentée d'un `triggeredAlarmState` non vide (vSphere Web
     // Services API, type AlarmState) : `vcsim` ne déclenche pas d'alarme.
     const ALARMS_DOC: &str = include_str!("testdata/documented/alarm_states.xml");
+    // Forme documentée de `snapshot.rootSnapshotList` (type
+    // VirtualMachineSnapshotTree) et de `runtime.consolidationNeeded`.
+    const SNAPSHOTS_DOC: &str = include_str!("testdata/documented/vm_snapshots.xml");
 
     #[test]
     fn le_service_content_donne_les_references_propres_a_chaque_produit() {
@@ -505,6 +531,24 @@ mod tests {
         assert_eq!(vm.text("name"), Some("DC0_H0_VM0"));
         assert_eq!(vm.text("runtime.powerState"), Some("poweredOn"));
         assert_eq!(vm.flag("config.template"), Some(false));
+    }
+
+    #[test]
+    fn l_arbre_des_instantanes_se_resume_en_nombre_et_plus_ancien() {
+        let page = read(SNAPSHOTS_DOC, decode_page).unwrap().unwrap();
+        assert_eq!(page.objects.len(), 2);
+        let with = &page.objects[0];
+        assert_eq!(with.text("name"), Some("erp01"));
+        // Trois instantanés sur deux niveaux ; le plus ancien est la racine.
+        assert_eq!(with.number(SNAPSHOT_COUNT), Some(3.0));
+        let oldest =
+            chrono::DateTime::parse_from_rfc3339("2026-09-01T10:00:00Z").unwrap().timestamp();
+        assert_eq!(with.number(SNAPSHOT_OLDEST), Some(oldest as f64));
+        assert_eq!(with.flag("runtime.consolidationNeeded"), Some(true));
+        // Une VM sans instantané n'a pas la propriété du tout.
+        let without = &page.objects[1];
+        assert_eq!(without.text(SNAPSHOT_COUNT), None);
+        assert_eq!(without.flag("runtime.consolidationNeeded"), Some(false));
     }
 
     #[test]

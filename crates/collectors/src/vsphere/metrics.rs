@@ -10,6 +10,10 @@
 //! | `host_power_state` | 0 allumé, 1 en veille, 2 éteint, 3 inconnu |
 //! | `vm_power_state` | 0 allumée, 1 éteinte, 2 suspendue |
 //! | `vm_tools_status` | 0 à jour, 1 ancienne version, 2 installés mais arrêtés, 3 absents |
+//!
+//! Les instantanés ne publient de série que pour les VM qui en ont : leur
+//! nombre et l'âge du plus ancien. Une VM sans instantané n'a ni l'un ni
+//! l'autre, et l'alerte « instantané ancien » retombe quand il est supprimé.
 
 use std::collections::{BTreeMap, HashMap};
 
@@ -17,7 +21,7 @@ use dumbmonit_proto::Sample;
 
 use crate::rest::gauge;
 
-use super::soap::{About, AlarmState, MoRef, ObjectContent};
+use super::soap::{About, AlarmState, MoRef, ObjectContent, SNAPSHOT_COUNT, SNAPSHOT_OLDEST};
 
 /// Au-delà, les VM ne portent plus de série propre : seuls les totaux restent.
 pub const MAX_VMS: usize = 1000;
@@ -205,6 +209,20 @@ fn vm_samples(vm: &ObjectContent, name: &str, ts_ms: i64) -> Vec<Sample> {
         let sample = gauge("vsphere_vm_ip_info", 1.0, ts_ms).with_label("vm", name);
         out.push(sample.with_label("ip", ip));
     }
+    // Après une sauvegarde interrompue, les disques restent éclatés en deltas.
+    if let Some(needed) = vm.flag("runtime.consolidationNeeded") {
+        let value = if needed { 1.0 } else { 0.0 };
+        out.push(gauge("vsphere_vm_consolidation_needed", value, ts_ms).with_label("vm", name));
+    }
+    if let Some(count) = vm.number(SNAPSHOT_COUNT).filter(|count| *count > 0.0) {
+        out.push(gauge("vsphere_vm_snapshots", count, ts_ms).with_label("vm", name));
+        if let Some(oldest) = vm.number(SNAPSHOT_OLDEST) {
+            let age = (ts_ms as f64 / 1000.0 - oldest).max(0.0);
+            out.push(
+                gauge("vsphere_vm_snapshot_oldest_age_seconds", age, ts_ms).with_label("vm", name),
+            );
+        }
+    }
     out
 }
 
@@ -369,6 +387,33 @@ mod tests {
             3.0
         );
         assert!(find(&samples, "vsphere_vm_tools_status", "vm", "DC0_H0_VM1").is_none());
+    }
+
+    #[test]
+    fn instantanes_et_consolidation() {
+        const SNAPSHOTS: &str = include_str!("testdata/documented/vm_snapshots.xml");
+        let objects = read(SNAPSHOTS, decode_page).unwrap().unwrap().objects;
+        // Dix jours après la création du plus ancien instantané.
+        let now_ms = chrono::DateTime::parse_from_rfc3339("2026-09-11T10:00:00Z")
+            .unwrap()
+            .timestamp_millis();
+        let samples = inventory_samples(&objects, now_ms);
+        assert_eq!(find(&samples, "vsphere_vm_snapshots", "vm", "erp01").unwrap().value, 3.0);
+        assert_eq!(
+            find(&samples, "vsphere_vm_snapshot_oldest_age_seconds", "vm", "erp01").unwrap().value,
+            10.0 * 86_400.0
+        );
+        assert_eq!(
+            find(&samples, "vsphere_vm_consolidation_needed", "vm", "erp01").unwrap().value,
+            1.0
+        );
+        // Sans instantané : aucune série, plutôt qu'un zéro par VM.
+        assert!(find(&samples, "vsphere_vm_snapshots", "vm", "web01").is_none());
+        assert!(find(&samples, "vsphere_vm_snapshot_oldest_age_seconds", "vm", "web01").is_none());
+        assert_eq!(
+            find(&samples, "vsphere_vm_consolidation_needed", "vm", "web01").unwrap().value,
+            0.0
+        );
     }
 
     #[test]

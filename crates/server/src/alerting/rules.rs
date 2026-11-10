@@ -30,6 +30,7 @@ mod truenas;
 mod unifi;
 mod unraid;
 mod veeam;
+mod vsphere;
 
 /// Taux d'occupation processeur, toutes sources confondues.
 ///
@@ -7780,6 +7781,7 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(pfsense::rules());
     rules.extend(unraid::rules());
     rules.extend(veeam::rules());
+    rules.extend(vsphere::rules());
     rules.extend(opnsense::rules());
     rules.extend(tailscale::rules());
     // Résolveurs DNS et domotique : un fichier par produit (`rules/<produit>.rs`).
@@ -9224,6 +9226,8 @@ mod tests {
             "vsphere_datastore_inaccessible",
             "vsphere_vm_tools_not_running",
             "vsphere_alarm_red",
+            "vsphere_vm_snapshot_old",
+            "vsphere_vm_consolidation_needed",
             // Redis, MongoDB, RabbitMQ, CrowdSec.
             "redis_memory_near_limit",
             "redis_rejecting_connections",
@@ -9492,6 +9496,7 @@ mod tests {
                             || pfsense::PRODUCED.contains(&mot)
                             || unraid::PRODUCED.contains(&mot)
                             || veeam::PRODUCED.contains(&mot)
+                            || vsphere::PRODUCED.contains(&mot)
                             || opnsense::PRODUCED.contains(&mot)
                             || tailscale::PRODUCED.contains(&mot)
                             || pihole::PRODUCED.contains(&mot)
