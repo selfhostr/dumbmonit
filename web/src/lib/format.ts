@@ -202,6 +202,29 @@ export function formatFailureReason(reason: string | null | undefined): string {
 	return FAILURE_REASON_LABEL[reason]?.() ?? reason;
 }
 
+/** Two digits, zero-padded: 5 becomes "05". */
+export const pad2 = (n: number): string => String(n).padStart(2, '0');
+
+/** "1.2 GiB": binary units, one decimal under 100, an em dash when unknown. */
+export function formatBinaryBytes(bytes: number | null | undefined): string {
+	if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) return '—';
+	const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+	let value = bytes;
+	let index = 0;
+	while (value >= 1024 && index < units.length - 1) {
+		value /= 1024;
+		index += 1;
+	}
+	const digits = index === 0 || value >= 100 ? 0 : 1;
+	return `${value.toFixed(digits)} ${units[index]}`;
+}
+
+/** A plain count, grouped: "1 204"; an em dash when unknown. */
+export function formatGroupedCount(value: number | null | undefined): string {
+	if (value === null || value === undefined || !Number.isFinite(value)) return '—';
+	return Math.round(value).toLocaleString('en-US').replace(/,/g, ' ');
+}
+
 /** Availability percentage: two decimals below 100, integer otherwise. */
 export function formatPercent(value: number | null | undefined): string {
 	if (value === null || value === undefined || !Number.isFinite(value)) return '—';

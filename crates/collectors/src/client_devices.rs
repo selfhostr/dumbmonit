@@ -38,7 +38,9 @@
 //! de l'interface — fonctionne sans rien connaître du produit : il ne lit que
 //! les métriques ci-dessous.
 
-use dumbmonit_proto::{MetricKind, ProbeError, Sample, Target};
+use dumbmonit_proto::{ProbeError, Sample, Target};
+
+use crate::rest::gauge;
 
 /// Défaut produit : trois jours sans connexion ni sauvegarde, c'est déjà le
 /// signe qu'un appareil a été oublié (chargeur débranché, app désinstallée,
@@ -88,10 +90,6 @@ pub fn stale_days(target: &Target) -> Result<f64, ProbeError> {
 
 fn tag<'a>(target: &'a Target, key: &str) -> Option<&'a str> {
     target.tags.get(key).map(|value| value.trim()).filter(|value| !value.is_empty())
-}
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
 }
 
 /// Construit les métriques communes à tous les produits pour la liste

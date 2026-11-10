@@ -75,13 +75,3 @@ export const STATUS_MARK: Record<ConsoleStatus, string> = {
 	up: 'rounded-full bg-signal',
 	paused: 'rounded-full border-[1.5px] border-ink-3 opacity-60'
 };
-
-/** Stroke of the sparkline: quiet grey when all is well, the state's hue otherwise. */
-export const STATUS_STROKE: Record<ConsoleStatus, string> = {
-	down: 'stroke-warning',
-	degraded: 'stroke-advisory',
-	config: 'stroke-advisory',
-	waiting: 'stroke-ink-3',
-	up: 'stroke-ink-3',
-	paused: 'stroke-ink-3'
-};

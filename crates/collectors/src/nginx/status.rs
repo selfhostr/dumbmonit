@@ -3,7 +3,9 @@
 //! Module purement fonctionnel : la mise en forme texte de `stub_status` se
 //! teste donc sur des chaînes figées, sans serveur Nginx en face.
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
+
+use crate::rest::{counter, gauge};
 
 /// Les six compteurs de `stub_status`, tels que documentés par Nginx :
 /// <https://nginx.org/en/docs/http/ngx_http_stub_status_module.html>.
@@ -75,14 +77,6 @@ fn parse_reading_writing_waiting(line: &str) -> Result<(f64, f64, f64), String> 
     Ok((values[0], values[1], values[2]))
 }
 
-fn gauge(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Counter, ts_ms)
-}
-
 pub fn samples(status: &StubStatus, ts_ms: i64) -> Vec<Sample> {
     vec![
         gauge("nginx_connections_active", status.active, ts_ms),
@@ -104,6 +98,8 @@ pub fn server_header_sample(server: &str, ts_ms: i64) -> Sample {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     const EXEMPLE: &str = "Active connections: 291 \n\
                             server accepts handled requests\n\

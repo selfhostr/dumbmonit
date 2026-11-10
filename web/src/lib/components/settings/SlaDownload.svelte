@@ -7,6 +7,7 @@
 	 */
 	import { Download } from 'lucide-svelte';
 	import { m } from '#lib/paraglide/messages.js';
+	import { pad2 } from '#lib/format.js';
 	import { toApiError, type StatusPage } from '#lib/api/index.js';
 	import { downloadSlaReport, type SlaFormat } from '#lib/api/reports.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
@@ -22,8 +23,7 @@
 
 	/** `YYYY-MM-DD` of a local date, without going through UTC (which shifts the day). */
 	function day(date: Date): string {
-		const pad = (value: number) => String(value).padStart(2, '0');
-		return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+		return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 	}
 
 	const now = new Date();

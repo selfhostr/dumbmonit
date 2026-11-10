@@ -18,7 +18,7 @@ import type {
 } from '#lib/api/index.js';
 import { isDistinctiveLabel } from '#lib/metrics.js';
 import type { Tone } from '#lib/ui/index.js';
-import { formatDateTime, formatDuration } from '#lib/format.js';
+import { formatDateTime, formatDuration, pad2 } from '#lib/format.js';
 import { m } from '#lib/paraglide/messages.js';
 import { getLocale } from '#lib/paraglide/runtime.js';
 
@@ -321,8 +321,7 @@ export function quickSilencePayload(target: Target, endsAt?: Date) {
 /** A `datetime-local` input value for `offsetMs` from now (one hour by default), in local time. */
 export function datetimeLocalIn(offsetMs = 3600_000): string {
 	const d = new Date(Date.now() + offsetMs);
-	const pad = (n: number) => String(n).padStart(2, '0');
-	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 // Per-alert snooze (`SNOOZE_DURATIONS`, `snoozePayload`, `coveringSilence`) lives

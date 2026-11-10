@@ -13,7 +13,9 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
+
+use crate::rest::gauge;
 
 use super::soap::{About, AlarmState, MoRef, ObjectContent};
 
@@ -22,10 +24,6 @@ pub const MAX_VMS: usize = 1000;
 
 /// Au plus autant d'alarmes déclenchées portent une série nommée.
 pub const MAX_ALARMS: usize = 64;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
 
 pub fn status_code(status: &str) -> Option<f64> {
     match status {

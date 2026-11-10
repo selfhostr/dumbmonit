@@ -128,7 +128,7 @@ async fn overview(
 ) -> ApiResult<Json<BlacklistView>> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     if !KINDS.contains(&target.kind.as_str()) {
         return Err(ApiError::NotFound(format!("Monitor {id} is not a blocklist check.")));
     }

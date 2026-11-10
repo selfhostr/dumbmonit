@@ -39,7 +39,7 @@ async fn overview(
 ) -> ApiResult<Json<ObservabilityView>> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     let kind = target.kind.as_str();
     if !KINDS.contains(&kind) {
         return Err(ApiError::NotFound(format!(

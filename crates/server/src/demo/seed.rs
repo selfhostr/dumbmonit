@@ -405,8 +405,8 @@ async fn seed_status_pages(
             kind: "maintenance".to_string(),
             status: "completed".to_string(),
             severity: "minor".to_string(),
-            starts_at: stamp(start),
-            ends_at: Some(stamp(start + chrono::Duration::minutes(40))),
+            starts_at: db::timestamp(start),
+            ends_at: Some(db::timestamp(start + chrono::Duration::minutes(40))),
         },
     )
     .await?;
@@ -443,7 +443,7 @@ async fn seed_status_pages(
                 kind: "incident".to_string(),
                 status: "monitoring".to_string(),
                 severity: "minor".to_string(),
-                starts_at: stamp(started),
+                starts_at: db::timestamp(started),
                 ends_at: None,
             },
         )
@@ -467,8 +467,8 @@ async fn seed_status_pages(
                 kind: "maintenance".to_string(),
                 status: "scheduled".to_string(),
                 severity: "minor".to_string(),
-                starts_at: stamp(window),
-                ends_at: Some(stamp(window + chrono::Duration::minutes(45))),
+                starts_at: db::timestamp(window),
+                ends_at: Some(db::timestamp(window + chrono::Duration::minutes(45))),
             },
         )
         .await?;
@@ -617,7 +617,7 @@ async fn seed_alert_history(
             .bind(to)
             .bind(severity)
             .bind(value)
-            .bind(stamp(at))
+            .bind(db::timestamp(at))
             .execute(pool)
             .await
             .context("demo alert history")?;
@@ -628,9 +628,4 @@ async fn seed_alert_history(
 
 fn hour_floor(at: DateTime<Utc>) -> DateTime<Utc> {
     DateTime::from_timestamp(at.timestamp() / 3600 * 3600, 0).unwrap_or(at)
-}
-
-/// Format des horodatages serveur : UTC sans suffixe.
-fn stamp(at: DateTime<Utc>) -> String {
-    at.format("%Y-%m-%d %H:%M:%S").to_string()
 }

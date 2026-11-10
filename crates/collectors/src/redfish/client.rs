@@ -242,32 +242,14 @@ async fn decode(
 /// certificat refusé est une affaire de configuration : tous les contrôleurs de
 /// gestion sortent d'usine avec un certificat auto-signé.
 fn map_transport(error: &reqwest::Error, path: &str, timeout: Duration) -> ProbeError {
-    if error.is_timeout() {
-        return ProbeError::Timeout(timeout);
-    }
-    if crate::http::is_certificate_error(error) {
-        return ProbeError::Config(
-            "TLS certificate rejected: management controllers ship with a self-signed \
-             certificate. Add the tag \"insecure_tls = true\" on the device to knowingly \
-             accept it, or install a trusted certificate on the controller."
-                .to_string(),
-        );
-    }
-    if error.is_decode() {
-        return ProbeError::Protocol(format!("Unreadable response from {path}"));
-    }
-    ProbeError::Unreachable(format!("{path}: {}", cause_chain(error)))
-}
-
-fn cause_chain(error: &reqwest::Error) -> String {
-    let mut message = error.to_string();
-    let mut source = std::error::Error::source(error);
-    while let Some(cause) = source {
-        message.push_str(": ");
-        message.push_str(&cause.to_string());
-        source = cause.source();
-    }
-    message
+    crate::http::map_transport(
+        error,
+        path,
+        timeout,
+        "TLS certificate rejected: management controllers ship with a self-signed \
+         certificate. Add the tag \"insecure_tls = true\" on the device to knowingly \
+         accept it, or install a trusted certificate on the controller.",
+    )
 }
 
 fn status_error(status: StatusCode, body: &str, path: &str) -> ProbeError {

@@ -75,7 +75,7 @@ async fn skipped_features(
 ) -> ApiResult<Json<SkippedFeaturesView>> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     let Some(kind) = KINDS.into_iter().find(|kind| *kind == target.kind) else {
         return Ok(Json(SkippedFeaturesView { features: Vec::new() }));
     };

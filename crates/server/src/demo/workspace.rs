@@ -176,10 +176,6 @@ pub async fn run(
     Ok(())
 }
 
-fn stamp(at: DateTime<Utc>) -> String {
-    at.format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
 /// Mode MSP : la maison et le bureau, chacun ses équipements.
 async fn seed_clients(pool: &SqlitePool) -> Result<i64> {
     crate::auth::clients::save_settings(pool, &MspSettings { enabled: true }).await?;
@@ -605,7 +601,7 @@ async fn seed_vulnerabilities(
         .bind(*summary)
         .bind(*cvss)
         .bind(*published)
-        .bind(stamp(now - chrono::Duration::hours(5)))
+        .bind(db::timestamp(now - chrono::Duration::hours(5)))
         .execute(pool)
         .await
         .context("demo CVE")?;
@@ -668,7 +664,7 @@ async fn seed_vulnerabilities(
         .bind(*state)
         .bind(*reason)
         .bind(*source)
-        .bind(stamp(now - chrono::Duration::days(*days)))
+        .bind(db::timestamp(now - chrono::Duration::days(*days)))
         .execute(pool)
         .await
         .context("demo CVE finding")?;
@@ -676,8 +672,8 @@ async fn seed_vulnerabilities(
     for source in ["scan", "nvd", "debian", "osv", "kev"] {
         sqlx::query("INSERT INTO cve_sources (name, last_attempt, last_success) VALUES (?, ?, ?)")
             .bind(source)
-            .bind(stamp(now - chrono::Duration::hours(5)))
-            .bind(stamp(now - chrono::Duration::hours(5)))
+            .bind(db::timestamp(now - chrono::Duration::hours(5)))
+            .bind(db::timestamp(now - chrono::Duration::hours(5)))
             .execute(pool)
             .await?;
     }

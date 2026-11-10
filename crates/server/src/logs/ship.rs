@@ -58,11 +58,6 @@ pub struct StatsView {
     pub last_success_at: Option<String>,
 }
 
-/// Horodatage à la manière du reste de l'API : UTC, sans suffixe.
-fn server_time(at: DateTime<Utc>) -> String {
-    at.format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
 impl Stats {
     fn lock(&self) -> std::sync::MutexGuard<'_, State> {
         self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
@@ -100,8 +95,8 @@ impl Stats {
             failed_batches: self.failed_batches.load(Ordering::Relaxed),
             queued,
             last_error: state.last_error.as_ref().map(|(error, _)| error.clone()),
-            last_error_at: state.last_error.as_ref().map(|(_, at)| server_time(*at)),
-            last_success_at: state.last_success.map(server_time),
+            last_error_at: state.last_error.as_ref().map(|(_, at)| crate::db::timestamp(*at)),
+            last_success_at: state.last_success.map(crate::db::timestamp),
         }
     }
 }

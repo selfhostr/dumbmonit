@@ -8,7 +8,9 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
+
+use crate::rest::{counter, gauge};
 
 /// Ce que `mod_status?auto` peut publier. Seuls `busy_workers` et
 /// `idle_workers` sont garantis : le reste dépend de `ExtendedStatus` et de la
@@ -117,14 +119,6 @@ pub fn scoreboard_counts(scoreboard: &str) -> BTreeMap<&'static str, u64> {
     counts
 }
 
-fn gauge(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Counter, ts_ms)
-}
-
 pub fn samples(status: &ModStatus, ts_ms: i64) -> Vec<Sample> {
     let mut samples = vec![
         gauge("apache_workers_busy", status.busy_workers, ts_ms),
@@ -184,6 +178,8 @@ pub fn server_header_sample(server: &str, ts_ms: i64) -> Sample {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     /// L'exemple de la documentation officielle de `mod_status`.
     const EXEMPLE: &str = "Total Accesses: 46499\n\

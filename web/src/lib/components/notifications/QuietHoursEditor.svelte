@@ -8,6 +8,7 @@
 	import type { QuietHours } from '#lib/api/index.js';
 	import { Field, Toggle } from '#lib/ui/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { pad2 } from '#lib/format.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 
 	interface Props {
@@ -30,8 +31,7 @@
 	);
 
 	function toClock(minute: number): string {
-		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`;
+		return `${pad2(Math.floor(minute / 60))}:${pad2(minute % 60)}`;
 	}
 
 	/** "HH:MM" → minutes since midnight, or null if unreadable. */

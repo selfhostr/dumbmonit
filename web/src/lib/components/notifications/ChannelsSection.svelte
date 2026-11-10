@@ -7,7 +7,7 @@
 	import ClientAssign from '#lib/components/ClientAssign.svelte';
 	import { BellRing, EllipsisVertical, Plus } from 'lucide-svelte';
 	import { deleteChannel, listChannelKinds, listChannels, testChannel, toApiError, type Channel } from '#lib/api/index.js';
-	import { formatDateTime, formatRelative } from '#lib/format.js';
+	import { formatDateTime, formatRelative, pad2 } from '#lib/format.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { Button, ClickSpark, Confirm, EmptyState, ErrorNotice, Menu, Panel, Plate, Skeleton } from '#lib/ui/index.js';
 	import { kindIcon, normalizeKind, type KindInfo } from './kinds';
@@ -63,8 +63,7 @@
 			parts.push(m.notifications_channels_policy_interval({ minutes: Math.round(p.min_interval_secs / 60) }));
 		}
 		if (p.quiet_hours) {
-			const pad = (n: number) => String(n).padStart(2, '0');
-			const clock = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+			const clock = (min: number) => `${pad2(Math.floor(min / 60))}:${pad2(min % 60)}`;
 			parts.push(
 				m.notifications_channels_policy_quiet({
 					start: clock(p.quiet_hours.start_minute),

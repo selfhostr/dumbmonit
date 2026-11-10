@@ -1389,7 +1389,7 @@ async fn load(state: &AppState, id: TargetId) -> ApiResult<Target> {
 }
 
 fn not_found(id: TargetId) -> ApiError {
-    ApiError::NotFound(format!("Monitor {id} not found."))
+    ApiError::monitor_not_found(&id)
 }
 
 /// La contrainte `UNIQUE (kind, address)` traduit une erreur d'utilisateur, pas une

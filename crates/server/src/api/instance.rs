@@ -12,7 +12,6 @@
 use axum::extract::State;
 use axum::routing::get;
 use axum::{Json, Router};
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
 use crate::api::{ApiError, ApiResult};
@@ -116,8 +115,7 @@ fn apply(value: &mut InstanceSettings, patch: InstancePatch) -> ApiResult<()> {
         // L'assistant peut être relancé depuis les réglages : remettre à faux
         // est permis, et la date suit. Répéter la même valeur ne la change pas.
         if done != value.setup_completed {
-            value.setup_completed_at =
-                done.then(|| Utc::now().format("%Y-%m-%d %H:%M:%S").to_string());
+            value.setup_completed_at = done.then(crate::db::now);
         }
         value.setup_completed = done;
     }

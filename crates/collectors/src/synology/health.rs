@@ -32,9 +32,11 @@ use std::collections::BTreeMap;
 use std::time::{Duration, Instant};
 
 use chrono::NaiveDateTime;
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde_json::Value;
 use tracing::debug;
+
+use crate::rest::gauge;
 
 use super::client::DsmClient;
 
@@ -95,10 +97,6 @@ impl Snapshot {
         }
         out
     }
-}
-
-fn gauge(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Gauge, ts_ms)
 }
 
 // ---------------------------------------------------------------- lecture

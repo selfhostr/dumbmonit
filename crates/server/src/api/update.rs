@@ -26,9 +26,7 @@ pub fn routes() -> Router<AppState> {
 async fn run(state: &AppState, force: bool) -> ApiResult<UpdateInfo> {
     let locked = update::env_disabled();
     // Le mode démonstration n'a pas à joindre GitHub depuis un serveur public.
-    let enabled = !locked
-        && !state.config.demo
-        && update::setting_enabled(&state.pool).await.map_err(|e| ApiError::Internal(e.into()))?;
+    let enabled = !locked && !state.config.demo && update::setting_enabled(&state.pool).await?;
     Checker::global().get(Utc::now(), enabled, locked, force, update::fetch_releases).await.map_err(
         |CheckError::TooSoon(seconds)| {
             ApiError::Conflict(format!("Checked a moment ago. Try again in {seconds} s."))
@@ -53,8 +51,6 @@ async fn settings(
     State(state): State<AppState>,
     Json(payload): Json<SettingsPayload>,
 ) -> ApiResult<Json<UpdateInfo>> {
-    update::set_setting_enabled(&state.pool, payload.enabled)
-        .await
-        .map_err(|e| ApiError::Internal(e.into()))?;
+    update::set_setting_enabled(&state.pool, payload.enabled).await?;
     run(&state, false).await.map(Json)
 }

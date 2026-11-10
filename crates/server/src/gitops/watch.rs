@@ -71,8 +71,7 @@ pub fn spawn(state: AppState) {
                         failed_at = None;
                         update(|status| {
                             status.files = files.clone();
-                            status.last_applied_at =
-                                Some(chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string());
+                            status.last_applied_at = Some(crate::db::now());
                             status.last_error = None;
                             status.last_changes = Some(counts);
                         });

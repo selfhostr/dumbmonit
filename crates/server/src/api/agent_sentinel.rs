@@ -87,7 +87,7 @@ async fn agent_target(state: &AppState, id: TargetId) -> ApiResult<()> {
     match kind.as_deref() {
         Some("agent") => Ok(()),
         Some(_) => Err(ApiError::NotFound(format!("Monitor {id} has no agent."))),
-        None => Err(ApiError::NotFound(format!("Monitor {id} not found."))),
+        None => Err(ApiError::monitor_not_found(&id)),
     }
 }
 

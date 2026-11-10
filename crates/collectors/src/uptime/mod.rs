@@ -170,6 +170,14 @@ pub use sql::options::DEFAULT_QUERY as SQL_DEFAULT_QUERY;
 // présente le sien en HTTPS.
 pub use tls::cert::{CertInfo, parse_der as parse_certificate};
 
+/// Texte raccourci à `max` caractères (suivi de `…`) pour les messages d'échec.
+fn truncate(text: &str, max: usize) -> String {
+    if text.chars().count() <= max {
+        return text.to_string();
+    }
+    format!("{}…", text.chars().take(max).collect::<String>())
+}
+
 #[cfg(test)]
 mod tests {
     use dumbmonit_proto::Collector;
