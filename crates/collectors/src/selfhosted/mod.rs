@@ -76,8 +76,10 @@ pub mod protect;
 pub mod qbittorrent;
 pub mod vaultwarden;
 
-use dumbmonit_proto::{Credential, MetricKind, ProbeError, Sample, Target};
+use dumbmonit_proto::{Credential, ProbeError, Sample, Target};
 use reqwest::StatusCode;
+
+use crate::rest::gauge;
 use serde_json::Value;
 
 use client::{Auth, HttpClient};
@@ -103,10 +105,6 @@ pub use vaultwarden::VaultwardenCollector;
 /// Au plus autant de séries nommées par famille (applications à mettre à
 /// jour, tâches en échec, files de travaux) : au-delà, seul leur nombre compte.
 pub const MAX_NAMED: usize = 32;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
 
 fn flag(name: &str, value: bool, ts_ms: i64) -> Sample {
     gauge(name, if value { 1.0 } else { 0.0 }, ts_ms)

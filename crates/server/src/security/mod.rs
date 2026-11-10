@@ -309,7 +309,7 @@ pub struct Counts {
 /// Note un équipement à partir de ses faits. Les contrôles sont triés :
 /// échecs d'abord (les plus lourds en tête), puis réussites, puis inconnus.
 pub fn build_report(target_id: TargetId, name: &str, kind: &str, facts: &Facts) -> Report {
-    let evaluated_at = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let evaluated_at = crate::db::now();
     let Some(provider) = provider_for(kind).filter(|provider| provider.applies(facts)) else {
         return Report::empty(target_id, name, kind, true, evaluated_at);
     };

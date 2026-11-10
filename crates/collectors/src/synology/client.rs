@@ -21,6 +21,8 @@ use dumbmonit_proto::ProbeError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 
+use crate::http::form_urlencoded;
+
 use super::auth::{Credentials, Session};
 use super::error;
 use super::model::{ApiCatalog, Envelope, LoginData};
@@ -378,36 +380,6 @@ fn parse_envelope<T: DeserializeOwned>(body: &[u8], api: &str) -> Result<T, ApiF
     envelope.data.ok_or(ApiFailure::Malformed)
 }
 
-/// Encode un corps `application/x-www-form-urlencoded`.
-///
-/// Écrit à la main faute d'encodeur dans les fonctionnalités retenues de
-/// `reqwest`. Un mot de passe DSM contient volontiers `+`, `&` ou `%` : le laisser
-/// passer tel quel produirait un refus incompréhensible à la connexion.
-fn form_urlencoded(pairs: &[(&str, &str)]) -> String {
-    let mut body = String::new();
-    for (index, (key, value)) in pairs.iter().enumerate() {
-        if index > 0 {
-            body.push('&');
-        }
-        encode_into(&mut body, key);
-        body.push('=');
-        encode_into(&mut body, value);
-    }
-    body
-}
-
-fn encode_into(out: &mut String, value: &str) {
-    for byte in value.as_bytes() {
-        match byte {
-            // Caractères « non réservés » de la RFC 3986, seuls à passer tels quels.
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(*byte as char)
-            }
-            _ => out.push_str(&format!("%{byte:02X}")),
-        }
-    }
-}
-
 /// Construit le client HTTP.
 ///
 /// `accept_invalid_certs` désactive toute vérification du certificat présenté.
@@ -440,7 +412,7 @@ fn map_transport(error: &reqwest::Error, api: &str, timeout: Duration) -> ProbeE
     if error.is_decode() {
         return ProbeError::Protocol(format!("Unreadable response from \"{api}\""));
     }
-    ProbeError::Unreachable(format!("{api}: {}", cause_chain(error)))
+    ProbeError::Unreachable(format!("{api}: {}", crate::http::cause_chain(error)))
 }
 
 /// Message affiché quand le certificat du NAS n'est pas vérifiable.
@@ -449,17 +421,6 @@ pub const SELF_SIGNED_HINT: &str = "TLS certificate rejected: a Synology NAS pre
      \"insecure_tls = true\" on the device to knowingly accept it, install a \
      trusted certificate on the NAS (Let's Encrypt is built into DSM), or switch \
      the device to \"scheme = http\".";
-
-fn cause_chain(error: &reqwest::Error) -> String {
-    let mut message = error.to_string();
-    let mut source = std::error::Error::source(error);
-    while let Some(cause) = source {
-        message.push_str(": ");
-        message.push_str(&cause.to_string());
-        source = cause.source();
-    }
-    message
-}
 
 /// Traduit un statut HTTP en `ProbeError`.
 ///

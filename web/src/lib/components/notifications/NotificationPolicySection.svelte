@@ -17,6 +17,7 @@
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { Button, ClickSpark, DocLink, ErrorNotice, Field, Panel, Plate, Skeleton, Toggle } from '#lib/ui/index.js';
 	import { matcherIsEmpty, matcherSentence } from '#lib/components/alerts/helpers.js';
+	import { pad2 } from '#lib/format.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 
@@ -194,8 +195,7 @@
 	}
 
 	function clock(minute: number): string {
-		const pad = (n: number) => String(n).padStart(2, '0');
-		return `${pad(Math.floor(minute / 60))}:${pad(minute % 60)}`;
+		return `${pad2(Math.floor(minute / 60))}:${pad2(minute % 60)}`;
 	}
 
 	/** Short weekday name in the UI language, 0 = Monday (2024-01-01). */

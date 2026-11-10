@@ -38,11 +38,7 @@ export function formatAgo(seconds: number | null | undefined): string {
 	return m.devicesb_pmg_format_ago({ span: formatSpan(delta) });
 }
 
-/** A plain count, grouped: "1 204". */
-export function formatCount(value: number | null | undefined): string {
-	if (value === null || value === undefined || !Number.isFinite(value)) return '—';
-	return Math.round(value).toLocaleString('en-US').replace(/,/g, ' ');
-}
+export { formatGroupedCount as formatCount } from '#lib/format.js';
 
 /** The Postfix queue's name, or the raw name for one we do not know. */
 export function queueLabel(queue: string): string {

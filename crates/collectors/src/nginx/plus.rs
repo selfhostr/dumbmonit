@@ -9,10 +9,11 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, ProbeError, Sample};
+use dumbmonit_proto::{ProbeError, Sample};
 use serde::Deserialize;
 
 use crate::observability::client::HttpClient;
+use crate::rest::{counter, gauge};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct UpstreamPeer {
@@ -90,14 +91,6 @@ async fn get<T: serde::de::DeserializeOwned>(
     serde_json::from_str(&reply.body)
         .map(Some)
         .map_err(|error| ProbeError::Protocol(format!("Unexpected response from {path}: {error}")))
-}
-
-fn gauge(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(metric: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(metric, value, MetricKind::Counter, ts_ms)
 }
 
 fn upstream_samples(upstreams: &BTreeMap<String, Upstream>, ts_ms: i64) -> Vec<Sample> {

@@ -17,6 +17,8 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use sha1::{Digest, Sha1};
 
+use crate::uptime::truncate;
+
 /// Constante de la RFC 6455, concaténée à la clé pour produire l'accusé.
 const GUID: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -92,13 +94,6 @@ pub fn parse_handshake(lines: &[String]) -> Result<Handshake, String> {
         }
     }
     Ok(Handshake { status, accept, protocol })
-}
-
-fn truncate(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_string();
-    }
-    format!("{}…", text.chars().take(max).collect::<String>())
 }
 
 /// Nature d'une trame reçue.

@@ -140,7 +140,7 @@ async fn findings(
 async fn check(state: &AppState, id: TargetId) -> ApiResult<()> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     if target.kind != "activedirectory" {
         return Err(ApiError::BadRequest("This monitor is not an Active Directory domain.".into()));
     }

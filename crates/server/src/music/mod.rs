@@ -698,7 +698,7 @@ impl MusicHub {
                 browser: report.browser,
                 premium: report.premium,
                 listed,
-                seen_at: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+                seen_at: crate::db::now(),
                 seen: Some(Instant::now()),
             },
         );

@@ -39,6 +39,7 @@ use tokio::sync::Notify;
 use tracing::{debug, warn};
 
 use crate::auth::settings;
+use crate::db;
 use crate::notify::{self, http};
 use crate::state::AppState;
 use crate::stats::stats;
@@ -258,10 +259,6 @@ fn record(ping: PingRecord) {
     *LAST_PING.lock().unwrap_or_else(|e| e.into_inner()) = Some(ping);
 }
 
-fn now() -> String {
-    chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
 /// Un appel vers le service. L'erreur rendue est expurgée de l'URL.
 pub async fn ping(client: &reqwest::Client, url: &str, fail: bool) -> Result<(), String> {
     if notify::sending_disabled() {
@@ -291,7 +288,7 @@ async fn beat(state: &AppState, client: &reqwest::Client, config: &HeartbeatConf
             Err(error) => warn!(%host, %error, "heartbeat not accepted"),
         }
         let ok = result.is_ok();
-        record(PingRecord { at: now(), outcome: "up", ok, error: result.err(), failed });
+        record(PingRecord { at: db::now(), outcome: "up", ok, error: result.err(), failed });
         return;
     }
 
@@ -299,10 +296,10 @@ async fn beat(state: &AppState, client: &reqwest::Client, config: &HeartbeatConf
         let result = ping(client, url, true).await;
         let ok = result.is_ok();
         warn!(%host, components = ?failed, sent = ok, "heartbeat: failure signal");
-        record(PingRecord { at: now(), outcome: "fail", ok, error: result.err(), failed });
+        record(PingRecord { at: db::now(), outcome: "fail", ok, error: result.err(), failed });
     } else {
         warn!(components = ?failed, "heartbeat withheld: a component of DumbMonit is down");
-        record(PingRecord { at: now(), outcome: "withheld", ok: false, error: None, failed });
+        record(PingRecord { at: db::now(), outcome: "withheld", ok: false, error: None, failed });
     }
 }
 

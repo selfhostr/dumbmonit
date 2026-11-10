@@ -10,7 +10,9 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
+
+use crate::rest::{counter, gauge};
 
 use super::model::{Device, DeviceState, DeviceType, Health};
 
@@ -23,14 +25,6 @@ pub const MAX_PORTED_DEVICES: usize = 32;
 
 /// Ports publiés par équipement (le plus gros châssis UniFi en compte 52).
 pub const MAX_PORTS_PER_DEVICE: usize = 64;
-
-fn gauge(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Gauge, ts_ms)
-}
-
-fn counter(name: &str, value: f64, ts_ms: i64) -> Sample {
-    Sample::new(name, value, MetricKind::Counter, ts_ms)
-}
 
 fn flag(value: bool) -> f64 {
     if value { 1.0 } else { 0.0 }

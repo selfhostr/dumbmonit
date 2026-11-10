@@ -96,6 +96,7 @@ use tokio::sync::Semaphore;
 use tracing::debug;
 
 use crate::client_devices;
+use crate::http::percent_encode;
 use crate::log_gate::LogGate;
 use auth::{AuthMode, Ticket};
 use backup::{GroupKey, GroupSummary};
@@ -595,20 +596,6 @@ pub async fn task_log(target: &Target, upid: &str, lines: usize) -> Result<TaskL
         total,
         lines: page.into_iter().filter_map(|line| line.t).collect(),
     })
-}
-
-/// Encode un segment de chemin : tout sauf les caractères non réservés.
-fn percent_encode(segment: &str) -> String {
-    let mut out = String::with_capacity(segment.len() * 3);
-    for byte in segment.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                out.push(byte as char);
-            }
-            other => out.push_str(&format!("%{other:02X}")),
-        }
-    }
-    out
 }
 
 /// Le détail SMART d'un disque, demandé à part : smartctl est lancé sur le

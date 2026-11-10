@@ -14,12 +14,23 @@ pub mod truenas;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{Row, SqlitePool};
 
 use crate::crypto::{self, Cipher};
 
 static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("src/db/migrations");
+
+/// Horodatage tel que stocké en base et rendu par l'API : UTC, sans suffixe.
+pub fn timestamp(at: DateTime<Utc>) -> String {
+    at.format("%Y-%m-%d %H:%M:%S").to_string()
+}
+
+/// [`timestamp`] de l'instant présent.
+pub fn now() -> String {
+    timestamp(Utc::now())
+}
 
 /// Connexions ouvertes en parallèle quand rien n'est précisé.
 ///

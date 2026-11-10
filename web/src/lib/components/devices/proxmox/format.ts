@@ -9,18 +9,7 @@ import { m } from '#lib/paraglide/messages.js';
 
 type SignalTone = 'signal' | 'advisory' | 'warning' | 'info' | 'ghost';
 
-/** "1.2 GiB" style, binary units as Proxmox prints them. */
-export function formatBytes(bytes: number | null | undefined): string {
-	if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) return '—';
-	const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
-	let value = bytes;
-	let index = 0;
-	while (value >= 1024 && index < units.length - 1) {
-		value /= 1024;
-		index += 1;
-	}
-	return `${value.toFixed(index === 0 || value >= 100 ? 0 : 1)} ${units[index]}`;
-}
+export { formatBinaryBytes as formatBytes } from '#lib/format.js';
 
 export function formatPercent(value: number | null | undefined): string {
 	if (value === null || value === undefined || !Number.isFinite(value)) return '—';

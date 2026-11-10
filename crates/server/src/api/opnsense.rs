@@ -376,7 +376,7 @@ async fn health(
 async fn load(state: &AppState, id: TargetId) -> ApiResult<Target> {
     let target = db::targets::get(&state.pool, &state.cipher, id)
         .await?
-        .ok_or_else(|| ApiError::NotFound(format!("Monitor {id} not found.")))?;
+        .ok_or_else(|| ApiError::monitor_not_found(&id))?;
     if target.kind != "opnsense" {
         return Err(ApiError::BadRequest("This monitor is not an OPNsense firewall.".into()));
     }

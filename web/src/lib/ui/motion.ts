@@ -22,7 +22,7 @@ export function isPhone(): boolean {
  * Whether decorative motion is off: under `prefers-reduced-motion`, and on
  * phones, where entrances, blurs, scrambles and count-ups cost frames on a
  * small GPU for a screen read in a glance. The state still changes; it just
- * does not move. Short feedback (a shake, a bump) keeps `reducedMotion()`.
+ * does not move. Short feedback (a shake) keeps `reducedMotion()`.
  */
 export function calmMotion(): boolean {
 	return reducedMotion() || isPhone();
@@ -44,14 +44,5 @@ export function shake(element: Element | null | undefined): void {
 			{ transform: 'translateX(0)' }
 		],
 		{ duration: isPhone() ? 150 : 320, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
-	);
-}
-
-/** A bump: the element swells once and settles, for a count that just went up. */
-export function bump(element: Element | null | undefined, scale = 1.28): void {
-	if (!element || calmMotion() || !('animate' in element)) return;
-	element.animate(
-		[{ transform: 'scale(1)' }, { transform: `scale(${scale})`, offset: 0.35 }, { transform: 'scale(1)' }],
-		{ duration: 420, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
 	);
 }

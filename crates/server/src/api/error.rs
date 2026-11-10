@@ -27,6 +27,11 @@ pub enum ApiError {
 }
 
 impl ApiError {
+    /// 404 d'un moniteur absent.
+    pub fn monitor_not_found(id: &impl std::fmt::Display) -> Self {
+        Self::NotFound(format!("Monitor {id} not found."))
+    }
+
     /// Statut et message tels qu'ils partent au client.
     ///
     /// Exposé pour les appelants qui ne répondent pas en HTTP directement — le

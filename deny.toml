@@ -50,4 +50,15 @@ ignore = [
     # s'authentifie par mot de passe : aucune clé privée RSA n'est jamais
     # chargée ni utilisée.
     { id = "RUSTSEC-2023-0071", reason = "russh vérifie seulement des signatures RSA d'hôte (clé publique) ; aucune clé privée RSA" },
+    # SQLite embarqué < 3.54.0 (libsqlite3-sys 0.37) : lecture de mémoire non
+    # initialisée quand une base est ouverte avec un fichier `-wal` voisin
+    # fabriqué, de taille de page différente. Le correctif est dans
+    # libsqlite3-sys 0.39, mais sqlx-sqlite 0.9.0 (dernière version) exige
+    # < 0.38 ; la branche principale de sqlx accepte déjà < 0.40. Exposition :
+    # la base du serveur et son `-wal` ne sont écrits que par le serveur dans
+    # `/data` ; le seul fichier venu de l'extérieur, le `kuma.db` importé par
+    # un administrateur, est écrit seul dans un fichier temporaire et ouvert
+    # `immutable`, mode dans lequel SQLite ne lit aucun `-wal`.
+    # À retirer dès que sqlx publie une version acceptant libsqlite3-sys 0.39.
+    { id = "RUSTSEC-2026-0459", reason = "sqlx-sqlite 0.9.0 plafonne libsqlite3-sys à 0.37 ; aucun -wal venu de l'extérieur n'est ouvert" },
 ]
