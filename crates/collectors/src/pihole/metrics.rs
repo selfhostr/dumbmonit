@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde::Deserialize;
 
 use crate::rest::gauge;
@@ -406,6 +406,8 @@ pub fn dhcp_samples(reply: &LeasesReply, ts_ms: i64) -> Vec<Sample> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     /// Réponses d'un Pi-hole 2026.09.0 (core v6.4.3, web v6.6, FTL v6.7.1)
     /// en conteneur, après quelques requêtes dont trois bloquées.

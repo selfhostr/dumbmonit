@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 
 use crate::rest::{counter, gauge};
 
@@ -178,6 +178,8 @@ pub fn server_header_sample(server: &str, ts_ms: i64) -> Sample {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     /// L'exemple de la documentation officielle de `mod_status`.
     const EXEMPLE: &str = "Total Accesses: 46499\n\

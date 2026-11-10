@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 use std::net::Ipv4Addr;
 
 use chrono::{DateTime, Utc};
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde::Deserialize;
 
 use crate::rest::gauge;
@@ -372,6 +372,8 @@ pub fn upstream_sample(upstream: &str, verdict: Option<&str>, ts_ms: i64) -> Sam
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     const STATUS: &str = include_str!("testdata/v0.107.79/status.json");
     const STATUS_PAUSED: &str = include_str!("testdata/v0.107.79/status_paused.json");

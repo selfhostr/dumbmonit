@@ -3,7 +3,7 @@
 //! Module purement fonctionnel : la mise en forme texte de `stub_status` se
 //! teste donc sur des chaînes figées, sans serveur Nginx en face.
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 
 use crate::rest::{counter, gauge};
 
@@ -98,6 +98,8 @@ pub fn server_header_sample(server: &str, ts_ms: i64) -> Sample {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     const EXEMPLE: &str = "Active connections: 291 \n\
                             server accepts handled requests\n\

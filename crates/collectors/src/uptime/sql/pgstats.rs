@@ -24,7 +24,7 @@
 
 use std::time::Duration;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use sqlx::Row;
 use sqlx::postgres::{PgConnection, PgRow};
 use tracing::debug;
@@ -481,6 +481,8 @@ pub async fn collect(conn: &mut PgConnection, ts_ms: i64, budget: Duration) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     fn value(samples: &[Sample], name: &str) -> Option<f64> {
         samples.iter().find(|s| s.metric == name).map(|s| s.value)

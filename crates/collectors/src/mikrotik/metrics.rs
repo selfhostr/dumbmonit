@@ -8,7 +8,7 @@
 
 use std::collections::BTreeMap;
 
-use dumbmonit_proto::{MetricKind, Sample};
+use dumbmonit_proto::Sample;
 use serde_json::Value;
 
 use crate::rest::{counter, gauge};
@@ -342,6 +342,8 @@ pub fn interface_samples(interfaces: &[Record], max: usize, ts_ms: i64) -> Vec<S
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use dumbmonit_proto::MetricKind;
 
     const RESOURCE: &str = include_str!("testdata/chr_7.23.7/system_resource.json");
     const IDENTITY: &str = include_str!("testdata/chr_7.23.7/system_identity.json");
