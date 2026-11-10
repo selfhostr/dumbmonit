@@ -8,12 +8,11 @@ Von oben nach unten:
 
 - das **Urteil** in wenigen Worten („All good“, „3 problems“) mit Datum und Uhr
   und dem Zeitpunkt der letzten Aktualisierung;
-- die **fünf Kennzahlen** der Übersicht: Monitors up, Verfügbarkeit über 30 Tage,
-  p95-Antwortzeit, offene Alarme und mittlere Zeit bis zur Behebung;
-- der **Health River**, das große Bild der Tafel: ein Streifen pro Monitor, die
-  schlechtesten oben;
+- das **Wetter draußen**, rechts neben dem Datum, sobald eine Stadt gewählt ist:
+  ein kleines Symbol und die Temperatur, sonst nichts ([Wetter](#weather));
 - die **offenen Alarme**, die schwersten zuerst;
-- **wer Bereitschaft hat**, mit Plan und Schichtende.
+- ein ruhiger Streifen mit **drei Kennzahlen** am unteren Rand: Monitors up,
+  Verfügbarkeit über 30 Tage und offene Alarme.
 
 Keine Widgets: schwarzer Grund, die Schrift der Konsole, Zustände neben einer
 Form und nie allein durch Farbe. Die [Musik](#music-on-the-wall) sitzt, sobald
@@ -38,12 +37,27 @@ Der Himmel folgt der Tafel: Sterne, wenn alles in Ordnung ist, Wolken bei einem
 Hinweis, ein Sturm bei einer Warnung. Auf einem Smartphone oder bei verborgenem
 Tab steht die Stadt still.
 
+## Wetter {#weather}
+
+Neben dem Datum stehen ein kleines Symbol (Sonne, Wolken, Regen, Schnee,
+Gewitter, Nebel; nachts der Mond) und die Außentemperatur, etwa „12°“. Sonst
+nichts: keine Vorhersage, kein Wind. Das Symbol hat eine geschriebene Bezeichnung
+für Screenreader.
+
+Es ist aus, bis ein Administrator unter **Settings → Wall display → Wall
+weather** eine Stadt wählt: nach Namen suchen, dann **°C** oder **°F**. Der
+DumbMonit-Server fragt [Open-Meteo](https://open-meteo.com/) ab (kostenlos, ohne
+Schlüssel) und behält die Antwort zehn Minuten, unabhängig von der Zahl der
+Wände; Browser kontaktieren den Dienst nie. Gesendet werden nur die Koordinaten
+der Stadt. Ohne Stadt wird nichts abgefragt, und antwortet der Dienst nicht,
+zeigt die Wand einfach kein Symbol.
+
 ## Musik an der Wand {#music-on-the-wall}
 
 Die Wall kann auch Musik abspielen und zeigen, was läuft: Sie starten eine
 Playlist auf dem Telefon, hören sie über den Fernseher und sehen sie quer durch
 den Raum. Die Musik sitzt in einem kleinen Dock unten in der rechten Spalte,
-unter der Uhr und der Bereitschaft: Sie nimmt dem Urteil und den Problemen nie
+unter der Uhr: Sie nimmt dem Urteil und den Problemen nie
 Platz weg und verschwindet, wenn nichts läuft oder nichts eingerichtet ist. Sie
 zeigt Cover, Titel, Interpret, das abspielende Gerät und einen feinen
 Fortschrittsbalken; erlaubt es das verbundene Konto, hält eine

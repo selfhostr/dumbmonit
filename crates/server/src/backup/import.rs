@@ -136,6 +136,7 @@ pub async fn restore(
     report.push(restore_overrides(&mut tx, bundle, &refs).await?);
     report.push(restore_notify_policy(&mut tx, bundle).await?);
     report.push(restore_agent_enrolment(&mut tx, bundle).await?);
+    report.push(restore_wall_weather(&mut tx, bundle).await?);
     report.push(restore_instance(&mut tx, bundle).await?);
     report.push(restore_silences(&mut tx, bundle, &refs).await?);
     report.push(restore_status_pages(&mut tx, bundle, &refs).await?);
@@ -906,6 +907,53 @@ async fn restore_notify_policy(
     .execute(&mut **tx)
     .await
     .context("écriture de la politique de notification")?;
+    report.count(if existing.is_some() {
+        RestoreOutcome::Updated
+    } else {
+        RestoreOutcome::Created
+    });
+    Ok(report)
+}
+
+/// Météo du mur (lieu et unité) : remplacée par celle du lot, après contrôle.
+/// Un lot sans section ne touche pas au réglage de l'instance.
+async fn restore_wall_weather(
+    tx: &mut Transaction<'_, Sqlite>,
+    bundle: &Bundle,
+) -> Result<SectionReport> {
+    use crate::weather::{SETTINGS_KEY, Settings};
+    let mut report = SectionReport::new("wall_weather");
+    let Some(raw) = &bundle.wall_weather else { return Ok(report) };
+    let settings = match serde_json::from_value::<Settings>(raw.clone()) {
+        Ok(settings) if settings.place.as_ref().is_none_or(|p| p.validate().is_ok()) => settings,
+        _ => {
+            report.skipped += 1;
+            report.notes.push("The wall weather settings of the backup are unreadable".into());
+            return Ok(report);
+        }
+    };
+    let value = serde_json::to_vec(&settings)?;
+    let existing = sqlx::query("SELECT value FROM settings WHERE key = ?")
+        .bind(SETTINGS_KEY)
+        .fetch_optional(&mut **tx)
+        .await
+        .context("lecture de la météo du mur")?;
+    if let Some(row) = &existing
+        && row.try_get::<Vec<u8>, _>("value")? == value
+    {
+        report.skipped += 1;
+        return Ok(report);
+    }
+    sqlx::query(
+        "INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')",
+    )
+    .bind(SETTINGS_KEY)
+    .bind(&value)
+    .execute(&mut **tx)
+    .await
+    .context("écriture de la météo du mur")?;
     report.count(if existing.is_some() {
         RestoreOutcome::Updated
     } else {

@@ -46,4 +46,5 @@ pub mod upgrade_notes;
 pub mod vulns;
 pub mod web_tls;
 pub mod webchange;
+pub mod weather;
 pub mod website;

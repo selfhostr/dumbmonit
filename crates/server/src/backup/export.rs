@@ -102,6 +102,11 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
         agent_enrolment: Some(serde_json::to_value(
             crate::collectors::agent::enrolment::load_settings(pool).await?,
         )?),
+        // Seulement quand un lieu est choisi : sans lieu, rien à restaurer.
+        wall_weather: match crate::weather::load_settings(pool).await? {
+            settings if settings.place.is_some() => Some(serde_json::to_value(settings)?),
+            _ => None,
+        },
     })
 }
 

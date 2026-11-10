@@ -192,6 +192,10 @@ tags:
       Music on the wall display: what plays on the connected Spotify account,
       the link every wall plays, and connecting Spotify (Authorization Code +
       PKCE). Refresh tokens never leave the server.
+  - name: Wall weather
+    description: >-
+      The outside temperature and weather icon beside the wall's date. The
+      server asks Open-Meteo (browsers never do), only once a place is chosen.
   - name: Prometheus compatibility
     description: Read access for an existing Prometheus or Grafana, outside `/api`.
   - name: OpenTelemetry
@@ -9507,6 +9511,73 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  # ---------------------------------------------------------- wall weather
+  /api/wall/weather:
+    get:
+      operationId: getWallWeather
+      tags: [Wall weather]
+      summary: The wall's place and unit, and the weather there now
+      description: >-
+        Without a place nothing is asked of anyone and `current` is null. When
+        Open-Meteo does not answer, `current` is null too (the wall then shows
+        nothing). Cached on the server for at least ten minutes.
+      x-token-scope: read
+      responses:
+        "200":
+          description: The setting and, when a place is chosen, the weather.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WallWeather" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      operationId: setWallWeather
+      tags: [Wall weather]
+      summary: Choose the place and the unit (`place: null` turns the weather off)
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                place:
+                  oneOf:
+                    - { $ref: "#/components/schemas/WallWeatherPlace" }
+                    - { type: "null" }
+                unit: { type: string, enum: [c, f], default: c }
+      responses:
+        "200":
+          description: The new setting and the weather there.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WallWeather" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /api/wall/weather/places:
+    get:
+      operationId: searchWallWeatherPlaces
+      tags: [Wall weather]
+      summary: Look a city up by name (administrators)
+      x-token-scope: read
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 80 } }
+        - { name: lang, in: query, required: false, schema: { type: string, example: fr } }
+      responses:
+        "200":
+          description: Up to six places.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/WallWeatherPlace" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "502": { description: The weather service did not answer. }
+
   # ---------------------------------------------------------- on-call
   /api/oncall/people:
     get:
@@ -15457,6 +15528,33 @@ components:
         link: { type: string }
         set_by: { type: string }
         set_at: { type: string, description: UTC, without suffix. }
+    WallWeatherPlace:
+      type: object
+      required: [name, latitude, longitude]
+      properties:
+        name: { type: string, maxLength: 100 }
+        region: { type: [string, "null"] }
+        country: { type: [string, "null"] }
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+    WallWeather:
+      type: object
+      required: [place, unit, current]
+      properties:
+        place:
+          oneOf:
+            - { $ref: "#/components/schemas/WallWeatherPlace" }
+            - { type: "null" }
+        unit: { type: string, enum: [c, f] }
+        current:
+          oneOf:
+            - type: object
+              required: [temperature, condition, is_day]
+              properties:
+                temperature: { type: integer, description: Outside temperature in the chosen unit, rounded. }
+                condition: { type: string, enum: [clear, partly_cloudy, cloudy, fog, rain, snow, thunder] }
+                is_day: { type: boolean }
+            - { type: "null" }
     WallMusic:
       type: object
       required: [spotify, speaker_name, can_control]

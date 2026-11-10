@@ -7,12 +7,11 @@ From the top:
 
 - the **verdict** in a few words ("All good", "3 problems") with the date and
   the clock, and when the data was last updated;
-- the **five figures** of the overview: monitors up, availability over 30 days,
-  p95 response time, open alerts and mean time to resolve;
-- the **health river**, the large picture of the board: one strip per monitor,
-  worst on top;
+- the **outside weather**, to the right of the date once a city is chosen: a small
+  icon and the temperature, nothing else ([Weather](#weather));
 - the **open alerts**, most severe first;
-- **who is on call** now, with the schedule and the end of the shift.
+- a quiet strip of **three figures** along the foot: monitors up, availability
+  over 30 days and open alerts.
 
 There are no widgets: black ground, the console's own type, states written next
 to a shape and never by colour alone. [Music](#music-on-the-wall), once set up,
@@ -36,12 +35,24 @@ Paris. The sky follows the board: stars when all is well, clouds on an advisory,
 a storm on a warning. On a phone, or while the tab is hidden, the city holds
 still.
 
+## Weather {#weather}
+
+Beside the date, a small icon (sun, clouds, rain, snow, thunderstorm, fog; the
+moon at night) and the outside temperature, such as "12°". Nothing else: no
+forecast, no wind. The icon has a written label for screen readers.
+
+It is off until an administrator picks a city in **Settings → Wall display →
+Wall weather**: search by name, then choose **°C** or **°F**. The DumbMonit
+server asks [Open-Meteo](https://open-meteo.com/) (free, no key) and keeps the
+answer for ten minutes, whatever the number of walls; browsers never contact it.
+Only the city's coordinates are sent. Without a city nothing is requested, and
+if the service does not answer the wall simply shows no icon.
+
 ## Music on the wall {#music-on-the-wall}
 
 The wall can also play music and show what is playing, so that you can start a
 playlist from your phone, hear it from the TV, and see it from across the room.
-Music sits in a small dock at the foot of the right-hand column, under the clock
-and the on-call rota: it never takes room from the verdict or the problems, and
+Music sits in a small dock at the foot of the right-hand column, under the clock: it never takes room from the verdict or the problems, and
 it disappears when nothing plays or nothing is set up. It shows the cover, the
 title, the artist, where it plays and a thin progress bar; when the connected
 account allows it, a **play / pause** button pauses or resumes the account

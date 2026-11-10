@@ -8,12 +8,11 @@ De arriba abajo:
 
 - el **veredicto** en pocas palabras («All good», «3 problems») con la fecha y el
   reloj, y cuándo se actualizó por última vez;
-- las **cinco cifras** del resumen: monitores activos, disponibilidad a 30 días,
-  tiempo de respuesta p95, alertas abiertas y tiempo medio de resolución;
-- el **río de salud**, la gran imagen del tablero: una franja por monitor, los
-  peores arriba;
+- el **tiempo exterior**, a la derecha de la fecha cuando se ha elegido una
+  ciudad: un pequeño icono y la temperatura, nada más ([Tiempo](#weather));
 - las **alertas abiertas**, las más graves primero;
-- **quién está de guardia** ahora, con el calendario y el fin del turno.
+- una franja discreta de **tres cifras** al pie: monitores activos,
+  disponibilidad a 30 días y alertas abiertas.
 
 Sin widgets: fondo negro, la tipografía de la consola, estados escritos junto a
 una forma y nunca solo con color. La [música](#music-on-the-wall), una vez
@@ -37,12 +36,27 @@ York, Tokio, Dubái, *Auto*) acaba en París. El cielo sigue al tablero: estrell
 cuando todo va bien, nubes ante un aviso, tormenta ante una alerta. En un móvil,
 o con la pestaña oculta, la ciudad se queda quieta.
 
+## Tiempo {#weather}
+
+Junto a la fecha, un pequeño icono (sol, nubes, lluvia, nieve, tormenta, niebla;
+la luna de noche) y la temperatura exterior, por ejemplo «12°». Nada más: ni
+previsión ni viento. El icono lleva una etiqueta escrita para los lectores de
+pantalla.
+
+Está desactivado hasta que un administrador elige una ciudad en **Settings →
+Wall display → Wall weather**: búsqueda por nombre y luego **°C** o **°F**. El
+servidor de DumbMonit consulta [Open-Meteo](https://open-meteo.com/) (gratuito,
+sin clave) y guarda la respuesta diez minutos, sea cual sea el número de muros;
+los navegadores nunca lo contactan. Solo se envían las coordenadas de la ciudad.
+Sin ciudad no se pide nada, y si el servicio no responde, el muro simplemente no
+muestra el icono.
+
 ## Música en la pared {#music-on-the-wall}
 
 La pared también puede reproducir música y mostrar lo que suena: inicias una
 playlist desde el teléfono, la oyes en la TV y la ves desde el otro lado de la
 sala. La música ocupa un pequeño dock al pie de la columna derecha, bajo el
-reloj y la guardia: nunca quita sitio al veredicto ni a los problemas, y
+reloj: nunca quita sitio al veredicto ni a los problemas, y
 desaparece cuando no suena nada o no hay nada configurado. Muestra la carátula,
 el título, el artista, el dispositivo que reproduce y una fina barra de
 progreso; cuando la cuenta conectada lo permite, un botón de **reproducir /

@@ -218,6 +218,10 @@ pub struct Bundle {
     /// `agent.enrolment` de `settings`, migration 0233).
     #[serde(default)]
     pub agent_enrolment: Option<Value>,
+    /// Météo du mur : lieu et unité (clé `wall.weather` de `settings`).
+    /// Absente tant qu'aucun lieu n'a été choisi.
+    #[serde(default)]
+    pub wall_weather: Option<Value>,
 }
 
 impl Bundle {

@@ -6,8 +6,7 @@
  * Every series carries the `target` label (the target id); multi-location
  * monitors have one series per place, folded here with the worst value.
  */
-import { queryInstant, queryRange, type AlertHistoryEntry, type MetricSeries, type TargetId } from '#lib/api/index.js';
-import { parseServerDate } from '#lib/format.js';
+import { queryInstant, queryRange, type MetricSeries, type TargetId } from '#lib/api/index.js';
 
 /** One slot of the river: every check passed, some failed, all failed, nothing measured. */
 export type RiverCell = 'up' | 'warn' | 'down' | 'none';
@@ -162,27 +161,6 @@ export function mean(values: Iterable<number>): number | null {
 		count += 1;
 	}
 	return count === 0 ? null : sum / count;
-}
-
-/**
- * Mean time to resolve, in seconds, from the alert history: for each alert,
- * the time from its firing to its resolution. `null` when nothing resolved.
- */
-export function meanTimeToResolve(history: AlertHistoryEntry[]): number | null {
-	const firedAt = new Map<string, number>();
-	const spans: number[] = [];
-	const ordered = [...history].sort((a, b) => (parseServerDate(a.at)?.getTime() ?? 0) - (parseServerDate(b.at)?.getTime() ?? 0));
-	for (const entry of ordered) {
-		const at = parseServerDate(entry.at)?.getTime();
-		if (at === undefined) continue;
-		if (entry.to_phase === 'firing') firedAt.set(entry.fingerprint, at);
-		else if (entry.to_phase === 'resolved') {
-			const since = firedAt.get(entry.fingerprint);
-			if (since !== undefined && at >= since) spans.push((at - since) / 1000);
-			firedAt.delete(entry.fingerprint);
-		}
-	}
-	return mean(spans);
 }
 
 /** SVG path of a sparkline in a `width` × `height` box; empty without two points. */

@@ -7,12 +7,11 @@ De cima para baixo:
 
 - o **veredito** em poucas palavras ("All good", "3 problems") com a data e o
   relógio, e quando foi atualizado pela última vez;
-- os **cinco números** da visão geral: monitores ativos, disponibilidade em 30
-  dias, tempo de resposta p95, alertas abertos e tempo médio de resolução;
-- o **rio de saúde**, a grande imagem do quadro: uma faixa por monitor, os piores
-  no topo;
+- o **clima lá fora**, à direita da data quando uma cidade está escolhida: um
+  pequeno ícone e a temperatura, mais nada ([Clima](#weather));
 - os **alertas abertos**, os mais graves primeiro;
-- **quem está de plantão** agora, com a escala e o fim do turno.
+- uma faixa discreta de **três números** no pé: monitores ativos,
+  disponibilidade em 30 dias e alertas abertos.
 
 Sem widgets: fundo preto, a tipografia do console, estados escritos junto de uma
 forma e nunca só por cor. A [música](#music-on-the-wall), depois de configurada,
@@ -36,11 +35,25 @@ Dubai, *Auto*) cai em Paris. O céu acompanha o painel: estrelas quando está tu
 bem, nuvens em um aviso, tempestade em um alerta. Em um celular, ou com a aba
 oculta, a cidade fica parada.
 
+## Clima {#weather}
+
+Ao lado da data, um pequeno ícone (sol, nuvens, chuva, neve, tempestade, neblina;
+a lua à noite) e a temperatura externa, por exemplo "12°". Mais nada: sem
+previsão, sem vento. O ícone tem um rótulo escrito para leitores de tela.
+
+Fica desativado até um administrador escolher uma cidade em **Settings → Wall
+display → Wall weather**: busca por nome e depois **°C** ou **°F**. O servidor do
+DumbMonit consulta o [Open-Meteo](https://open-meteo.com/) (gratuito, sem chave)
+e guarda a resposta por dez minutos, qualquer que seja o número de murais; os
+navegadores nunca o contatam. Só as coordenadas da cidade são enviadas. Sem
+cidade nada é solicitado e, se o serviço não responder, o mural simplesmente não
+mostra o ícone.
+
 ## Música na parede {#music-on-the-wall}
 
 A parede também pode tocar música e mostrar o que está tocando: você inicia uma
 playlist no celular, ouve na TV e vê do outro lado da sala. A música fica em um
-pequeno dock no pé da coluna da direita, sob o relógio e o plantão: nunca tira
+pequeno dock no pé da coluna da direita, sob o relógio: nunca tira
 espaço do veredito nem dos problemas, e some quando nada toca ou nada está
 configurado. Mostra a capa, o título, o artista, o dispositivo que toca e uma
 fina barra de progresso; quando a conta conectada permite, um botão de **tocar /

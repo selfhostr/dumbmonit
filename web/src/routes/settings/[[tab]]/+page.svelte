@@ -55,6 +55,7 @@
 	import PacksSection from '#lib/components/settings/PacksSection.svelte';
 	import AboutSection from '#lib/components/settings/AboutSection.svelte';
 	import WallModeSection from '#lib/components/settings/WallModeSection.svelte';
+	import WallWeatherSection from '#lib/components/settings/WallWeatherSection.svelte';
 	import MusicSection from '#lib/components/settings/MusicSection.svelte';
 	import PushSection from '#lib/components/settings/PushSection.svelte';
 	import ChannelsSection from '#lib/components/notifications/ChannelsSection.svelte';
@@ -91,7 +92,7 @@
 		team: [UsersSection, TeamsSection, ...(auth.isAdmin ? [ClientsSection] : []), SsoSection, SamlSection, ScimSection, LdapSection],
 		monitoring: [AgentsSection, PacksSection, SecurityScoreSection, ...(auth.isAdmin ? [LocationsSection] : [])],
 		notifications: [ChannelsSection, NotificationPolicySection],
-		wall: [WallModeSection, MusicSection],
+		wall: [WallModeSection, WallWeatherSection, MusicSection],
 		system: [...(auth.isAdmin ? [GeneralSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection] : []), AssistantSection, AboutSection]
 	});
 

@@ -7,12 +7,11 @@ Dall'alto:
 
 - il **verdetto** in poche parole («All good», «3 problems») con data e orologio,
   e quando è stato aggiornato l'ultima volta;
-- le **cinque cifre** dell'overview: monitor attivi, disponibilità a 30 giorni,
-  tempo di risposta p95, allarmi aperti e tempo medio di risoluzione;
-- il **fiume di salute**, la grande immagine della lavagna: una striscia per
-  monitor, i peggiori in alto;
+- il **meteo esterno**, a destra della data quando è stata scelta una città: una
+  piccola icona e la temperatura, nient'altro ([Meteo](#weather));
 - gli **allarmi aperti**, i più gravi per primi;
-- **chi è reperibile** ora, con il calendario e la fine del turno.
+- una striscia discreta di **tre cifre** in fondo: monitor attivi, disponibilità
+  a 30 giorni e allarmi aperti.
 
 Nessun widget: fondo nero, la tipografia della console, stati scritti accanto a
 una forma e mai solo a colori. La [musica](#music-on-the-wall), una volta
@@ -36,12 +35,27 @@ ritirato (New York, Tokyo, Dubai, *Auto*) ricade su Parigi. Il cielo segue il
 pannello: stelle quando tutto va bene, nuvole su un avviso, tempesta su un
 allarme. Su un telefono, o a scheda nascosta, la città resta ferma.
 
+## Meteo {#weather}
+
+Accanto alla data, una piccola icona (sole, nuvole, pioggia, neve, temporale,
+nebbia; la luna di notte) e la temperatura esterna, per esempio «12°».
+Nient'altro: niente previsioni, niente vento. L'icona ha un'etichetta scritta per
+i lettori di schermo.
+
+È disattivato finché un amministratore non sceglie una città in **Settings → Wall
+display → Wall weather**: ricerca per nome, poi **°C** o **°F**. Il server di
+DumbMonit interroga [Open-Meteo](https://open-meteo.com/) (gratuito, senza
+chiave) e conserva la risposta dieci minuti, qualunque sia il numero di muri; i
+browser non lo contattano mai. Vengono inviate solo le coordinate della città.
+Senza città non si chiede nulla, e se il servizio non risponde il muro non
+mostra semplicemente l'icona.
+
 ## Musica sul wall {#music-on-the-wall}
 
 Il wall può anche riprodurre musica e mostrare cosa sta suonando: avvii una
 playlist dal telefono, la ascolti dalla TV e la vedi dall'altro capo della
 stanza. La musica sta in un piccolo dock in fondo alla colonna di destra, sotto
-l'orologio e la reperibilità: non toglie mai spazio al verdetto né ai problemi,
+l'orologio: non toglie mai spazio al verdetto né ai problemi,
 e scompare quando non suona nulla o nulla è configurato. Mostra la copertina, il
 titolo, l'artista, il dispositivo che suona e una sottile barra di avanzamento;
 quando l'account collegato lo consente, un pulsante **riproduci / pausa** mette

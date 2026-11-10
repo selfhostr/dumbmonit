@@ -4,21 +4,19 @@
 	 * that follows the real hour, with the weather of the network (the rooftop,
 	 * the Eiffel Tower, the pigeons: Gaston with his sign, Mimi and her
 	 * croissant, Jules on the lamp post, a small moment every 40 to 80 s), drawn
-	 * by day and by night. The scene is its own chunk, fetched when it is first
+	 * by day and by night (the wall itself is always Night). The scene is its own chunk, fetched when it is first
 	 * shown, so the rest of the app never carries any of it.
 	 *
 	 * Decorative: `aria-hidden`, the board says everything in words.
 	 */
 	import type { Component } from 'svelte';
 	import type { WallCity } from '#lib/components/wall/wallScene.js';
-	import type { WallTheme } from '#lib/components/wall/wallTheme.js';
 	import { sceneMoodFor, type WallWeather } from '#lib/components/wall/wallWeather.js';
 	import type { ScenePulse } from '#lib/scene/mood.js';
 	import WallStorm from '#lib/components/wall/WallStorm.svelte';
 
 	interface Props {
 		city: WallCity;
-		theme: WallTheme;
 		now: Date;
 		weather: WallWeather;
 		/** Problems on the board: the number on Gaston's sign. */
@@ -32,7 +30,7 @@
 		focus?: number;
 	}
 
-	let { city, theme, now, weather, problems, startle = 0, paused = false, pulse = null, focus = 1360 }: Props = $props();
+	let { city, now, weather, problems, startle = 0, paused = false, pulse = null, focus = 1360 }: Props = $props();
 
 	const LOADERS: Record<WallCity, () => Promise<{ default: Component<any> }>> = {
 		paris: () => import('#lib/components/wall/paris/ParisScene.svelte')
@@ -62,9 +60,9 @@
 	{#if Scene}
 		{#key city}
 			<div class="fade-in">
-				<Scene {theme} {now} mood={sceneMoodFor(weather)} {problems} {startle} {paused} {pulse} {focus} />
+				<Scene theme="dark" {now} mood={sceneMoodFor(weather)} {problems} {startle} {paused} {pulse} {focus} />
 				{#if weather === 'thunder'}
-					<WallStorm {theme} {paused} />
+					<WallStorm theme="dark" {paused} />
 				{/if}
 			</div>
 		{/key}

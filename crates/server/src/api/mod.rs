@@ -94,6 +94,7 @@ mod truenas;
 mod update;
 mod upgrade_notes;
 mod users;
+mod wall_weather;
 mod webchange;
 mod webpush;
 mod website;
@@ -144,6 +145,15 @@ pub fn router(state: AppState) -> Router {
 /// Le même routeur, avec l'état de la musique du mur fourni par l'appelant —
 /// les tests y branchent un faux Spotify.
 pub fn router_with(state: AppState, music_hub: crate::music::MusicHub) -> Router {
+    router_with_hubs(state, music_hub, crate::weather::WeatherHub::official())
+}
+
+/// Le même routeur, avec aussi la météo du mur fournie par l'appelant (faux Open-Meteo).
+pub fn router_with_hubs(
+    state: AppState,
+    music_hub: crate::music::MusicHub,
+    weather_hub: crate::weather::WeatherHub,
+) -> Router {
     let auth_state = AuthState::from_env(&state.config);
 
     // Tout ce qui touche à l'instance — lecture comprise : la liste des
@@ -351,6 +361,8 @@ pub fn router_with(state: AppState, music_hub: crate::music::MusicHub) -> Router
         .merge(website::routes())
         // Musique du mode mur : Spotify Connect et lien partagé (`music.rs`).
         .merge(music::routes())
+        // Météo du mode mur : lieu, unité et température du moment (`wall_weather.rs`).
+        .merge(wall_weather::routes())
         // Note de sécurité par équipement et vue du parc (`security.rs`).
         .merge(security::routes())
         // Carte des menaces par pays, toutes sources réunies (`threats.rs`).
@@ -488,6 +500,7 @@ pub fn router_with(state: AppState, music_hub: crate::music::MusicHub) -> Router
         // État en mémoire de la musique du mur (autorisations en cours, jeton
         // d'accès, lecture en cours, rapports des murs) : voir `crate::music`.
         .layer(Extension(music_hub))
+        .layer(Extension(weather_hub))
         // Mode démonstration : toute écriture refusée ici, avant l'authentification
         // et avant tout gestionnaire — une seule porte, pas une vérification par route.
         .layer(middleware::from_fn_with_state(state.clone(), crate::demo::guard))

@@ -6873,3 +6873,27 @@ export interface AgentSentinel {
 	has_secret: boolean;
 	channel_kind: 'webhook' | 'ntfy' | null;
 }
+
+/** A place picked for the wall's weather. Mirrors `weather::Place`. */
+export interface WallWeatherPlace {
+	name: string;
+	region?: string | null;
+	country?: string | null;
+	latitude: number;
+	longitude: number;
+}
+
+export type WallWeatherCondition = 'clear' | 'partly_cloudy' | 'cloudy' | 'fog' | 'rain' | 'snow' | 'thunder';
+
+/** `GET /api/wall/weather`: the setting and, when a place is chosen, the weather there now. */
+export interface WallWeather {
+	place: WallWeatherPlace | null;
+	unit: 'c' | 'f';
+	/** Null without a place, or when the weather service does not answer: the wall shows nothing. */
+	current: {
+		/** Outside temperature in `unit`, rounded. */
+		temperature: number;
+		condition: WallWeatherCondition;
+		is_day: boolean;
+	} | null;
+}

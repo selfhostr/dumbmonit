@@ -1,54 +1,39 @@
 <script lang="ts">
 	/**
-	 * "Backdrop" and "Theme" on the wall: two quiet buttons beside Exit, each
-	 * opening a small panel. Backdrop chooses the world behind the board (Paris
-	 * or a plain board); Theme
-	 * chooses Night or Day. Both are remembered per browser and are the same
-	 * choices Settings sets as the default; a `?city=` or `?theme=` on a shared
-	 * link overrides them for that display without touching what is saved.
-	 * Escape or a click elsewhere closes a panel (not the wall).
+	 * "Backdrop" on the wall: a quiet button beside Exit, opening a small panel
+	 * that chooses the world behind the board (Paris or a plain board). Remembered
+	 * per browser, and the same choice Settings sets as the default; a `?city=` on
+	 * a shared link overrides it for that display without touching what is saved.
+	 * Escape or a click elsewhere closes the panel (not the wall).
 	 */
 	import { m } from '#lib/paraglide/messages.js';
-	import { Building2, Moon, Sun } from 'lucide-svelte';
+	import { Building2 } from 'lucide-svelte';
 	import { Button } from '#lib/ui/index.js';
 	import { wallSceneOptions } from '#lib/components/wall/wallOptions.js';
 	import type { WallSceneChoice } from '#lib/components/wall/wallScene.js';
-	import type { WallTheme } from '#lib/components/wall/wallTheme.js';
 
 	interface Props {
 		scene: WallSceneChoice;
 		/** True when a `?city=` link is choosing right now. */
 		sceneForced: boolean;
 		onscene: (value: WallSceneChoice) => void;
-		theme: WallTheme;
-		/** True when a `?theme=` link is choosing right now. */
-		themeForced: boolean;
-		/** False on a plain board: there is no world to light. */
-		showTheme: boolean;
-		ontheme: (value: WallTheme) => void;
 	}
 
-	let { scene, sceneForced, onscene, theme, themeForced, showTheme, ontheme }: Props = $props();
+	let { scene, sceneForced, onscene }: Props = $props();
 
-	let open = $state<'scene' | 'theme' | null>(null);
+	let open = $state(false);
 	let root = $state<HTMLDivElement | null>(null);
 
 	const SCENE_OPTIONS = $derived(wallSceneOptions());
-	const THEME_OPTIONS = $derived<{ value: WallTheme; label: string; icon: typeof Moon }[]>([
-		{ value: 'dark', label: m.wall_theme_night(), icon: Moon },
-		{ value: 'light', label: m.wall_theme_day(), icon: Sun }
-	]);
-	const ThemeIcon = $derived(theme === 'light' ? Sun : Moon);
-
 	$effect(() => {
 		if (!open) return;
 		const onPointer = (event: PointerEvent) => {
-			if (root && !root.contains(event.target as Node)) open = null;
+			if (root && !root.contains(event.target as Node)) open = false;
 		};
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key === 'Escape') {
 				event.stopPropagation();
-				open = null;
+				open = false;
 			}
 		};
 		document.addEventListener('pointerdown', onPointer);
@@ -59,8 +44,8 @@
 		};
 	});
 
-	function toggle(panel: 'scene' | 'theme') {
-		open = open === panel ? null : panel;
+	function toggle() {
+		open = !open;
 	}
 
 	/** Arrows move the choice, as in any radio group. */
@@ -80,18 +65,11 @@
 </script>
 
 <div class="relative flex items-start gap-1" bind:this={root}>
-	<Button variant="ghost" size="sm" onclick={() => toggle('scene')} aria-expanded={open === 'scene'} aria-controls="wall-scene-panel" class="min-h-10">
+	<Button variant="ghost" size="sm" onclick={toggle} aria-expanded={open} aria-controls="wall-scene-panel" class="min-h-10">
 		<Building2 class="size-4" aria-hidden="true" />
 		{m.wall_scene_button()}
 	</Button>
-	{#if showTheme}
-		<Button variant="ghost" size="sm" onclick={() => toggle('theme')} aria-expanded={open === 'theme'} aria-controls="wall-theme-panel" class="min-h-10">
-			<ThemeIcon class="size-4" aria-hidden="true" />
-			{m.wall_theme_button()}
-		</Button>
-	{/if}
-
-	{#if open === 'scene'}
+	{#if open}
 		<div
 			id="wall-scene-panel"
 			class="absolute top-full right-0 z-20 mt-2 w-[min(calc(100vw-2rem),22rem)] rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left shadow-float"
@@ -111,36 +89,6 @@
 						onclick={() => onscene(option.value)}
 						onkeydown={(event) => arrow(event, i, SCENE_OPTIONS.length, (next) => onscene(SCENE_OPTIONS[next].value))}>{option.label}</button
 					>
-				{/each}
-			</div>
-		</div>
-	{:else if open === 'theme'}
-		<div
-			id="wall-theme-panel"
-			class="absolute top-full right-0 z-20 mt-2 w-[min(calc(100vw-2rem),20rem)] rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left shadow-float"
-			role="dialog"
-			aria-label={m.wall_theme_title()}
-		>
-			<p class="m-0 text-sm font-semibold text-ink">{m.wall_theme_title()}</p>
-			{#if themeForced}
-				<p class="m-0 mt-1 text-[0.8125rem] text-ink-2">{m.wall_theme_forced()}</p>
-			{/if}
-			<div class="mt-3 grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={m.wall_theme_title()}>
-				{#each THEME_OPTIONS as option, i (option.value)}
-					{@const selected = theme === option.value}
-					{@const OptionIcon = option.icon}
-					<button
-						type="button"
-						role="radio"
-						aria-checked={selected}
-						tabindex={selected ? 0 : -1}
-						class={`${CHIP} flex items-center justify-center gap-1.5 ${selected ? CHIP_ON : CHIP_OFF}`}
-						onclick={() => ontheme(option.value)}
-						onkeydown={(event) => arrow(event, i, THEME_OPTIONS.length, (next) => ontheme(THEME_OPTIONS[next].value))}
-					>
-						<OptionIcon class="size-4 shrink-0" aria-hidden="true" />
-						{option.label}
-					</button>
 				{/each}
 			</div>
 		</div>

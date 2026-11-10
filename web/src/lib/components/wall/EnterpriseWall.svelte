@@ -7,18 +7,19 @@
 	 * down, a thunderstorm in a real outage. On top of it, readable across the
 	 * room: the verdict in a few huge words ("All good" / "N problems"), the
 	 * clock and the date, the problems as tiles, then every monitor as a small
-	 * tile. The five fleet figures and the health river lie in a quiet strip
-	 * along the foot, on the stone of the rooftop.
+	 * tile. The fleet figures lie in a quiet strip along the foot,
+	 * on the stone of the rooftop.
 	 *
 	 * Reads the same stores as the console (monitors, probes and alerts every
-	 * 30 s; the river and the figures from the fleet store). Escape or Exit
+	 * 30 s; the figures from the fleet store). Escape or Exit
 	 * goes back to the console. The screen stays awake while the wall is open.
 	 *
-	 * The world (Settings sets the default, `?city=` / `?theme=` override it,
-	 * the Backdrop and Theme buttons change it for this browser) is loaded on
-	 * demand: a plain board (`none`) loads nothing. Night is the default
-	 * theme, Day lights Paris; on a phone or a hidden tab the world holds
-	 * still, and under `prefers-reduced-motion` it is a still picture.
+	 * The world (Settings sets the default, `?city=` overrides it, the Backdrop
+	 * button changes it for this browser) is loaded on demand: a plain board
+	 * (`none`) loads nothing. The wall is always Night; on a phone or a hidden
+	 * tab the world holds still, and under `prefers-reduced-motion` it is a
+	 * still picture. Beside the date, the outside temperature and an icon of
+	 * the weather when Settings gives the wall a place.
 	 *
 	 * Music, once set up in Settings (Spotify connected, or a link sent to the
 	 * walls), sits in a small dock at the foot of the right-hand column, away
@@ -33,7 +34,9 @@
 	import { goto } from '#lib/navigation.js';
 	import { page } from '$app/state';
 	import { AlertTriangle, CircleAlert, CircleCheck, CircleDashed, X } from 'lucide-svelte';
-	import { getOnCallNow, listAlertRules, listOnCallPeople, type AlertRule, type OnCallEntry, type Person } from '#lib/api/index.js';
+	import { listAlertRules, type AlertRule } from '#lib/api/index.js';
+	import { getWallWeather } from '#lib/api/weather.js';
+	import type { WallWeather as OutdoorWeather } from '#lib/api/types.js';
 	import { ApiError } from '#lib/api/client.js';
 	import { getWallMusic, playOnWall, setPlayback, stopWallLink, type WallMusic } from '#lib/api/music.js';
 	import { parseMusicLink } from '#lib/wall/music.js';
@@ -42,19 +45,20 @@
 	import { countAlertsByTarget, countsAsProblem } from '#lib/alerts-attention.js';
 	import { readSky } from '#lib/components/overview/sky.js';
 	import { fleetStore } from '#lib/components/enterprise/fleet.svelte.js';
-	import { RIVER_SLOTS, mean, meanTimeToResolve } from '#lib/components/enterprise/fleet.js';
-	import { STATUS_RANK, consoleStatus } from '#lib/components/enterprise/status.js';
-	import { formatDateTime, formatDuration, formatRelative } from '#lib/format.js';
+	import { mean } from '#lib/components/enterprise/fleet.js';
+	import { consoleStatus } from '#lib/components/enterprise/status.js';
+	import { formatRelative } from '#lib/format.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { alertsStore } from '#lib/stores/alerts.svelte.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { instanceStore } from '#lib/stores/instance.svelte.js';
-	import { consoleState } from '#lib/stores/console.svelte.js';
-	import { viewport } from '#lib/stores/viewport.svelte.js';
+		import { viewport } from '#lib/stores/viewport.svelte.js';
 	import { useSceneLive } from '#lib/scene/live.svelte.js';
 	import { Button, Plate, Skeleton, calmMotion } from '#lib/ui/index.js';
 	import WallBand, { type BandFigure } from '#lib/components/wall/WallBand.svelte';
+	import WallOutdoor from '#lib/components/wall/WallOutdoor.svelte';
+	import { OUTDOOR_REFRESH_MS } from '#lib/components/wall/outdoor.js';
 	import WallDevices from '#lib/components/wall/WallDevices.svelte';
 	import WallProblems from '#lib/components/wall/WallProblems.svelte';
 	import WallSceneControl from '#lib/components/wall/WallSceneControl.svelte';
@@ -68,38 +72,48 @@
 		writeWallScene,
 		type WallSceneChoice
 	} from '#lib/components/wall/wallScene.js';
-	import { parseForcedWallTheme, readWallTheme, writeWallTheme, type WallTheme } from '#lib/components/wall/wallTheme.js';
 	import { parseForcedWeather, weatherFor, weatherForTone, type WallWeather } from '#lib/components/wall/wallWeather.js';
 
 	let now = $state(new Date());
 	let rules = $state<AlertRule[]>([]);
-	let onCall = $state<OnCallEntry[]>([]);
-	let people = $state<Map<number, Person>>(new Map());
 
 	// The shared stores poll from the layout; this view only asks the fleet
-	// store to keep its figures fresh, and reads the rules and the rota once.
+	// store to keep its figures fresh, and reads the rules once.
 	$effect(() => untrack(() => fleetStore.start()));
 	$effect(() => {
 		const controller = new AbortController();
 		listAlertRules(controller.signal)
 			.then((list) => (rules = list))
 			.catch(() => {});
-		if (!auth.scoped) {
-			const refreshRota = () =>
-				Promise.all([getOnCallNow(controller.signal), listOnCallPeople(controller.signal)])
-					.then(([entries, list]) => {
-						onCall = entries;
-						people = new Map(list.map((person) => [person.id, person]));
-					})
-					.catch(() => {});
-			void refreshRota();
-			const timer = setInterval(() => void refreshRota(), 5 * 60_000);
-			return () => {
-				controller.abort();
-				clearInterval(timer);
-			};
-		}
 		return () => controller.abort();
+	});
+
+	// The weather outside, beside the date. The server asks Open-Meteo (browsers
+	// never do) and keeps the reading ten minutes; a failure, or no place chosen
+	// in Settings, leaves the wall without it, silently.
+	let outdoor = $state<OutdoorWeather | null>(null);
+	$effect(() => {
+		const controller = new AbortController();
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		let stopped = false;
+		const poll = async () => {
+			if (document.visibilityState === 'visible') {
+				try {
+					outdoor = await getWallWeather(controller.signal);
+				} catch (cause) {
+					if (cause instanceof DOMException && cause.name === 'AbortError') return;
+					// Not shown: keep the last reading, if any, until the next try.
+					// A server without the route will not have one: stop asking.
+					if (cause instanceof ApiError && cause.missing) stopped = true;
+				}
+			}
+			if (!stopped && !controller.signal.aborted) timer = setTimeout(poll, OUTDOOR_REFRESH_MS);
+		};
+		untrack(() => void poll());
+		return () => {
+			controller.abort();
+			clearTimeout(timer);
+		};
 	});
 
 	// One tick per second drives the clock and "updated … ago".
@@ -176,7 +190,7 @@
 		return seconds < 90 ? m.wall_updated_seconds({ seconds }) : m.wall_updated_relative({ when: formatRelative(checked) });
 	});
 
-	// --- The five figures ------------------------------------------------------
+	// --- The figures ------------------------------------------------------
 	const alertCounts = $derived(countAlertsByTarget(alertsStore.alerts));
 	const statuses = $derived(
 		targets.map((target) => ({
@@ -191,8 +205,6 @@
 	const firing = $derived(alertsStore.alerts.filter(countsAsProblem));
 	const critical = $derived(firing.filter((a) => a.severity === 'critical').length);
 	const availability = $derived(mean(fleetStore.figures.uptime30.values()));
-	const mttr = $derived(meanTimeToResolve(fleetStore.history));
-	const resolved = $derived(fleetStore.history.filter((e) => e.to_phase === 'resolved').length);
 
 	const figures = $derived<BandFigure[]>([
 		{
@@ -212,53 +224,14 @@
 			tone: 'text-ink-2'
 		},
 		{
-			id: 'p95',
-			label: m.console_kpi_p95(),
-			value: fleetStore.figures.fleetP95 === null ? '—' : String(Math.round(fleetStore.figures.fleetP95)),
-			unit: fleetStore.figures.fleetP95 === null ? '' : 'ms',
-			note: m.console_kpi_p95_note({ range: consoleState.range }),
-			tone: 'text-ink-2'
-		},
-		{
 			id: 'alerts',
 			label: m.console_kpi_alerts(),
 			value: String(firing.length),
 			unit: '',
 			note: m.console_kpi_alerts_note({ critical, warning: firing.length - critical }),
 			tone: critical > 0 ? 'text-warning-ink' : firing.length > 0 ? 'text-advisory-ink' : 'text-ink-2'
-		},
-		{
-			id: 'mttr',
-			label: m.console_kpi_mttr(),
-			value: mttr === null ? '—' : formatDuration(mttr),
-			unit: '',
-			note: mttr === null ? m.console_kpi_none() : m.console_kpi_mttr_note({ count: resolved }),
-			tone: 'text-ink-2'
 		}
 	]);
-
-	// The monitors that need a look first lead the river.
-	const riverRows = $derived(
-		[...statuses]
-			.filter((row) => fleetStore.river.has(row.target.id))
-			.sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status] || a.target.name.localeCompare(b.target.name))
-			.map((row) => ({ id: row.target.id, name: row.target.name, cells: fleetStore.river.get(row.target.id) ?? [] }))
-	);
-	const riverHint = $derived(
-		m.console_river_hint({ slot: formatDuration(consoleState.rangeSeconds / RIVER_SLOTS), range: formatDuration(consoleState.rangeSeconds) })
-	);
-
-	// --- Who is on call --------------------------------------------------------
-	const onCallRows = $derived(
-		onCall
-			.filter((entry) => entry.user_id !== null)
-			.slice(0, 3)
-			.map((entry) => {
-				const person = people.get(entry.user_id as number);
-				const name = person?.display_name || person?.username || m.console_panel_oncall_unknown();
-				return { key: `${entry.schedule_id}:${entry.user_id}`, name, initial: name.charAt(0).toUpperCase(), entry };
-			})
-	);
 
 	const animate = !calmMotion();
 
@@ -465,8 +438,8 @@
 	});
 
 	// --- The world -------------------------------------------------------------
-	// Settings sets the default, the Backdrop and Theme buttons change it for this
-	// browser, and a link (`?city=`, `?theme=`) decides for one display only.
+	// Settings sets the default, the Backdrop button changes it for this
+	// browser, and a link (`?city=`) decides for one display only.
 	let sceneChoice = $state<WallSceneChoice>(readWallScene(DEFAULT_WALL_SCENE));
 	const forcedScene = $derived(parseForcedWallScene(page.url.searchParams.get('city')));
 	const sceneCity = $derived(resolveWallScene(forcedScene ?? sceneChoice));
@@ -474,17 +447,6 @@
 		sceneChoice = choice;
 		writeWallScene(choice);
 	}
-	let themeChoice = $state<WallTheme>(readWallTheme());
-	const forcedTheme = $derived(parseForcedWallTheme(page.url.searchParams.get('theme')));
-	const worldTheme = $derived<WallTheme>(forcedTheme ?? themeChoice);
-	function setTheme(choice: WallTheme) {
-		themeChoice = choice;
-		writeWallTheme(choice);
-	}
-	// Night uses the status pages' dark tokens, Day the light ones; a plain board keeps the console's black.
-	const daySkin = $derived(sceneCity !== null && worldTheme === 'light');
-	const nightSkin = $derived(sceneCity !== null && worldTheme === 'dark');
-
 	// The scene's code comes only when a city is drawn.
 	let World = $state.raw<Component<any> | null>(null);
 	$effect(() => {
@@ -580,8 +542,7 @@
 <div
 	class="wall fixed inset-0 z-[60] box-border bg-canvas pt-[var(--safe-top)] pr-[var(--safe-right)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] text-ink"
 	class:has-world={sceneCity !== null}
-	class:wall-day={daySkin}
-	class:tokens-night={nightSkin}
+	class:tokens-night={sceneCity !== null}
 >
 	<div class="wall-stage relative h-full">
 		{#if sceneCity}
@@ -589,7 +550,6 @@
 				{#if World}
 					<World
 						city={sceneCity}
-						theme={worldTheme}
 						{now}
 						{weather}
 						problems={firstLoad ? 0 : sky.attention}
@@ -639,34 +599,16 @@
 
 			<div class="board-right" class:rise-in={animate} style="--rise-delay: 140ms">
 				<time class="clock tnum" datetime={now.toISOString()} data-wall-info>{clock}</time>
-				<p class="date" data-wall-info>{dateLabel}</p>
+				<div class="dateline" data-wall-info>
+					<p class="date">{dateLabel}</p>
+					{#if outdoor?.current}
+						<WallOutdoor current={outdoor.current} unit={outdoor.unit} />
+					{/if}
+				</div>
 				<p class="updated tnum" aria-live="off" data-wall-info>
 					<span aria-hidden="true" class="size-1.5 rounded-full bg-signal {animate ? 'ob-live' : ''}"></span>
 					{updated}
 				</p>
-				{#if onCallRows.length > 0 || !auth.scoped}
-					<section class="oncall" aria-labelledby="wall-oncall" data-wall-info>
-						<h2 id="wall-oncall" class="m-0 text-sm font-semibold text-ink-2">{m.console_panel_oncall()}</h2>
-						{#if onCallRows.length === 0}
-							<p class="m-0 mt-1.5 text-sm text-ink-2">{m.wall_ent_oncall_none()}</p>
-						{/if}
-						<ul class="m-0 mt-2 grid list-none gap-2 p-0">
-							{#each onCallRows as row (row.key)}
-								<li class="flex items-center gap-3">
-									<span aria-hidden="true" class="grid size-9 shrink-0 place-items-center rounded-full bg-info-soft text-sm font-semibold text-info-ink">{row.initial}</span>
-									<span class="min-w-0 text-left">
-										<span class="block truncate text-base font-medium text-ink">{row.name}</span>
-										<span class="block truncate text-xs text-ink-2">
-											{row.entry.until
-												? m.console_panel_oncall_until({ schedule: row.entry.schedule_name, time: formatDateTime(row.entry.until) })
-												: row.entry.schedule_name}
-										</span>
-									</span>
-								</li>
-							{/each}
-						</ul>
-					</section>
-				{/if}
 			</div>
 
 			<!-- The music dock: empty (and out of the layout) until music is set up and has something to show. -->
@@ -689,11 +631,11 @@
 				/></div>
 
 			<div class="board-band" class:rise-in={animate} style="--rise-delay: 220ms">
-				<WallBand {figures} river={riverRows} hint={riverHint} limit={sceneCity ? 3 : 8} />
+				<WallBand {figures} />
 			</div>
 		</div>
 
-		<!-- Backdrop, Theme and Exit: out of sight on a display nobody touches, there on hover, focus or touch. -->
+		<!-- Backdrop and Exit: out of sight on a display nobody touches, there on hover, focus or touch. -->
 		<div
 			class="wall-tools fixed top-3 right-3 z-10 flex items-start gap-1 rounded-xl bg-surface/85 p-1 shadow-lift lg:top-4 lg:right-4"
 			class:tools-hint={toolsHint}
@@ -703,10 +645,6 @@
 				scene={forcedScene ?? sceneChoice}
 				sceneForced={forcedScene !== null}
 				onscene={setScene}
-				theme={forcedTheme ?? themeChoice}
-				themeForced={forcedTheme !== null}
-				showTheme={sceneCity !== null}
-				ontheme={setTheme}
 			/>
 			{#if musicConfigured}
 				<MusicControl
@@ -734,46 +672,6 @@
 </div>
 
 <style>
-	/*
-	 * Day: chart paper, navy ink (the status pages' light, as tokens). Night is
-	 * `tokens-night` (app.css); a plain board keeps the console's own black.
-	 */
-	.wall-day {
-		color-scheme: light;
-		--c-canvas: #f3efe6;
-		--c-canvas-deep: #ebe6d9;
-		--c-surface: #fbf9f4;
-		--c-surface-2: #f0ebe0;
-		--c-line: rgb(22 33 58 / 0.14);
-		--c-line-strong: rgb(22 33 58 / 0.28);
-		--c-ink: #16213a;
-		--c-ink-2: #4a5a78;
-		--c-ink-3: #586783;
-		--c-ghost: rgb(22 33 58 / 0.1);
-		--c-signal: #0f8f86;
-		--c-signal-ink: #0b6d66;
-		--c-signal-soft: rgb(15 143 134 / 0.12);
-		--c-advisory: #b7791f;
-		--c-advisory-ink: #8f5d12;
-		--c-advisory-soft: rgb(183 121 31 / 0.14);
-		--c-warning: #c8402f;
-		--c-warning-ink: #a32f21;
-		--c-warning-soft: rgb(200 64 47 / 0.12);
-		--c-info: #2f6db5;
-		--c-info-ink: #24568f;
-		--c-info-soft: rgb(47 109 181 / 0.12);
-		--c-on-signal: #f3efe6;
-		--c-primary: var(--c-signal);
-		--c-on-primary: var(--c-on-signal);
-		--c-focus: var(--c-signal);
-		--c-river-up: rgb(15 143 134 / 0.55);
-		--c-river-warn: #b7791f;
-		--c-river-down: #c8402f;
-		--c-river-none: rgb(22 33 58 / 0.1);
-		--shadow-lift: 0 1px 2px rgb(22 33 58 / 0.06), 0 6px 18px -8px rgb(22 33 58 / 0.22);
-		--shadow-float: 0 2px 6px rgb(22 33 58 / 0.08), 0 18px 40px -16px rgb(22 33 58 / 0.32);
-	}
-
 	/*
 	 * Layout. Phone and tablet: the world is a band at the top and the board
 	 * scrolls under it. From 1024 px the world fills the screen and the board
@@ -883,9 +781,17 @@
 		line-height: 1;
 		color: var(--c-ink);
 	}
-	.date {
-		margin: 0.375rem 0 0;
+	.dateline {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 1rem;
+		margin-top: 0.375rem;
 		font-size: 1.25rem;
+	}
+	.date {
+		margin: 0;
+		font-size: inherit;
 		font-weight: 600;
 		color: var(--c-ink-2);
 		text-transform: capitalize;
@@ -898,16 +804,6 @@
 		font-family: var(--font-code, ui-monospace, monospace);
 		font-size: 0.8125rem;
 		color: var(--c-ink-2);
-	}
-	.oncall {
-		width: 100%;
-		margin-top: 1.25rem;
-		padding: 0.875rem 1rem;
-		border: 1px solid var(--c-line);
-		border-radius: var(--radius-card, 14px);
-		background: color-mix(in srgb, var(--c-surface) 88%, transparent);
-		box-shadow: var(--shadow-lift);
-		text-align: left;
 	}
 	/* The verdict changes in a short, soft arrival, never a flash. */
 	.verdict-in {
@@ -1012,20 +908,18 @@
 		.clock {
 			font-size: 6.5rem;
 		}
-		.date {
+		.dateline {
+			justify-content: flex-end;
 			font-size: 1.75rem;
 		}
 		.updated {
 			font-size: 0.9375rem;
 		}
-		.oncall {
-			margin-top: 1.5rem;
-		}
 	}
 	/* The words sit on a scene: a soft halo keeps them readable over its details. */
 	.has-world .headline,
 	.has-world .clock,
-	.has-world .date,
+	.has-world .dateline,
 	.has-world .sentence,
 	.has-world .updated,
 	.has-world .instance {
@@ -1057,7 +951,7 @@
 		.updated {
 			display: none;
 		}
-		.date {
+		.dateline {
 			font-size: 1.25rem;
 			margin-top: 0.125rem;
 		}
@@ -1083,7 +977,7 @@
 		}
 	}
 
-	/* Backdrop, Theme and Exit: out of sight on a display nobody touches. */
+	/* Backdrop and Exit: out of sight on a display nobody touches. */
 	.wall-tools {
 		opacity: 0;
 		transition: opacity 200ms ease;

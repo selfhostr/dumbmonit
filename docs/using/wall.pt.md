@@ -7,12 +7,11 @@ De cima para baixo:
 
 - o **veredicto** em poucas palavras («All good», «3 problems») com a data e o
   relógio, e quando foi atualizado pela última vez;
-- os **cinco números** do resumo: monitores ativos, disponibilidade a 30 dias,
-  tempo de resposta p95, alertas abertos e tempo médio de resolução;
-- o **rio de saúde**, a grande imagem do quadro: uma faixa por monitor, os piores
-  no topo;
+- o **tempo lá fora**, à direita da data quando uma cidade está escolhida: um
+  pequeno ícone e a temperatura, mais nada ([Meteorologia](#weather));
 - os **alertas abertos**, os mais graves primeiro;
-- **quem está de prevenção** agora, com a escala e o fim do turno.
+- uma faixa discreta de **três números** ao fundo: monitores ativos,
+  disponibilidade a 30 dias e alertas abertos.
 
 Sem widgets: fundo preto, a tipografia da consola, estados escritos junto de uma
 forma e nunca só por cor. A [música](#music-on-the-wall), depois de configurada,
@@ -36,11 +35,25 @@ Tóquio, Dubai, *Auto*) passa para Paris. O céu acompanha o painel: estrelas
 quando está tudo bem, nuvens num aviso, tempestade num alerta. Num telemóvel, ou
 com o separador oculto, a cidade fica parada.
 
+## Meteorologia {#weather}
+
+Junto à data, um pequeno ícone (sol, nuvens, chuva, neve, trovoada, nevoeiro; a
+lua à noite) e a temperatura exterior, por exemplo «12°». Mais nada: sem
+previsão, sem vento. O ícone tem uma etiqueta escrita para os leitores de ecrã.
+
+Está desativada até um administrador escolher uma cidade em **Settings → Wall
+display → Wall weather**: pesquisa por nome e depois **°C** ou **°F**. O servidor
+do DumbMonit consulta o [Open-Meteo](https://open-meteo.com/) (gratuito, sem
+chave) e guarda a resposta dez minutos, qualquer que seja o número de murais; os
+navegadores nunca o contactam. Só as coordenadas da cidade são enviadas. Sem
+cidade não se pede nada e, se o serviço não responder, o mural simplesmente não
+mostra o ícone.
+
 ## Música na parede {#music-on-the-wall}
 
 A parede também pode reproduzir música e mostrar o que está a tocar: inicia uma
 playlist no telemóvel, ouve-a na TV e vê-a do outro lado da sala. A música fica
-numa pequena doca ao fundo da coluna da direita, sob o relógio e a prevenção:
+numa pequena doca ao fundo da coluna da direita, sob o relógio:
 nunca tira espaço ao veredicto nem aos problemas, e desaparece quando nada toca
 ou nada está configurado. Mostra a capa, o título, o artista, o dispositivo que
 toca e uma fina barra de progresso; quando a conta ligada o permite, um botão de

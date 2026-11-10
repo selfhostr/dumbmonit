@@ -7,12 +7,11 @@ De haut en bas :
 
 - le **verdict** en quelques mots (« Tout va bien », « 3 problèmes ») avec la
   date et l'horloge, et l'heure de la dernière mise à jour ;
-- les **cinq chiffres** de l'aperçu : moniteurs actifs, disponibilité sur 30
-  jours, temps de réponse p95, alertes ouvertes et temps moyen de résolution ;
-- la **rivière de santé**, la grande image du tableau : une bande par moniteur,
-  les pires en haut ;
+- la **météo extérieure**, à droite de la date quand une ville est choisie : une
+  petite icône et la température, rien d'autre ([Météo](#weather)) ;
 - les **alertes ouvertes**, les plus graves d'abord ;
-- **qui est d'astreinte** maintenant, avec le planning et la fin de la garde.
+- une bande discrète de **trois chiffres** au pied de l'écran : moniteurs actifs,
+  disponibilité sur 30 jours et alertes ouvertes.
 
 Pas de widgets : fond noir (décor facultatif ci-dessous), la typographie de la
 console, des états écrits à côté d'une forme et jamais indiqués par la seule
@@ -37,12 +36,27 @@ seulement. Un choix enregistré ou lié d'un décor retiré (New York, Tokyo, Du
 bien, des nuages sur un avertissement, un orage sur une alerte. Sur un téléphone,
 ou quand l'onglet est masqué, la ville reste immobile.
 
+## Météo {#weather}
+
+À côté de la date, une petite icône (soleil, nuages, pluie, neige, orage,
+brouillard ; la lune la nuit) et la température extérieure, par exemple « 12° ».
+Rien d'autre : ni prévisions, ni vent. L'icône porte un libellé écrit pour les
+lecteurs d'écran.
+
+Elle est désactivée tant qu'un administrateur n'a pas choisi une ville dans
+**Réglages → Affichage mural → Météo du mur** : recherche par nom, puis **°C** ou
+**°F**. Le serveur DumbMonit interroge [Open-Meteo](https://open-meteo.com/)
+(gratuit, sans clé) et garde la réponse dix minutes, quel que soit le nombre de
+murs ; les navigateurs ne le contactent jamais. Seules les coordonnées de la
+ville sont envoyées. Sans ville, rien n'est demandé, et si le service ne répond
+pas, le mur n'affiche simplement pas d'icône.
+
 ## Musique sur le mur {#music-on-the-wall}
 
 Le mur peut aussi jouer de la musique et montrer ce qui joue, pour que vous
 puissiez lancer une playlist depuis votre téléphone, l'entendre depuis la TV, et
 la voir depuis l'autre bout de la pièce. La musique se loge dans un petit dock
-au pied de la colonne de droite, sous l'horloge et l'astreinte : elle ne prend
+au pied de la colonne de droite, sous l'horloge : elle ne prend
 jamais de place au verdict ni aux problèmes, et disparaît quand rien ne joue ou
 que rien n'est réglé. Elle montre la pochette, le titre, l'artiste, l'appareil
 qui joue et une fine barre de progression ; quand le compte relié le permet, un
