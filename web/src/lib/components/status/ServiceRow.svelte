@@ -1,7 +1,8 @@
 <script lang="ts">
 	/**
-	 * One public service: state plate + name, the daily history bar, then the
-	 * uptime readouts (24 h / 7 d / 30 d / 90 d) and the latency. Stacks on phones.
+	 * One public service on one tight row: its name, its state (icon and word),
+	 * the availability over the bar's period, then the daily history bar. The
+	 * bar's tooltip carries the detail of each day.
 	 */
 	import { m } from '#lib/paraglide/messages.js';
 	import type { PublicStatusItem } from '#lib/api/index.js';
@@ -20,74 +21,27 @@
 		/** Name of the period for the availability readout ("Last 12 hours"). */
 		periodLabel?: string;
 		onselectday?: (day: string) => void;
-		/** Tighter row (name, one uptime figure, short bar) for pages with a banner scene. */
-		compact?: boolean;
 	}
 
-	let { item, days, windowSecs = 0, stepSecs = 86400, periodLabel = '', onselectday, compact = false }: Props = $props();
+	let { item, days, windowSecs = 0, stepSecs = 86400, periodLabel = '', onselectday }: Props = $props();
 
 	const state = $derived(ITEM_STATE[item.state] ?? ITEM_STATE.unknown);
-
-	function formatLatencyMs(value: number | null): string {
-		if (value === null || !Number.isFinite(value)) return '—';
-		if (value < 1000) return m.status_service_row_ms({ value: Math.round(value) });
-		return m.status_service_row_seconds({ value: (Math.round(value / 100) / 10).toString() });
-	}
-
-	// The window adapts to the data's age: 30 and 90 days are listed only once the page covers them.
-	const readouts = $derived([
-		...(stepSecs < 86400 && periodLabel ? [{ label: periodLabel, value: item.uptime_history }] : []),
-		{ label: m.status_service_row_24h(), value: item.uptime_24h },
-		{ label: m.status_service_row_7d(), value: item.uptime_7d },
-		...(days >= 30 ? [{ label: m.status_service_row_30d(), value: item.uptime_30d }] : []),
-		...(days >= 90 ? [{ label: m.status_service_row_90d(), value: item.uptime_90d }] : [])
-	]);
+	const over = $derived(stepSecs < 86400 && periodLabel ? periodLabel : m.status_service_row_uptime_over({ days }));
 </script>
 
-{#if compact}
-	<li class="px-4 py-2.5 sm:px-5">
-		<div class="flex items-center gap-3">
-			<Plate tone={state.tone} label={state.label} pulse={item.state === 'down'} />
-			<span class="min-w-0 flex-1 truncate font-semibold text-ink">{item.label}</span>
-			{#if item.external}
-				<span class="shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold text-ink-2" title={m.status_service_external_hint()}>{m.status_service_external()}</span>
-			{/if}
-			<span class="tnum shrink-0 text-sm text-ink-2" title={m.status_service_row_uptime_over({ days })}>
-				{formatPercent(item.uptime_history)}
-			</span>
-		</div>
-		<div class="mt-2">
-			<UptimeBar history={item.history} label={item.label} compact {stepSecs} {windowSecs} onselect={onselectday} />
-		</div>
-		<LatencyGraph series={item.latency_series} label={item.label} />
-	</li>
-{:else}
-<li class="px-4 py-4 sm:px-5">
-	<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-		<div class="flex min-w-0 items-center gap-3">
-			<Plate tone={state.tone} label={state.label} pulse={item.state === 'down'} />
-			<span class="truncate font-semibold text-ink">{item.label}</span>
-			{#if item.external}
-				<span class="shrink-0 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold text-ink-2" title={m.status_service_external_hint()}>{m.status_service_external()}</span>
-			{/if}
-		</div>
-		{#if item.latency_ms !== null}
-			<span class="text-sm text-ink-2">{m.status_service_row_response({ time: formatLatencyMs(item.latency_ms) })}</span>
+<li class="px-3 py-2.5 sm:px-4">
+	<div class="flex items-center gap-2">
+		<span class="min-w-0 truncate font-semibold text-ink">{item.label}</span>
+		{#if item.external}
+			<span class="shrink-0 rounded-full border border-line px-1.5 text-[0.6875rem] font-semibold text-ink-2" title={m.status_service_external_hint()}>{m.status_service_external()}</span>
 		{/if}
+		<span class="ml-auto flex shrink-0 items-center gap-2.5">
+			<Plate tone={state.tone} label={state.label} pulse={item.state === 'down'} />
+			<span class="tnum min-w-[3.25rem] text-right text-sm font-semibold text-ink" title={over}>{formatPercent(item.uptime_history)}</span>
+		</span>
 	</div>
-
-	<div class="mt-3">
+	<div class="mt-2">
 		<UptimeBar history={item.history} label={item.label} {stepSecs} {windowSecs} onselect={onselectday} />
 	</div>
 	<LatencyGraph series={item.latency_series} label={item.label} />
-
-	<dl class="graticule mt-2 flex flex-wrap gap-x-6 gap-y-1 pb-1 text-sm">
-		{#each readouts as readout (readout.label)}
-			<div class="flex items-baseline gap-1.5">
-				<dt class="label-tape text-ink-3">{readout.label}</dt>
-				<dd class="tnum font-semibold text-ink">{formatPercent(readout.value)}</dd>
-			</div>
-		{/each}
-	</dl>
 </li>
-{/if}

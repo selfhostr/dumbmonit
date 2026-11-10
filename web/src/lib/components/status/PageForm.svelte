@@ -70,7 +70,6 @@
 	let accessError = $state<string | null>(null);
 	let showDays = $state(initial?.show_uptime_days ?? 90);
 	let accent = $state<StatusPageAccent>(initial?.accent ?? 'default');
-	let simple = $state(initial?.simple ?? false);
 	let showCalendar = $state(initial?.show_calendar ?? false);
 	let showLatency = $state(initial?.show_latency ?? false);
 	let footerText = $state(initial?.footer_text ?? '');
@@ -205,7 +204,6 @@
 			accessPassword,
 			showDays,
 			accent,
-			simple,
 			showCalendar,
 			showLatency,
 			footerText,
@@ -292,7 +290,6 @@
 				published,
 				show_uptime_days: showDays,
 				accent,
-				simple,
 				show_calendar: showCalendar,
 				show_latency: showLatency,
 				footer_text: footerText.trim(),
@@ -628,15 +625,13 @@
 				<div class="grid gap-1.5">
 					<span class={SUBHEAD} aria-hidden="true">{m.status_edit_appearance_shows()}</span>
 					<ul class="divide-y divide-line rounded-lg border border-line">
-						{#each [{ key: 'simple', label: m.status_form_simple(), help: m.status_form_simple_help() }, { key: 'calendar', label: m.status_form_calendar(), help: m.status_form_calendar_help() }, { key: 'latency', label: m.status_form_latency(), help: m.status_form_latency_help() }] as opt (opt.key)}
+						{#each [{ key: 'calendar', label: m.status_form_calendar(), help: m.status_form_calendar_help() }, { key: 'latency', label: m.status_form_latency(), help: m.status_form_latency_help() }] as opt (opt.key)}
 							<li class="flex min-h-12 items-center justify-between gap-4 px-3 py-2">
 								<div class="min-w-0">
 									<label for="{idPrefix}-{opt.key}" class="block text-sm text-ink">{opt.label}</label>
 									<p class="text-[0.8125rem] text-ink-2">{opt.help}</p>
 								</div>
-								{#if opt.key === 'simple'}
-									<Toggle id="{idPrefix}-simple" bind:checked={simple} disabled={saving} label={opt.label} />
-								{:else if opt.key === 'calendar'}
+								{#if opt.key === 'calendar'}
 									<Toggle id="{idPrefix}-calendar" bind:checked={showCalendar} disabled={saving} label={opt.label} />
 								{:else}
 									<Toggle id="{idPrefix}-latency" bind:checked={showLatency} disabled={saving} label={opt.label} />

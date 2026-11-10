@@ -2,7 +2,9 @@
 	/**
 	 * The daily history bar: one square per day, toned by that day's uptime,
 	 * grey when nothing was measured (never green by default). Hover or focus a
-	 * day for its date, uptime, minutes of downtime and incidents.
+	 * day for a tooltip: its date, its state in words, minutes of downtime and
+ * incidents. A tap opens it too; the segments also carry the same text as an
+ * `aria-label`, so the state is never colour alone.
 	 *
 	 * One tab stop for the whole bar (roving tabindex): arrow keys, Home and End
 	 * move between days, so a keyboard user does not tab through 90 squares to
@@ -12,7 +14,7 @@
 	import { getLocale } from '#lib/paraglide/runtime.js';
 	import type { PublicDayBucket } from '#lib/api/index.js';
 	import { formatPercent } from '#lib/format.js';
-	import { dayTone, formatDowntime } from './words';
+	import { DAY_STATE_LABEL, dayState, dayTone, formatDowntime } from './words';
 	import { barDay, isDayBar, periodParts } from './period';
 	import { formatDateTime } from '#lib/format.js';
 	import { formatUtcDay } from './utc-day';
@@ -56,7 +58,8 @@
 		if (day.uptime_pct === null) return m.status_uptime_bar_day_no_data({ date: formatDay(day.date) });
 		const down = formatDowntime(day.down_minutes);
 		const incidents = day.incidents === 0 ? '' : ` · ${m.status_uptime_bar_incidents({ count: day.incidents })}`;
-		return `${m.status_uptime_bar_day({ date: formatDay(day.date), uptime: formatPercent(day.uptime_pct), down })}${incidents}`;
+		const text = m.status_uptime_bar_day({ date: formatDay(day.date), uptime: formatPercent(day.uptime_pct), down });
+		return `${text}${incidents} · ${DAY_STATE_LABEL[dayState(day.uptime_pct)]}`;
 	}
 
 	function move(to: number) {
@@ -92,13 +95,33 @@
 		}
 	}
 
+	// Tooltip: centred on the segment, then kept inside the bar's box (which sits inside the screen).
+	let box: HTMLDivElement | undefined = $state();
+	let tipWidth = $state(0);
+	let tipLeft = $state(0);
+	$effect(() => {
+		const index = active;
+		void tipWidth;
+		const button = index === null ? undefined : buttons[index];
+		if (!box || !button) return;
+		const host = box.getBoundingClientRect();
+		const cell = button.getBoundingClientRect();
+		const centre = cell.left - host.left + cell.width / 2;
+		const half = tipWidth / 2;
+		tipLeft = Math.max(half, Math.min(host.width - half, centre));
+	});
+	const tip = $derived(active !== null ? history[active] : undefined);
+
 	const first = $derived(history[0]);
 	const last = $derived(history[history.length - 1]);
 </script>
 
-<div class="relative">
+<svelte:window onpointerdown={(event) => box && !box.contains(event.target as Node) && (active = null)} />
+
+<div>
+<div class="relative" bind:this={box}>
 	<ul
-		class={`flex items-stretch gap-px sm:gap-0.5 ${compact ? 'h-5' : 'h-8'}`}
+		class={`flex items-stretch gap-px sm:gap-0.5 ${compact ? '-my-1.5 h-8' : '-my-2 h-10'}`}
 		aria-label={m.status_uptime_bar_label({ label, days: history.length })}
 		onmouseleave={() => (active = null)}
 	>
@@ -108,9 +131,8 @@
 					type="button"
 					bind:this={buttons[index]}
 					tabindex={index === tabIndex ? 0 : -1}
-					class={`block h-full w-full rounded-[2px] transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${FILL[dayTone(day.uptime_pct)]} ${active !== null && active !== index ? 'opacity-50' : ''}`}
+					class="flex h-full w-full items-center focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink"
 					aria-label={describe(day)}
-					title={compact ? describe(day) : undefined}
 					onmouseenter={() => (active = index)}
 					onfocus={() => {
 						active = index;
@@ -118,8 +140,14 @@
 					}}
 					onblur={() => (active = null)}
 					onkeydown={(event) => onkeydown(event, index)}
-					onclick={() => onselect?.(barDay(day.date))}
+					onclick={() => {
+						active = index;
+						onselect?.(barDay(day.date));
+					}}
 				>
+					<span
+						class={`block w-full rounded-[2px] transition-opacity ${compact ? 'h-5' : 'h-6'} ${FILL[dayTone(day.uptime_pct)]} ${active !== null && active !== index ? 'opacity-50' : ''}`}
+					></span>
 					{#if day.incidents > 0}
 						<span class="sr-only">{m.status_words_kind_incident()}</span>
 					{/if}
@@ -127,8 +155,30 @@
 			</li>
 		{/each}
 	</ul>
+	{#if tip}
+		<div
+			class="pointer-events-none absolute bottom-full z-20 mb-1 w-max max-w-full -translate-x-1/2 rounded-md border border-line-strong bg-surface-2 px-2.5 py-1.5 text-xs text-ink shadow-float"
+			style={`left: ${tipLeft}px`}
+			bind:clientWidth={tipWidth}
+			aria-hidden="true"
+		>
+			<p class="font-semibold">{formatDay(tip.date)}</p>
+			<p class="mt-0.5 flex items-center gap-1.5">
+				<span class={`inline-block size-2 shrink-0 rounded-full ${FILL[dayTone(tip.uptime_pct)]}`}></span>
+				<span>{DAY_STATE_LABEL[dayState(tip.uptime_pct)]}</span>
+				{#if tip.uptime_pct !== null}<span class="tnum text-ink-2">{formatPercent(tip.uptime_pct)}</span>{/if}
+			</p>
+			{#if tip.uptime_pct !== null && (tip.down_minutes ?? 0) > 0}
+				<p class="mt-0.5 text-ink-2">{formatDowntime(tip.down_minutes)}</p>
+			{/if}
+			{#if tip.incidents > 0}
+				<p class="mt-0.5 text-ink-2">{m.status_uptime_bar_incidents({ count: tip.incidents })}</p>
+			{/if}
+		</div>
+	{/if}
+</div>
 	{#if !compact}
-		<div class="mt-1 flex justify-between gap-2 text-[0.6875rem] text-ink-3" aria-hidden="true">
+		<div class="mt-1.5 flex justify-between gap-2 text-[0.6875rem] text-ink-3" aria-hidden="true">
 			<span class="tnum shrink-0">
 				{#if !first}
 					&nbsp;
@@ -141,9 +191,6 @@
 				{:else}
 					{m.status_period_days({ count: period.count })}
 				{/if}
-			</span>
-			<span class="tnum min-h-4 truncate text-center text-ink-2">
-				{#if active !== null && history[active]}{describe(history[active])}{/if}
 			</span>
 			<span class="tnum shrink-0">{last ? (dayBars ? m.status_uptime_bar_today() : m.status_uptime_bar_now()) : ''}</span>
 		</div>

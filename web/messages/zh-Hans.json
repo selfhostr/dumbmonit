@@ -7848,8 +7848,6 @@
 	"status_form_services_no_folder": "无文件夹",
 	"status_form_services_no_match": "没有匹配的服务。",
 	"status_form_services_search": "搜索服务",
-	"status_form_simple": "简洁模式",
-	"status_form_simple_help": "简洁页面：无吉祥物和动画。明暗主题跟随访客系统，并提供切换开关。",
 	"status_form_slug_rule": "2 到 40 个字符：小写字母、数字和连字符。",
 	"status_form_subscribers": "邮件订阅者",
 	"status_form_subscribers_help": "访客通过邮件确认地址，每条更新都附带一键退订链接。",
@@ -7871,7 +7869,7 @@
 	"status_gate_password_title": "此页面受密码保护",
 	"status_gate_password_wrong": "密码错误。",
 	"status_gate_users_action": "登录",
-	"status_gate_users_help": "此页面仅限 DumbMonit 用户查看。",
+	"status_gate_users_help": "此页面仅限已登录用户查看。",
 	"status_gate_users_title": "登录后查看此页面",
 	"status_groups_count": "监控：{count}",
 	"status_groups_dynamic": "分组“{group}”：当前 {count} 个监控，以及之后加入的所有监控。",
@@ -7998,81 +7996,16 @@
 	"status_public_announcement_one": "当前公告",
 	"status_public_checked": "检查于",
 	"status_public_current_status": "当前状态",
-	"status_public_dark": "深色",
 	"status_public_last_30": "最近 30 天。",
-	"status_public_light": "浅色",
 	"status_public_load_error": "无法加载状态页",
 	"status_public_loading": "加载中",
 	"status_public_no_incident": "最近 30 天没有事件。",
 	"status_public_no_service_description": "此页面暂时没有可显示的内容。",
 	"status_public_no_service_title": "尚未列出任何服务。",
-	"status_public_not_found_description": "请检查你收到的链接，或向管理此 DumbMonit 的人索取正确链接。",
+	"status_public_not_found_description": "请检查你收到的链接，或向分享链接的人索取正确链接。",
 	"status_public_not_found_title": "此状态页不存在。",
 	"status_public_past": "历史事件",
-	"status_public_powered_by": "技术支持：",
 	"status_public_services": "服务",
-	"status_public_switch_dark": "切换到深色主题",
-	"status_public_switch_light": "切换到浅色主题",
-	"status_public_tally_affected": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=other": "{total} 项服务中有 {affected} 项受影响"
-			}
-		}
-	],
-	"status_public_tally_all": "全部 {count} 项服务运行正常",
-	"status_public_tally_degraded": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=other": "{total} 项服务中有 {affected} 项性能下降"
-			}
-		}
-	],
-	"status_public_tally_detail": "正常 {up} · 宕机 {down}",
-	"status_public_tally_detail_uptime": "正常 {up} · 宕机 {down} · {days} 天可用率 {uptime}",
-	"status_public_tally_down": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=other": "{total} 项服务中有 {affected} 项宕机"
-			}
-		}
-	],
-	"status_public_tally_maintenance": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=other": "{total} 项服务中有 {affected} 项正在维护"
-			}
-		}
-	],
-	"status_public_tally_one": "1 项服务运行正常",
 	"status_public_title": "状态",
 	"status_public_title_with_page": "{title} · 状态",
 	"status_public_uptime_last": "最近 {days} 天可用率",
@@ -8139,12 +8072,7 @@
 	"status_seo_title_label": "SEO 标题",
 	"status_service_external": "外部",
 	"status_service_external_hint": "第三方提供商，读取自其自身的状态页面",
-	"status_service_row_24h": "24 小时",
-	"status_service_row_30d": "30 天",
-	"status_service_row_7d": "7 天",
-	"status_service_row_90d": "90 天",
 	"status_service_row_ms": "{value} 毫秒",
-	"status_service_row_response": "响应 {time}",
 	"status_service_row_seconds": "{value} 秒",
 	"status_service_row_uptime_over": "{days} 天可用率",
 	"status_services_from_groups": "通过勾选分组显示",
@@ -8239,11 +8167,6 @@
 	"status_uptime_bar_label": "{label}：最近 {days} 天每日可用率。使用方向键切换日期。",
 	"status_uptime_bar_now": "现在",
 	"status_uptime_bar_today": "今天",
-	"status_uptime_legend_good": "{min} 或以上",
-	"status_uptime_legend_label": "每日条形图图例",
-	"status_uptime_legend_no_data": "无数据",
-	"status_uptime_legend_partial": "{low} 至 {high}",
-	"status_uptime_legend_poor": "低于 {max}",
 	"status_words_accent_amber": "琥珀色",
 	"status_words_accent_blue": "蓝色",
 	"status_words_accent_default": "墨色（默认）",

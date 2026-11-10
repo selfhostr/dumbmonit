@@ -7933,8 +7933,6 @@
 	"status_form_services_no_folder": "Ohne Ordner",
 	"status_form_services_no_match": "Kein Dienst gefunden.",
 	"status_form_services_search": "Dienst suchen",
-	"status_form_simple": "Einfacher Modus",
-	"status_form_simple_help": "Eine schlichte Seite: kein Maskottchen, keine Animation. Hell oder dunkel folgt dem System des Besuchers, mit Umschalter.",
 	"status_form_slug_rule": "2 bis 40 Zeichen: Kleinbuchstaben, Ziffern und Bindestriche.",
 	"status_form_subscribers": "E-Mail-Abonnenten",
 	"status_form_subscribers_help": "Besucher bestätigen ihre Adresse per E-Mail, und jedes Update enthält einen Ein-Klick-Abmeldelink.",
@@ -7956,7 +7954,7 @@
 	"status_gate_password_title": "Diese Seite ist geschützt",
 	"status_gate_password_wrong": "Falsches Passwort.",
 	"status_gate_users_action": "Anmelden",
-	"status_gate_users_help": "Diese Seite ist DumbMonit-Benutzern vorbehalten.",
+	"status_gate_users_help": "Diese Seite ist angemeldeten Benutzern vorbehalten.",
 	"status_gate_users_title": "Melden Sie sich an, um diese Seite zu sehen",
 	"status_groups_count": "Monitore: {count}",
 	"status_groups_dynamic": "Gruppe „{group}“: die aktuellen {count} Monitore und alle später hinzugefügten.",
@@ -8083,85 +8081,16 @@
 	"status_public_announcement_one": "Aktuelle Meldung",
 	"status_public_checked": "Geprüft",
 	"status_public_current_status": "Aktueller Status",
-	"status_public_dark": "Dunkel",
 	"status_public_last_30": "Letzte 30 Tage.",
-	"status_public_light": "Hell",
 	"status_public_load_error": "Statusseite konnte nicht geladen werden",
 	"status_public_loading": "Wird geladen",
 	"status_public_no_incident": "Keine Störung in den letzten 30 Tagen.",
 	"status_public_no_service_description": "Diese Seite hat vorerst nichts anzuzeigen.",
 	"status_public_no_service_title": "Noch kein Dienst aufgeführt.",
-	"status_public_not_found_description": "Prüfen Sie den erhaltenen Link oder fragen Sie den Betreiber dieses DumbMonit nach dem richtigen.",
+	"status_public_not_found_description": "Prüfen Sie den erhaltenen Link oder fragen Sie die Person, die ihn geteilt hat, nach dem richtigen.",
 	"status_public_not_found_title": "Diese Statusseite existiert nicht.",
 	"status_public_past": "Frühere Störungen",
-	"status_public_powered_by": "Bereitgestellt von",
 	"status_public_services": "Dienste",
-	"status_public_switch_dark": "Zum dunklen Design wechseln",
-	"status_public_switch_light": "Zum hellen Design wechseln",
-	"status_public_tally_affected": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} von {total} Diensten betroffen",
-				"affectedPlural=other": "{affected} von {total} Diensten betroffen"
-			}
-		}
-	],
-	"status_public_tally_all": "Alle {count} Dienste in Betrieb",
-	"status_public_tally_degraded": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} von {total} Diensten beeinträchtigt",
-				"affectedPlural=other": "{affected} von {total} Diensten beeinträchtigt"
-			}
-		}
-	],
-	"status_public_tally_detail": "{up} in Betrieb · {down} ausgefallen",
-	"status_public_tally_detail_uptime": "{up} in Betrieb · {down} ausgefallen · {uptime} über {days} Tage",
-	"status_public_tally_down": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} von {total} Diensten ausgefallen",
-				"affectedPlural=other": "{affected} von {total} Diensten ausgefallen"
-			}
-		}
-	],
-	"status_public_tally_maintenance": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} von {total} Diensten in Wartung",
-				"affectedPlural=other": "{affected} von {total} Diensten in Wartung"
-			}
-		}
-	],
-	"status_public_tally_one": "1 Dienst in Betrieb",
 	"status_public_title": "Status",
 	"status_public_title_with_page": "{title} · Status",
 	"status_public_uptime_last": "Verfügbarkeit der letzten {days} Tage",
@@ -8228,12 +8157,7 @@
 	"status_seo_title_label": "SEO-Titel",
 	"status_service_external": "Extern",
 	"status_service_external_hint": "Ein Drittanbieter, gelesen von seiner eigenen Statusseite",
-	"status_service_row_24h": "24 Std.",
-	"status_service_row_30d": "30 T",
-	"status_service_row_7d": "7 T",
-	"status_service_row_90d": "90 T",
 	"status_service_row_ms": "{value} ms",
-	"status_service_row_response": "{time} Antwortzeit",
 	"status_service_row_seconds": "{value} s",
 	"status_service_row_uptime_over": "Verfügbarkeit über {days} Tage",
 	"status_services_from_groups": "Über eine angehakte Gruppe angezeigt",
@@ -8328,11 +8252,6 @@
 	"status_uptime_bar_label": "{label}: Verfügbarkeit pro Tag über {days} Tage. Mit den Pfeiltasten zwischen den Tagen wechseln.",
 	"status_uptime_bar_now": "Jetzt",
 	"status_uptime_bar_today": "Heute",
-	"status_uptime_legend_good": "{min} oder mehr",
-	"status_uptime_legend_label": "Farblegende der Tagesbalken",
-	"status_uptime_legend_no_data": "keine Daten",
-	"status_uptime_legend_partial": "{low} bis {high}",
-	"status_uptime_legend_poor": "unter {max}",
 	"status_words_accent_amber": "Bernstein",
 	"status_words_accent_blue": "Blau",
 	"status_words_accent_default": "Tinte (Standard)",

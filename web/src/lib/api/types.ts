@@ -2174,7 +2174,7 @@ export interface StatusPage {
 	scenes: string[];
 	/** Legacy: kept for compatibility, the UI neither shows nor sends it. */
 	scene_rotation: StatusPageSceneRotation;
-	/** Simple mode: the public page has no mascot or animation. */
+	/** Retired: the public page is always plain. Still accepted and returned. */
 	simple: boolean;
 	/** Public 90-day calendar. */
 	show_calendar: boolean;
@@ -2462,7 +2462,7 @@ export interface PublicStatus {
 		/** Legacy: no longer drawn by the UI. */
 		scenes: string[];
 		scene_rotation: StatusPageSceneRotation;
-		/** Simple mode: no mascot or animation; light/dark follows the visitor. */
+		/** Retired: no effect any more. Still accepted and returned. */
 		simple: boolean;
 		/** Present (true) only when the page shows the calendar / response times. */
 		show_calendar?: boolean;

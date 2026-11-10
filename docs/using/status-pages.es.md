@@ -25,9 +25,8 @@ ellas; el editor se abre en su propia ruta (`/settings/status/new`,
 | **Title** | El encabezado de la página («Home lab»). |
 | **Address** | La última parte de la URL, `/s/<address>`. Sugerida a partir del título; letras minúsculas, dígitos y guiones, de 2 a 40 caracteres. |
 | **Description** | Una frase bajo el título. Opcional. |
-| **Theme** | Day, night, o sigue el sistema del visitante. |
+| **Theme** | Day, night, o sigue el sistema del visitante. Claro u oscuro sigue automáticamente el sistema del visitante; fíjalo aquí solo para forzar uno. La página usa el mismo aspecto que la consola, no muestra leyenda y no lleva el nombre del producto. |
 | **History** | La ventana más larga que cubre la barra de historial (30, 60 o 90 días). La barra se adapta a la antigüedad de los datos de la página: muestra tantos días como el servicio más antiguo ha sido monitorizado, desde 7 días hasta este ajuste. Una página nunca dice más que esto — consulta [Badges](#badges). |
-| **Simple mode** | Una página plana: sin mascota, sin animación y sin huevos de pascua. Claro u oscuro sigue el sistema del visitante, con un interruptor en la cabecera; el ajuste Theme de la página se ignora. |
 | **Published** | Desactivado = borrador: la página, sus badges y su logo responden «not found» a los visitantes hasta que la activas. |
 
 Luego marca los monitores a mostrar. Para cada uno, define la
@@ -135,6 +134,8 @@ un monitor se muestran así; el nombre y comentario de la ventana
 permanecen privados.
 
 Un anuncio se muestra en una página o en **todas las páginas**.
+
+Pasa el cursor por un segmento de la barra (o dale el foco, o tócalo) para abrir un pequeño globo: la fecha, el estado con palabras (Operational, Degraded, Partial outage, Major outage, No data), los minutos de caída y los incidentes de ese día. No hay leyenda de colores.
 
 ### Suscriptores por correo {#email-subscribers}
 

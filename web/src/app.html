@@ -25,22 +25,19 @@
 			// console (`obsidian`), deep black unless Settings › Appearance chose
 			// light or the system's (`dumbmonit-console-theme`, see
 			// src/lib/stores/theme-choice.ts); the wall stays dark. Public status
-			// pages (`/s/…`, or a status page's own domain) keep their light and
-			// dark versions.
+			// pages (`/s/…`, or a status page's own domain) wear the same console
+			// and follow the visitor's system.
 			// The static demo lives under /demo: routes are compared without it.
 			var route = location.pathname.replace(/^\/demo(?=\/|$)/, '') || '/';
 			var statusPage =
 				route.indexOf('/s/') === 0 ||
 				!!document.querySelector('meta[name="dumbmonit-status-page"]');
-			var dark = !statusPage;
-			if (!statusPage) document.documentElement.classList.add('obsidian');
+			var dark = true;
+			document.documentElement.classList.add('obsidian');
 			try {
 				if (statusPage) {
-					const choice =
-						localStorage.getItem('dumbmonit-theme') ?? localStorage.getItem('ezymonit-theme');
-					dark =
-						choice === 'dark' ||
-						(choice !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+					dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					if (!dark) document.documentElement.classList.add('console-light');
 				} else if (route !== '/wall' && route.indexOf('/wall/') !== 0) {
 					const pick = localStorage.getItem('dumbmonit-console-theme');
 					dark =
@@ -52,7 +49,7 @@
 				/* localStorage unavailable: each look follows its default. */
 			}
 			if (dark) document.documentElement.classList.add('dark');
-			if (!dark && !statusPage) {
+			if (!dark) {
 				var tint = document.querySelector('meta[name="theme-color"]');
 				if (tint) tint.setAttribute('content', '#f6f6f7');
 			}

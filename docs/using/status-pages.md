@@ -24,9 +24,8 @@ links forward here.
 | **Title** | The heading of the page ("Home lab"). |
 | **Address** | The last part of the URL, `/s/<address>`. Suggested from the title; lowercase letters, digits and hyphens, 2 to 40 characters. |
 | **Description** | One sentence under the title. Optional. |
-| **Theme** | Day, night, or follow the visitor's system. |
+| **Theme** | Day, night, or follow the visitor's system. Light or dark follows the visitor's system automatically; fix it here only to force one. The page uses the same look as the console, shows no legend and carries no product name. |
 | **History** | The period the history bars cover: 24 hours, 7, 30, 60 or 90 days. See [The history bar](#the-history-bar). A page never says more than this — see [Badges](#badges). |
-| **Simple mode** | A plain page: no mascot, no animation and no easter eggs. Light or dark follows the visitor's system, with a toggle in the header; the page's Theme setting is ignored. |
 | **Daily calendar** | Off by default. Adds a 90-day calendar under the services: one small cell per day, all services combined. See [The 90-day calendar](#the-90-day-calendar). |
 | **Response times** | Off by default. Adds a small response-time graph (24 h / 7 days) to each service that has latency data. See [Response times](#response-times). |
 | **Published** | Off = draft: the page, its badges and its logo answer "not found" to visitors until you switch it on. |
@@ -80,9 +79,8 @@ on the same origin as your admin interface, under the same
 - The open announcements, newest update first, with the timeline of updates
   under a fold.
 - Each service with its state plate (Operational, Degraded, Down, Maintenance,
-  No data), its **history bar** — one square per day — its uptime over 24 h,
-  7 days, 30 days and (on a 90-day page) 90 days, and the response time for
-  uptime probes.
+  No data), its uptime over the bar's period and its **history bar** — one
+  square per day — and the response time for uptime probes.
 - **Past incidents**, by day, for the last 30 days.
 - **Get updates**: the RSS feed, and an email subscription form when you set
   one up (see [Email subscribers](#email-subscribers)).
@@ -110,6 +108,8 @@ perfect ones. Hover a square, or focus the bar and move with the arrow keys
 (Home and End jump to the ends), to read the date, the uptime, the **minutes
 of downtime** and the incidents that touched that day. The words are there for
 screen readers too: status is never told by colour alone.
+
+Hover a segment of a bar (or focus it, or tap it) to open a small tooltip: the date, the state in words (Operational, Degraded, Partial outage, Major outage, No data), the minutes of downtime and the incidents of that day. There is no colour legend.
 
 ### The 90-day calendar
 

@@ -7933,8 +7933,6 @@
 	"status_form_services_no_folder": "Senza cartella",
 	"status_form_services_no_match": "Nessun servizio corrisponde.",
 	"status_form_services_search": "Cerca un servizio",
-	"status_form_simple": "Modalità semplice",
-	"status_form_simple_help": "Una pagina semplice: niente mascotte o animazioni. Chiaro o scuro segue il sistema del visitatore, con un interruttore.",
 	"status_form_slug_rule": "Da 2 a 40 caratteri: lettere minuscole, cifre e trattini.",
 	"status_form_subscribers": "Iscritti via e-mail",
 	"status_form_subscribers_help": "I visitatori confermano l'indirizzo via e-mail e ogni aggiornamento contiene un link di disiscrizione con un clic.",
@@ -7956,7 +7954,7 @@
 	"status_gate_password_title": "Questa pagina è protetta",
 	"status_gate_password_wrong": "Password errata.",
 	"status_gate_users_action": "Accedi",
-	"status_gate_users_help": "Questa pagina è riservata agli utenti DumbMonit.",
+	"status_gate_users_help": "Questa pagina è riservata agli utenti autenticati.",
 	"status_gate_users_title": "Accedi per vedere questa pagina",
 	"status_groups_count": "Monitor: {count}",
 	"status_groups_dynamic": "Gruppo «{group}»: i suoi {count} monitor attuali e quelli aggiunti in seguito.",
@@ -8083,85 +8081,16 @@
 	"status_public_announcement_one": "Annuncio in corso",
 	"status_public_checked": "Verificato",
 	"status_public_current_status": "Stato attuale",
-	"status_public_dark": "Scuro",
 	"status_public_last_30": "Ultimi 30 giorni.",
-	"status_public_light": "Chiaro",
 	"status_public_load_error": "Impossibile caricare la pagina di stato",
 	"status_public_loading": "Caricamento",
 	"status_public_no_incident": "Nessun incidente negli ultimi 30 giorni.",
 	"status_public_no_service_description": "Questa pagina per ora non ha nulla da mostrare.",
 	"status_public_no_service_title": "Nessun servizio elencato.",
-	"status_public_not_found_description": "Controlla il link che ti è stato dato, oppure chiedi quello giusto a chi gestisce questo DumbMonit.",
+	"status_public_not_found_description": "Controlla il link che ti è stato dato, oppure chiedi quello giusto a chi lo ha condiviso.",
 	"status_public_not_found_title": "Questa pagina di stato non esiste.",
 	"status_public_past": "Incidenti passati",
-	"status_public_powered_by": "Realizzato con",
 	"status_public_services": "Servizi",
-	"status_public_switch_dark": "Passa al tema scuro",
-	"status_public_switch_light": "Passa al tema chiaro",
-	"status_public_tally_affected": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "Servizi coinvolti: {affected} su {total}",
-				"affectedPlural=other": "Servizi coinvolti: {affected} su {total}"
-			}
-		}
-	],
-	"status_public_tally_all": "Tutti i {count} servizi sono operativi",
-	"status_public_tally_degraded": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "Servizi degradati: {affected} su {total}",
-				"affectedPlural=other": "Servizi degradati: {affected} su {total}"
-			}
-		}
-	],
-	"status_public_tally_detail": "Operativi: {up} · Non attivi: {down}",
-	"status_public_tally_detail_uptime": "Operativi: {up} · Non attivi: {down} · {uptime} in {days} giorni",
-	"status_public_tally_down": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "Servizi non attivi: {affected} su {total}",
-				"affectedPlural=other": "Servizi non attivi: {affected} su {total}"
-			}
-		}
-	],
-	"status_public_tally_maintenance": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "Servizi in manutenzione: {affected} su {total}",
-				"affectedPlural=other": "Servizi in manutenzione: {affected} su {total}"
-			}
-		}
-	],
-	"status_public_tally_one": "1 servizio operativo",
 	"status_public_title": "Stato",
 	"status_public_title_with_page": "{title} · Stato",
 	"status_public_uptime_last": "Disponibilità negli ultimi {days} giorni",
@@ -8228,12 +8157,7 @@
 	"status_seo_title_label": "Titolo SEO",
 	"status_service_external": "Esterno",
 	"status_service_external_hint": "Un fornitore terzo, letto dalla sua pagina di stato",
-	"status_service_row_24h": "24 h",
-	"status_service_row_30d": "30 g",
-	"status_service_row_7d": "7 g",
-	"status_service_row_90d": "90 g",
 	"status_service_row_ms": "{value} ms",
-	"status_service_row_response": "{time} di risposta",
 	"status_service_row_seconds": "{value} s",
 	"status_service_row_uptime_over": "Disponibilità in {days} giorni",
 	"status_services_from_groups": "Mostrati tramite un gruppo selezionato",
@@ -8328,11 +8252,6 @@
 	"status_uptime_bar_label": "{label}: disponibilità giornaliera su {days} giorni. Usa le frecce per spostarti tra i giorni.",
 	"status_uptime_bar_now": "Adesso",
 	"status_uptime_bar_today": "Oggi",
-	"status_uptime_legend_good": "{min} o più",
-	"status_uptime_legend_label": "Legenda delle barre giornaliere",
-	"status_uptime_legend_no_data": "nessun dato",
-	"status_uptime_legend_partial": "da {low} a {high}",
-	"status_uptime_legend_poor": "meno di {max}",
 	"status_words_accent_amber": "Ambra",
 	"status_words_accent_blue": "Blu",
 	"status_words_accent_default": "Inchiostro (predefinito)",

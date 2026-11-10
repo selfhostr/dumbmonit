@@ -8089,8 +8089,6 @@
 	"status_form_services_no_folder": "Без папки",
 	"status_form_services_no_match": "Подходящих сервисов нет.",
 	"status_form_services_search": "Найти сервис",
-	"status_form_simple": "Простой режим",
-	"status_form_simple_help": "Простая страница: без талисмана и анимации. Светлая или тёмная тема следует системе посетителя, есть переключатель.",
 	"status_form_slug_rule": "От 2 до 40 символов: строчные буквы, цифры и дефисы.",
 	"status_form_subscribers": "Подписчики по email",
 	"status_form_subscribers_help": "Посетители подтверждают адрес по email, а в каждом обновлении есть ссылка для отписки в один клик.",
@@ -8112,7 +8110,7 @@
 	"status_gate_password_title": "Эта страница защищена",
 	"status_gate_password_wrong": "Неверный пароль.",
 	"status_gate_users_action": "Войти",
-	"status_gate_users_help": "Эта страница доступна только пользователям DumbMonit.",
+	"status_gate_users_help": "Эта страница доступна только авторизованным пользователям.",
 	"status_gate_users_title": "Войдите, чтобы увидеть эту страницу",
 	"status_groups_count": "Мониторов: {count}",
 	"status_groups_dynamic": "Группа «{group}»: её {count} текущих мониторов и все добавленные позже.",
@@ -8239,93 +8237,16 @@
 	"status_public_announcement_one": "Текущее объявление",
 	"status_public_checked": "Проверено",
 	"status_public_current_status": "Текущий статус",
-	"status_public_dark": "Тёмная",
 	"status_public_last_30": "Последние 30 дней.",
-	"status_public_light": "Светлая",
 	"status_public_load_error": "Не удалось загрузить страницу статуса",
 	"status_public_loading": "Загрузка",
 	"status_public_no_incident": "За последние 30 дней инцидентов не было.",
 	"status_public_no_service_description": "Пока на этой странице нечего показывать.",
 	"status_public_no_service_title": "Сервисы пока не указаны.",
-	"status_public_not_found_description": "Проверьте полученную ссылку или попросите правильную у того, кто управляет этим DumbMonit.",
+	"status_public_not_found_description": "Проверьте полученную ссылку или попросите правильную у того, кто ею поделился.",
 	"status_public_not_found_title": "Такой страницы статуса не существует.",
 	"status_public_past": "Прошлые инциденты",
-	"status_public_powered_by": "На базе",
 	"status_public_services": "Сервисы",
-	"status_public_switch_dark": "Переключить на тёмную тему",
-	"status_public_switch_light": "Переключить на светлую тему",
-	"status_public_tally_affected": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "затронуто сервисов: {affected} из {total}",
-				"affectedPlural=few": "затронуто сервисов: {affected} из {total}",
-				"affectedPlural=many": "затронуто сервисов: {affected} из {total}",
-				"affectedPlural=other": "затронуто сервисов: {affected} из {total}"
-			}
-		}
-	],
-	"status_public_tally_all": "Все сервисы ({count}) работают",
-	"status_public_tally_degraded": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "работают с деградацией: {affected} из {total} сервисов",
-				"affectedPlural=few": "работают с деградацией: {affected} из {total} сервисов",
-				"affectedPlural=many": "работают с деградацией: {affected} из {total} сервисов",
-				"affectedPlural=other": "работают с деградацией: {affected} из {total} сервисов"
-			}
-		}
-	],
-	"status_public_tally_detail": "работает: {up} · недоступно: {down}",
-	"status_public_tally_detail_uptime": "работает: {up} · недоступно: {down} · {uptime} за {days} дн.",
-	"status_public_tally_down": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "недоступно сервисов: {affected} из {total}",
-				"affectedPlural=few": "недоступно сервисов: {affected} из {total}",
-				"affectedPlural=many": "недоступно сервисов: {affected} из {total}",
-				"affectedPlural=other": "недоступно сервисов: {affected} из {total}"
-			}
-		}
-	],
-	"status_public_tally_maintenance": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "на обслуживании сервисов: {affected} из {total}",
-				"affectedPlural=few": "на обслуживании сервисов: {affected} из {total}",
-				"affectedPlural=many": "на обслуживании сервисов: {affected} из {total}",
-				"affectedPlural=other": "на обслуживании сервисов: {affected} из {total}"
-			}
-		}
-	],
-	"status_public_tally_one": "1 сервис работает",
 	"status_public_title": "Статус",
 	"status_public_title_with_page": "{title} · Статус",
 	"status_public_uptime_last": "Доступность за последние {days} дн.",
@@ -8392,12 +8313,7 @@
 	"status_seo_title_label": "SEO-заголовок",
 	"status_service_external": "Внешний",
 	"status_service_external_hint": "Сторонний поставщик, данные взяты с его собственной страницы статуса",
-	"status_service_row_24h": "24 ч",
-	"status_service_row_30d": "30 д",
-	"status_service_row_7d": "7 д",
-	"status_service_row_90d": "90 д",
 	"status_service_row_ms": "{value} мс",
-	"status_service_row_response": "ответ {time}",
 	"status_service_row_seconds": "{value} с",
 	"status_service_row_uptime_over": "Доступность за {days} дн.",
 	"status_services_from_groups": "Показываются через отмеченную группу",
@@ -8492,11 +8408,6 @@
 	"status_uptime_bar_label": "{label}: доступность по дням за {days} дн. Стрелками переключайте дни.",
 	"status_uptime_bar_now": "Сейчас",
 	"status_uptime_bar_today": "Сегодня",
-	"status_uptime_legend_good": "{min} и выше",
-	"status_uptime_legend_label": "Легенда дневных полос",
-	"status_uptime_legend_no_data": "нет данных",
-	"status_uptime_legend_partial": "от {low} до {high}",
-	"status_uptime_legend_poor": "ниже {max}",
 	"status_words_accent_amber": "Янтарный",
 	"status_words_accent_blue": "Синий",
 	"status_words_accent_default": "Чернила (по умолчанию)",

@@ -1,7 +1,6 @@
 /**
- * Tone of a day in the public history bar, from its uptime. The thresholds are
- * shared with the colour key under the services, so the legend always states
- * the bands the bar actually paints.
+ * Tone and state of a day in the public history bar, from its uptime. The
+ * tooltip over a segment names the state in words, so colour is never alone.
  */
 export type DayTone = 'signal' | 'advisory' | 'warning' | 'ghost';
 
@@ -17,3 +16,17 @@ export function dayTone(uptime: number | null): DayTone {
 	return 'warning';
 }
 
+
+/** Under this a day is a major outage; between it and `DAY_POOR`, a partial one. */
+export const DAY_MAJOR = 50;
+
+/** State of a day, in the words of the tooltip over a history segment. */
+export type DayState = 'operational' | 'degraded' | 'partial' | 'major' | 'nodata';
+
+export function dayState(uptime: number | null): DayState {
+	if (uptime === null) return 'nodata';
+	if (uptime >= DAY_GOOD) return 'operational';
+	if (uptime >= DAY_POOR) return 'degraded';
+	if (uptime >= DAY_MAJOR) return 'partial';
+	return 'major';
+}

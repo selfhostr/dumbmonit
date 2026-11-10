@@ -4,6 +4,7 @@
  */
 import { m } from '#lib/paraglide/messages.js';
 import { tallyItems } from '#lib/components/status/tally.js';
+import type { DayState } from './day-tone';
 import type { Tone } from '#lib/ui/Plate.svelte';
 import type { IncidentKind, IncidentStatus, PublicItemState, PublicOverall, PublicStatus, StatusPageAccent } from '#lib/api/index.js';
 
@@ -87,7 +88,16 @@ export const KIND_LABEL: Record<IncidentKind, string> = {
 	}
 };
 
-export { dayTone } from './day-tone';
+export { dayTone, dayState, type DayState } from './day-tone';
+
+/** The words of a day's state, as the tooltip over a history segment says them. */
+export const DAY_STATE_LABEL: Record<DayState, string> = {
+	get operational() { return m.status_words_item_up(); },
+	get degraded() { return m.status_words_item_degraded(); },
+	get partial() { return m.status_words_overall_partial(); },
+	get major() { return m.status_words_overall_major(); },
+	get nodata() { return m.status_words_item_no_data(); }
+};
 
 /** Accents a page can pick, with the word the editor shows. */
 export const ACCENTS: { value: StatusPageAccent; label: string }[] = [

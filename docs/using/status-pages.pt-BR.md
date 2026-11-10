@@ -24,9 +24,8 @@ delas; o editor abre em sua própria rota (`/settings/status/new`,
 | **Título** | O título da página ("Home lab"). |
 | **Endereço** | A última parte da URL, `/s/<address>`. Sugerido a partir do título; letras minúsculas, dígitos e hífens, 2 a 40 caracteres. |
 | **Descrição** | Uma frase abaixo do título. Opcional. |
-| **Tema** | Dia, noite, ou seguir o sistema do visitante. |
+| **Tema** | Dia, noite, ou seguir o sistema do visitante. Claro ou escuro segue automaticamente o sistema do visitante; fixe-o aqui apenas para forçar um. A página usa o mesmo visual do console, não mostra legenda e não traz o nome do produto. |
 | **Histórico** | A janela mais longa que a barra de histórico cobre (30, 60 ou 90 dias). A barra se adapta à idade dos dados da página: mostra tantos dias quanto o serviço mais antigo foi monitorado, de 7 dias até esta configuração. Uma página nunca diz mais que isso — veja [Badges](#badges). |
-| **Modo simples** | Uma página simples: sem mascote, sem animação e sem easter eggs. Claro ou escuro segue o sistema do visitante, com um alternador no cabeçalho; a configuração de Tema da página é ignorada. |
 | **Publicada** | Desligado = rascunho: a página, seus badges e seu logo respondem "não encontrado" aos visitantes até você ativá-la. |
 
 Depois marque os monitores a mostrar. Para cada um, defina o
@@ -133,6 +132,8 @@ aparecem desse jeito; o nome e comentário da janela permanecem
 privados.
 
 Um anúncio é mostrado em uma página ou em **todas as páginas**.
+
+Passe o mouse sobre um segmento da barra (ou dê foco a ele, ou toque nele) para abrir uma pequena dica: a data, o estado por extenso (Operational, Degraded, Partial outage, Major outage, No data), os minutos de indisponibilidade e os incidentes daquele dia. Não há legenda de cores.
 
 ### Inscritos por e-mail {#email-subscribers}
 

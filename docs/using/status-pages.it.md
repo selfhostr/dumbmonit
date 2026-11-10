@@ -25,9 +25,8 @@ di esse; l'editor si apre sulla propria rotta (`/settings/status/new`,
 | **Title** | Il titolo della pagina ("Home lab"). |
 | **Address** | L'ultima parte dell'URL, `/s/<address>`. Suggerita dal titolo; lettere minuscole, cifre e trattini, da 2 a 40 caratteri. |
 | **Description** | Una frase sotto il titolo. Opzionale. |
-| **Theme** | Day, night, oppure segui il sistema del visitatore. |
+| **Theme** | Day, night, oppure segui il sistema del visitatore. Chiaro o scuro segue automaticamente il sistema del visitatore; impostalo qui solo per forzarne uno. La pagina usa lo stesso aspetto della console, non mostra legende e non riporta il nome del prodotto. |
 | **History** | La finestra più lunga che la barra della cronologia copre (30, 60 o 90 giorni). La barra si adatta all'età dei dati della pagina: mostra tanti giorni quanti il servizio più vecchio è stato monitorato, da 7 giorni fino a questa impostazione. Una pagina non dice mai più di questo — vedi [Badge](#badges). |
-| **Simple mode** | Una pagina semplice: nessuna mascotte, nessuna animazione e nessun easter egg. Chiaro o scuro segue il sistema del visitatore, con un interruttore nell'intestazione; l'impostazione Theme della pagina viene ignorata. |
 | **Published** | Off = bozza: la pagina, i suoi badge e il suo logo rispondono "not found" ai visitatori finché non la attivi. |
 
 Poi spunta i monitor da mostrare. Per ciascuno, imposta
@@ -134,6 +133,8 @@ nominano un monitor emergono in questo modo; il nome e il commento
 della finestra restano privati.
 
 Un annuncio viene mostrato su una pagina oppure su **tutte le pagine**.
+
+Passa il mouse su un segmento della barra (o dagli il focus, o toccalo) per aprire un piccolo tooltip: la data, lo stato a parole (Operational, Degraded, Partial outage, Major outage, No data), i minuti di indisponibilità e gli incidenti di quel giorno. Non c'è alcuna legenda dei colori.
 
 ### Iscritti email {#email-subscribers}
 

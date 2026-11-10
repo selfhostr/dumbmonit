@@ -25,9 +25,8 @@ unter `/s/<address>`.
 | **Title** | Die Überschrift der Seite ("Home lab"). |
 | **Address** | Der letzte Teil der URL, `/s/<address>`. Aus dem Titel vorgeschlagen; Kleinbuchstaben, Ziffern und Bindestriche, 2 bis 40 Zeichen. |
 | **Description** | Ein Satz unter dem Titel. Optional. |
-| **Theme** | Day, Night, oder dem System des Besuchers folgen. |
+| **Theme** | Day, Night, oder dem System des Besuchers folgen. Hell oder dunkel folgt automatisch dem System des Besuchers; legen Sie es hier nur fest, um eines zu erzwingen. Die Seite nutzt dasselbe Erscheinungsbild wie die Konsole, zeigt keine Legende und nennt keinen Produktnamen. |
 | **History** | Das längste von der Historienleiste abgedeckte Fenster (30, 60 oder 90 Tage). Die Leiste passt sich dem Alter der Daten der Seite an: Sie zeigt so viele Tage, wie der älteste Dienst überwacht wird, von 7 Tagen bis zu dieser Einstellung. Eine Seite sagt nie mehr als das — siehe [Badges](#badges). |
-| **Simple mode** | Eine schlichte Seite: kein Mascot, keine Animation und keine Easter Eggs. Hell oder dunkel folgt dem System des Besuchers, mit einem Umschalter im Header; die Theme-Einstellung der Seite wird ignoriert. |
 | **Published** | Aus = Entwurf: Die Seite, ihre Badges und ihr Logo antworten Besuchern "not found", bis Sie es einschalten. |
 
 Kreuzen Sie dann die anzuzeigenden Monitore an. Für jedes setzen Sie
@@ -136,6 +135,8 @@ zeigen sich so; der Name und Kommentar des Fensters bleiben privat.
 
 Eine Ankündigung wird auf einer Seite oder auf **allen Seiten**
 angezeigt.
+
+Fahren Sie über ein Segment einer Leiste (oder fokussieren oder tippen Sie es an), um einen kleinen Tooltip zu öffnen: das Datum, den Zustand im Klartext (Operational, Degraded, Partial outage, Major outage, No data), die Ausfallminuten und die Vorfälle dieses Tages. Es gibt keine Farblegende.
 
 ### E-Mail-Abonnenten {#email-subscribers}
 

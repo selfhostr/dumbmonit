@@ -7933,8 +7933,6 @@
 	"status_form_services_no_folder": "No folder",
 	"status_form_services_no_match": "No service matches.",
 	"status_form_services_search": "Search a service",
-	"status_form_simple": "Simple mode",
-	"status_form_simple_help": "A plain page: no mascot, no animation. Light or dark follows the visitor's system, with a toggle.",
 	"status_form_slug_rule": "2 to 40 characters: lowercase letters, digits and hyphens.",
 	"status_form_subscribers": "Email subscribers",
 	"status_form_subscribers_help": "Visitors confirm their address by email, and every update carries a one-click unsubscribe link.",
@@ -7956,7 +7954,7 @@
 	"status_gate_password_title": "This page is protected",
 	"status_gate_password_wrong": "Wrong password.",
 	"status_gate_users_action": "Sign in",
-	"status_gate_users_help": "This page is reserved for DumbMonit users.",
+	"status_gate_users_help": "This page is reserved for signed-in users.",
 	"status_gate_users_title": "Sign in to see this page",
 	"status_groups_count": "Monitors: {count}",
 	"status_groups_dynamic": "Group “{group}”: its {count} current monitors, and any added later.",
@@ -8083,85 +8081,16 @@
 	"status_public_announcement_one": "Current announcement",
 	"status_public_checked": "Checked",
 	"status_public_current_status": "Current status",
-	"status_public_dark": "Dark",
 	"status_public_last_30": "Last 30 days.",
-	"status_public_light": "Light",
 	"status_public_load_error": "Could not load the status page",
 	"status_public_loading": "Loading",
 	"status_public_no_incident": "No incident in the last 30 days.",
 	"status_public_no_service_description": "This page has nothing to show for now.",
 	"status_public_no_service_title": "No service listed yet.",
-	"status_public_not_found_description": "Check the link you were given, or ask whoever runs this DumbMonit for the right one.",
+	"status_public_not_found_description": "Check the link you were given, or ask whoever shared it for the right one.",
 	"status_public_not_found_title": "This status page does not exist.",
 	"status_public_past": "Past incidents",
-	"status_public_powered_by": "Powered by",
 	"status_public_services": "Services",
-	"status_public_switch_dark": "Switch to the dark theme",
-	"status_public_switch_light": "Switch to the light theme",
-	"status_public_tally_affected": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} of {total} services affected",
-				"affectedPlural=other": "{affected} of {total} services affected"
-			}
-		}
-	],
-	"status_public_tally_all": "All {count} services operational",
-	"status_public_tally_degraded": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} of {total} services degraded",
-				"affectedPlural=other": "{affected} of {total} services degraded"
-			}
-		}
-	],
-	"status_public_tally_detail": "{up} operational · {down} down",
-	"status_public_tally_detail_uptime": "{up} operational · {down} down · {uptime} over {days} days",
-	"status_public_tally_down": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} of {total} services down",
-				"affectedPlural=other": "{affected} of {total} services down"
-			}
-		}
-	],
-	"status_public_tally_maintenance": [
-		{
-			"declarations": [
-				"input affected",
-				"local affectedPlural = affected: plural"
-			],
-			"selectors": [
-				"affectedPlural"
-			],
-			"match": {
-				"affectedPlural=one": "{affected} of {total} services in maintenance",
-				"affectedPlural=other": "{affected} of {total} services in maintenance"
-			}
-		}
-	],
-	"status_public_tally_one": "1 service operational",
 	"status_public_title": "Status",
 	"status_public_title_with_page": "{title} · Status",
 	"status_public_uptime_last": "Uptime over the last {days} days",
@@ -8228,12 +8157,7 @@
 	"status_seo_title_label": "SEO title",
 	"status_service_external": "External",
 	"status_service_external_hint": "A third-party provider, read from its own status page",
-	"status_service_row_24h": "24 h",
-	"status_service_row_30d": "30 d",
-	"status_service_row_7d": "7 d",
-	"status_service_row_90d": "90 d",
 	"status_service_row_ms": "{value} ms",
-	"status_service_row_response": "{time} response",
 	"status_service_row_seconds": "{value} s",
 	"status_service_row_uptime_over": "Uptime over {days} days",
 	"status_services_from_groups": "Shown through a ticked group",
@@ -8328,11 +8252,6 @@
 	"status_uptime_bar_label": "{label}: uptime per day over {days} days. Use the arrow keys to move between days.",
 	"status_uptime_bar_now": "Now",
 	"status_uptime_bar_today": "Today",
-	"status_uptime_legend_good": "{min} or more",
-	"status_uptime_legend_label": "Colour key of the daily bars",
-	"status_uptime_legend_no_data": "no data",
-	"status_uptime_legend_partial": "{low} to {high}",
-	"status_uptime_legend_poor": "under {max}",
 	"status_words_accent_amber": "Amber",
 	"status_words_accent_blue": "Blue",
 	"status_words_accent_default": "Ink (default)",

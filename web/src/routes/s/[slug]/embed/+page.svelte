@@ -52,8 +52,7 @@
 
 	$effect(() => {
 		const wanted = themeParam === 'light' || themeParam === 'dark' ? themeParam : (status?.page.theme ?? 'auto');
-		const dark = wanted === 'auto' ? theme.resolved === 'dark' : wanted === 'dark';
-		document.documentElement.classList.toggle('dark', dark);
+		theme.apply(wanted === 'auto' ? undefined : wanted);
 		return () => theme.apply();
 	});
 

@@ -7,6 +7,14 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- **Public status pages: leaner, in the console's own look.** The page uses the console's tokens,
+  surfaces and type, tighter header, banner and service rows, in the light or dark of the visitor's
+  system (the page's Theme setting still forces one). The history bar's colour legend is gone: hover,
+  focus or tap a segment for a tooltip with the date, the state in words, the downtime and the
+  incidents of that day. The pigeon animation, the summary line, the per-period uptime figures under
+  each service, the "Simple mode" setting and every mention of the product (footer, version tag)
+  are removed from the page; each service keeps its uptime on its row. The API still accepts
+  `simple`.
 - **One typeface family everywhere: Inter and JetBrains Mono.** The console, the status pages, the
   topology exports and the documentation now use Inter (headings in semibold) and JetBrains Mono
   for code and figures, replacing Geist and Bricolage Grotesque. Both are open source (SIL OFL 1.1)

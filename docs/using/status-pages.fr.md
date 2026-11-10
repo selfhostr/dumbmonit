@@ -25,9 +25,8 @@ Réglages : `/settings/status` et ses liens redirigent ici.
 | **Titre** | Le titre de la page (« État des services »). |
 | **Adresse** | La dernière partie de l'URL, `/s/<adresse>`. Suggérée depuis le titre ; lettres minuscules, chiffres et tirets, de 2 à 40 caractères. |
 | **Description** | Une phrase sous le titre. Optionnel. |
-| **Thème** | Jour, nuit, ou suivre le système du visiteur. |
+| **Thème** | Jour, nuit, ou suivre le système du visiteur. Clair ou sombre suit automatiquement le système du visiteur ; ne le fixez ici que pour en forcer un. La page reprend le style de la console, n'affiche pas de légende et ne porte aucun nom de produit. |
 | **Historique** | La fenêtre la plus longue que la barre d'historique couvre (30, 60 ou 90 jours). La barre s'adapte à l'ancienneté des données de la page : elle montre autant de jours que le service le plus ancien a été surveillé, de 7 jours jusqu'à ce réglage. Une page ne dit jamais plus que ça — voir [Badges](#badges). |
-| **Mode simple** | Une page nue : pas de mascotte, pas d'animation et pas d'easter eggs. Clair ou sombre suit le système du visiteur, avec un interrupteur dans l'en-tête ; le réglage Thème de la page est ignoré. |
 | **Publiée** | Désactivé = brouillon : la page, ses badges et son logo répondent « not found » aux visiteurs jusqu'à ce que vous l'activiez. |
 
 Puis cochez les surveillances à montrer. Pour chacune, réglez le **libellé**
@@ -169,6 +168,8 @@ d'autre n'est en panne ou dégradé. Seules les fenêtres qui nomment une survei
 restent privés.
 
 Une annonce est montrée sur une page ou sur **toutes les pages**.
+
+Survolez un segment d'une barre (ou donnez-lui le focus, ou touchez-le) pour ouvrir une petite infobulle : la date, l'état en toutes lettres (Operational, Degraded, Partial outage, Major outage, No data), les minutes d'indisponibilité et les incidents du jour. Il n'y a pas de légende des couleurs.
 
 ### Incidents passés
 

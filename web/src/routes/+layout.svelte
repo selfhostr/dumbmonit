@@ -267,7 +267,7 @@
 		<DemoNotice />
 	{/if}
 	<!-- Inside the shell the tag sits in the page column (see EnterpriseShell): under the shell it would shorten the rail's sticky course. -->
-	{#if !onWall && !statusHost && !routePath(page.url).startsWith('/status') && !inShell}
+	{#if !onWall && !statusHost && !routePath(page.url).startsWith('/status') && !routePath(page.url).startsWith('/s/') && !inShell}
 		<VersionTag />
 	{/if}
 </div>
