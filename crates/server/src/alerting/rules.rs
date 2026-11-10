@@ -19,6 +19,7 @@ mod jellyfin;
 mod nextcloud;
 mod opnsense;
 mod pbs;
+mod pfsense;
 mod pihole;
 mod plex;
 mod postgres;
@@ -27,6 +28,7 @@ mod synology;
 mod tailscale;
 mod truenas;
 mod unifi;
+mod unraid;
 
 /// Taux d'occupation processeur, toutes sources confondues.
 ///
@@ -7774,6 +7776,8 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(pbs::rules());
     rules.extend(truenas::rules());
     rules.extend(unifi::rules());
+    rules.extend(pfsense::rules());
+    rules.extend(unraid::rules());
     rules.extend(opnsense::rules());
     rules.extend(tailscale::rules());
     // Résolveurs DNS et domotique : un fichier par produit (`rules/<produit>.rs`).
@@ -9321,6 +9325,13 @@ mod tests {
             "pfsense_interface_down",
             "pfsense_service_stopped",
             "pfsense_disk_full",
+            "pfsense_states_table_full",
+            "pfsense_mbuf_high",
+            "pfsense_temperature_high",
+            "pfsense_cpu_high",
+            "pfsense_swap_high",
+            "pfsense_interface_errors",
+            "pfsense_carp_maintenance",
             "unraid_array_stopped",
             "unraid_disk_problem",
             "unraid_disk_errors",
@@ -9329,6 +9340,13 @@ mod tests {
             "unraid_parity_check_old",
             "unraid_cache_full",
             "unraid_container_stopped",
+            "unraid_vm_crashed",
+            "unraid_alert_unread",
+            "unraid_array_almost_full",
+            "unraid_memory_high",
+            "unraid_license_problem",
+            "unraid_trial_expiring",
+            "unraid_os_updates_ending",
             "veeam_job_failed",
             "veeam_job_warning",
             "veeam_job_old",
@@ -9465,6 +9483,8 @@ mod tests {
                             || pbs::PRODUCED.contains(&mot)
                             || truenas::PRODUCED.contains(&mot)
                             || unifi::PRODUCED.contains(&mot)
+                            || pfsense::PRODUCED.contains(&mot)
+                            || unraid::PRODUCED.contains(&mot)
                             || opnsense::PRODUCED.contains(&mot)
                             || tailscale::PRODUCED.contains(&mot)
                             || pihole::PRODUCED.contains(&mot)

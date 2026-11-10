@@ -4,10 +4,10 @@
 //! Unraid Connect. Une clé au rôle `VIEWER` lit tout et ne peut rien changer.
 //!
 //! Une requête obligatoire (version, état de la grappe, disques de parité, de
-//! données et de cache), puis quatre facultatives, chacune seule pour qu'un
+//! données et de cache), puis six facultatives, chacune seule pour qu'un
 //! champ absent d'une version plus ancienne de l'API, ou des VM désactivées,
 //! n'emportent pas le reste : contrôle de parité, conteneurs Docker, VM,
-//! notifications non lues.
+//! notifications non lues, licence, charge du système.
 //!
 //! Les pannes que ce module existe pour voir :
 //!
@@ -18,7 +18,17 @@
 //! * **un contrôle de parité** qui trouve des erreurs, ou qui n'a plus tourné
 //!   depuis des semaines ;
 //! * **un cache plein** : les écritures vont sur la grappe, lente, ou échouent ;
-//! * **un conteneur démarré automatiquement** qui s'est arrêté.
+//! * **un conteneur démarré automatiquement** qui s'est arrêté ;
+//! * **une VM plantée** (`CRASHED`) ;
+//! * **une licence en erreur** (clé absente, clé USB changée, essai expiré) :
+//!   la grappe ne démarrera pas au prochain redémarrage ;
+//! * **une alerte d'Unraid restée non lue** : c'est par ses notifications
+//!   qu'Unraid signale un attribut SMART qui se dégrade ;
+//! * **une mémoire épuisée** : le noyau tue un conteneur ou une VM.
+//!
+//! L'onduleur n'est pas lu : `upsDevices` rend des valeurs de remplissage
+//! (« 100 % », « Online ») quand aucun onduleur n'est branché, et rien ne
+//! permet de les distinguer d'une mesure. Un onduleur se surveille par NUT.
 //!
 //! Tailles en kibioctets dans l'API (`BigInt` sérialisé en texte ou en
 //! nombre, selon la version) : converties en octets.
@@ -57,6 +67,13 @@ const DOCKER_QUERY: &str =
 const VMS_QUERY: &str = "query DumbMonitVms { vms { domains { name state } } }";
 const NOTIFICATIONS_QUERY: &str =
     "query DumbMonitNotifications { notifications { overview { unread { info warning alert } } } }";
+/// Licence : `state` vaut le type de la clé quand elle est valide, un code en
+/// `E…` sinon ; les deux dates sont des millisecondes Unix en texte.
+const REGISTRATION_QUERY: &str =
+    "query DumbMonitRegistration { registration { type state expiration updateExpiration } }";
+/// Démarrage du système, processeur et mémoire (`metrics`, API d'Unraid 7.2).
+const SYSTEM_QUERY: &str = "query DumbMonitSystem { info { os { uptime } } \
+  metrics { cpu { percentTotal } memory { total available swapTotal swapUsed } } }";
 
 #[derive(Default)]
 pub struct UnraidCollector;
@@ -133,17 +150,21 @@ impl Collector for UnraidCollector {
     async fn probe(&self, target: &Target) -> Result<Vec<Sample>, ProbeError> {
         let client = client(target)?;
         let core = query(&client, CORE_QUERY).await?;
-        let (parity, docker, vms, notes) = tokio::join!(
+        let (parity, docker, vms, notes, registration, system) = tokio::join!(
             query(&client, PARITY_QUERY),
             query(&client, DOCKER_QUERY),
             query(&client, VMS_QUERY),
             query(&client, NOTIFICATIONS_QUERY),
+            query(&client, REGISTRATION_QUERY),
+            query(&client, SYSTEM_QUERY),
         );
         let extras = Extras {
             parity: optional(parity, target, "parityCheckStatus"),
             docker: optional(docker, target, "docker"),
             vms: optional(vms, target, "vms"),
             notifications: optional(notes, target, "notifications"),
+            registration: optional(registration, target, "registration"),
+            system: optional(system, target, "metrics"),
         };
         Ok(samples(&core, &extras, now_ms()))
     }
@@ -172,6 +193,8 @@ pub struct Extras {
     pub docker: Option<Value>,
     pub vms: Option<Value>,
     pub notifications: Option<Value>,
+    pub registration: Option<Value>,
+    pub system: Option<Value>,
 }
 
 fn kib(value: Option<&Value>) -> Option<f64> {
@@ -297,7 +320,76 @@ pub fn samples(core: &Value, extras: &Extras, ts_ms: i64) -> Vec<Sample> {
             }
         }
     }
+    // `registration` est `null` tant qu'Unraid n'a pas lu sa clé : rien à dire.
+    if let Some(reg) =
+        extras.registration.as_ref().and_then(|d| d.get("registration")).filter(|r| !r.is_null())
+    {
+        registration(reg, ts_ms, &mut out);
+    }
+    if let Some(data) = extras.system.as_ref() {
+        system(data, ts_ms, &mut out);
+    }
     out
+}
+
+/// Licence. Les états d'erreur de `RegistrationState` commencent tous par `E`
+/// (`EEXPIRED`, `EGUID`, `ENOKEYFILE`, `ENOFLASH`, `EBLACKLISTED`, `ENOCONN`…),
+/// les états sains reprennent le type de la clé (`TRIAL`, `STARTER`, `PRO`…).
+fn registration(reg: &Value, ts_ms: i64, out: &mut Vec<Sample>) {
+    let g = |name: &str, value: f64| gauge(name, value, ts_ms);
+    let Some(state) = text(reg, "state") else { return };
+    out.push(flag("unraid_registration_ok", !state.starts_with('E'), ts_ms));
+    out.push(
+        g("unraid_registration_info", 1.0)
+            .with_label("state", state.to_ascii_lowercase())
+            .with_label("type", text(reg, "type").unwrap_or("unknown").to_ascii_lowercase()),
+    );
+    // Millisecondes Unix en texte ; `"0"` quand la date ne s'applique pas
+    // (`expiration` n'est renseignée que pour une clé d'essai ou expirée).
+    let until = |field: &str| {
+        number(reg.get(field)).filter(|ms| *ms > 0.0).map(|ms| (ms - ts_ms as f64) / 1000.0)
+    };
+    if state == "TRIAL"
+        && let Some(left) = until("expiration")
+    {
+        out.push(g("unraid_trial_expiry_seconds", left));
+    }
+    if let Some(left) = until("updateExpiration") {
+        out.push(g("unraid_os_updates_expiry_seconds", left));
+    }
+}
+
+/// Démarrage, processeur et mémoire. La mémoire occupée est comptée d'après
+/// `available` : le cache disque, que le noyau rend à la demande, n'en est pas.
+fn system(data: &Value, ts_ms: i64, out: &mut Vec<Sample>) {
+    let g = |name: &str, value: f64| gauge(name, value, ts_ms);
+    if let Some(uptime) = data
+        .pointer("/info/os/uptime")
+        .and_then(Value::as_str)
+        .and_then(|boot| age_seconds(boot, ts_ms))
+    {
+        out.push(g("unraid_uptime_seconds", uptime));
+    }
+    if let Some(cpu) = number(data.pointer("/metrics/cpu/percentTotal")) {
+        out.push(g("unraid_cpu_usage_percent", cpu));
+    }
+    let Some(memory) = data.pointer("/metrics/memory") else { return };
+    let total = number(memory.get("total")).filter(|t| *t > 0.0);
+    if let Some(total) = total {
+        out.push(g("unraid_memory_total_bytes", total));
+        if let Some(available) = number(memory.get("available")) {
+            out.push(g("unraid_memory_available_bytes", available));
+            out.push(g(
+                "unraid_memory_used_percent",
+                (100.0 * (total - available) / total).clamp(0.0, 100.0),
+            ));
+        }
+    }
+    if let (Some(swap_total), Some(swap_used)) =
+        (number(memory.get("swapTotal")).filter(|t| *t > 0.0), number(memory.get("swapUsed")))
+    {
+        out.push(g("unraid_swap_used_percent", 100.0 * swap_used / swap_total));
+    }
 }
 
 fn parity(check: &Value, ts_ms: i64, out: &mut Vec<Sample>) {
@@ -394,7 +486,9 @@ mod tests {
             parity: Some(all.clone()),
             docker: Some(all.clone()),
             vms: Some(all.clone()),
-            notifications: Some(all),
+            notifications: Some(all.clone()),
+            registration: Some(all.clone()),
+            system: Some(all),
         }
     }
 
@@ -440,7 +534,80 @@ mod tests {
             "a container that does not start on its own may stay stopped"
         );
         assert_eq!(value(&s, "unraid_vms_running", &[]), 1.0);
+        assert_eq!(value(&s, "unraid_vm_crashed", &[("vm", "win11")]), 0.0);
+        assert_eq!(value(&s, "unraid_vm_crashed", &[("vm", "buildbox")]), 1.0);
         assert_eq!(value(&s, "unraid_notifications_unread", &[("importance", "warning")]), 1.0);
+        assert_eq!(value(&s, "unraid_notifications_unread", &[("importance", "alert")]), 0.0);
+    }
+
+    #[test]
+    fn licence_demarrage_processeur_et_memoire() {
+        let s = samples(&data(CORE), &extras(), NOW);
+        assert_eq!(value(&s, "unraid_registration_ok", &[]), 1.0);
+        let info = find(&s, "unraid_registration_info", &[]).unwrap();
+        assert_eq!(info.labels["state"], "starter");
+        assert_eq!(info.labels["type"], "starter");
+        assert!(find(&s, "unraid_trial_expiry_seconds", &[]).is_none(), "not a trial key");
+        // 2027-01-16T00:00:00Z, lu depuis le 2026-09-21.
+        let left = value(&s, "unraid_os_updates_expiry_seconds", &[]);
+        assert!((left - (1_800_057_600.0 - 1_790_000_000.0)).abs() < 1.0, "{left}");
+        let uptime = value(&s, "unraid_uptime_seconds", &[]);
+        assert!(uptime > 6.0 * 86_400.0 && uptime < 8.0 * 86_400.0, "{uptime}");
+        assert_eq!(value(&s, "unraid_cpu_usage_percent", &[]), 12.5);
+        // 32 Gio dont 8 disponibles : 75 % occupés, cache disque non compté.
+        assert_eq!(value(&s, "unraid_memory_used_percent", &[]), 75.0);
+        assert_eq!(value(&s, "unraid_memory_total_bytes", &[]), 34_359_738_368.0);
+        assert!(find(&s, "unraid_swap_used_percent", &[]).is_none(), "no swap, no series");
+    }
+
+    #[test]
+    fn une_licence_en_erreur_ou_a_l_essai() {
+        let mut out = Vec::new();
+        registration(
+            &json!({"type": "INVALID", "state": "ENOKEYFILE", "expiration": "0"}),
+            NOW,
+            &mut out,
+        );
+        assert_eq!(value(&out, "unraid_registration_ok", &[]), 0.0);
+        assert_eq!(
+            find(&out, "unraid_registration_info", &[]).unwrap().labels["state"],
+            "enokeyfile"
+        );
+        assert!(find(&out, "unraid_trial_expiry_seconds", &[]).is_none());
+        assert!(find(&out, "unraid_os_updates_expiry_seconds", &[]).is_none());
+
+        // Essai : il reste deux jours.
+        let ends = NOW + 2 * 86_400_000;
+        let mut out = Vec::new();
+        registration(
+            &json!({"type": "TRIAL", "state": "TRIAL", "expiration": ends.to_string()}),
+            NOW,
+            &mut out,
+        );
+        assert_eq!(value(&out, "unraid_registration_ok", &[]), 1.0);
+        assert_eq!(value(&out, "unraid_trial_expiry_seconds", &[]), 2.0 * 86_400.0);
+
+        // Essai expiré : l'état d'erreur le dit, la date passée n'est pas publiée.
+        let mut out = Vec::new();
+        registration(
+            &json!({"type": "TRIAL", "state": "EEXPIRED", "expiration": "1780000000000"}),
+            NOW,
+            &mut out,
+        );
+        assert_eq!(value(&out, "unraid_registration_ok", &[]), 0.0);
+        assert!(find(&out, "unraid_trial_expiry_seconds", &[]).is_none());
+    }
+
+    #[test]
+    fn une_partie_facultative_absente_ne_publie_rien() {
+        let lone =
+            Extras { registration: Some(json!({"registration": null})), ..Extras::default() };
+        let s = samples(&data(CORE), &lone, NOW);
+        assert!(find(&s, "unraid_registration_ok", &[]).is_none(), "key not read yet");
+        assert!(find(&s, "unraid_memory_used_percent", &[]).is_none());
+        let mut out = Vec::new();
+        system(&json!({"metrics": {"memory": {"total": "0", "available": "0"}}}), NOW, &mut out);
+        assert!(out.is_empty(), "{out:?}");
     }
 
     #[test]

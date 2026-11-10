@@ -6,9 +6,14 @@
 //!
 //! Cinq lectures, en parallèle : état du système (processeur, mémoire, disque,
 //! température), passerelles (perte, latence, état), interfaces, services, et
-//! version. Une sixième, facultative, compare le paquet REST API à sa
-//! dernière version publiée. pfSense lui-même ne dit pas par cette API si une
-//! mise à jour du système existe : la seule route qui s'en approche la lance.
+//! version. Trois autres sont facultatives, chacune avec son privilège : la
+//! version du paquet REST API comparée à la dernière publiée, le remplissage de
+//! la table d'états, et CARP (haute disponibilité). pfSense lui-même ne dit pas
+//! par cette API si une mise à jour du système existe : la seule route qui
+//! s'en approche la lance.
+//!
+//! Les certificats ne sont pas lus : la route qui les liste renvoie aussi leurs
+//! clés privées, et une supervision n'a pas à les recevoir.
 //!
 //! Les pannes que ce module existe pour voir :
 //!
@@ -16,7 +21,10 @@
 //!   Internet, ou la ligne de secours, ne sert plus ;
 //! * **une interface activée sans lien** : câble, commutateur ou carte ;
 //! * **un service activé qui ne tourne plus** : résolveur DNS, OpenVPN, NTP…
-//! * **un disque plein** : journaux et paquets ne s'écrivent plus.
+//! * **un disque plein** : journaux et paquets ne s'écrivent plus ;
+//! * **une table d'états pleine** : le pare-feu refuse les nouvelles connexions
+//!   alors que tout le reste a l'air sain ;
+//! * **un nœud CARP laissé en maintenance** : la paire n'a plus de secours.
 //!
 //! # Réglages, portés par les étiquettes de la cible
 //!
@@ -41,6 +49,8 @@ const INTERFACES: &str = "/api/v2/status/interfaces";
 const SERVICES: &str = "/api/v2/status/services";
 const VERSION: &str = "/api/v2/system/version";
 const RESTAPI_VERSION: &str = "/api/v2/system/restapi/version";
+const STATES_SIZE: &str = "/api/v2/firewall/states/size";
+const CARP: &str = "/api/v2/status/carp";
 
 #[derive(Default)]
 pub struct PfsenseCollector;
@@ -117,13 +127,15 @@ impl Collector for PfsenseCollector {
 
     async fn probe(&self, target: &Target) -> Result<Vec<Sample>, ProbeError> {
         let client = client(target)?;
-        let (system, gateways, interfaces, services, version, restapi) = tokio::join!(
+        let (system, gateways, interfaces, services, version, restapi, states, carp) = tokio::join!(
             read(&client, SYSTEM),
             read(&client, GATEWAYS),
             read(&client, INTERFACES),
             read(&client, SERVICES),
             read(&client, VERSION),
             read(&client, RESTAPI_VERSION),
+            read(&client, STATES_SIZE),
+            read(&client, CARP),
         );
         let replies = Replies {
             system: system?,
@@ -134,6 +146,10 @@ impl Collector for PfsenseCollector {
             // Facultative : elle interroge GitHub depuis le pare-feu, et son
             // privilège peut ne pas avoir été donné.
             restapi: restapi.ok(),
+            // Facultatives aussi : un compte créé avant qu'elles soient lues n'a
+            // pas leur privilège, et le reste de la supervision doit continuer.
+            states: states.ok(),
+            carp: carp.ok(),
         };
         Ok(samples(&replies, now_ms()))
     }
@@ -151,6 +167,8 @@ pub struct Replies {
     pub services: Value,
     pub version: Option<Value>,
     pub restapi: Option<Value>,
+    pub states: Option<Value>,
+    pub carp: Option<Value>,
 }
 
 fn list(value: &Value) -> impl Iterator<Item = &Value> {
@@ -283,6 +301,32 @@ pub fn samples(r: &Replies, ts_ms: i64) -> Vec<Sample> {
             );
         }
     }
+
+    if let Some(states) = &r.states {
+        let current = number(states.get("currentstates"));
+        let maximum = number(states.get("maximumstates"));
+        if let Some(current) = current {
+            out.push(g("pfsense_states", current));
+        }
+        if let Some(maximum) = maximum {
+            out.push(g("pfsense_states_max", maximum));
+        }
+        // Sans plafond lu, pas de pourcentage : 0 % ferait croire à une table vide.
+        if let (Some(current), Some(maximum)) = (current, maximum)
+            && maximum > 0.0
+        {
+            out.push(g("pfsense_states_used_percent", (100.0 * current / maximum).min(100.0)));
+        }
+    }
+
+    if let Some(carp) = &r.carp {
+        if let Some(enabled) = carp.get("enable").and_then(Value::as_bool) {
+            out.push(flag("pfsense_carp_enabled", enabled, ts_ms));
+        }
+        if let Some(maintenance) = carp.get("maintenance_mode").and_then(Value::as_bool) {
+            out.push(flag("pfsense_carp_maintenance_mode", maintenance, ts_ms));
+        }
+    }
     out
 }
 
@@ -299,13 +343,16 @@ mod tests {
     // Réponses construites d'après les modèles du paquet `pfSense-pkg-RESTAPI`
     // v2 (`Models/SystemStatus.inc`, `RoutingGatewayStatus.inc`,
     // `InterfaceStats.inc`, `Service.inc`, `SystemVersion.inc`,
-    // `RESTAPIVersion.inc`) et de son enveloppe (`Core/Response.inc`).
+    // `RESTAPIVersion.inc`, `FirewallStatesSize.inc`, `CARP.inc`) et de son
+    // enveloppe (`Core/Response.inc`).
     const SYSTEM_JSON: &str = include_str!("testdata/status_system.json");
     const GATEWAYS_JSON: &str = include_str!("testdata/status_gateways.json");
     const INTERFACES_JSON: &str = include_str!("testdata/status_interfaces.json");
     const SERVICES_JSON: &str = include_str!("testdata/status_services.json");
     const VERSION_JSON: &str = include_str!("testdata/system_version.json");
     const RESTAPI_JSON: &str = include_str!("testdata/restapi_version.json");
+    const STATES_JSON: &str = include_str!("testdata/firewall_states_size.json");
+    const CARP_JSON: &str = include_str!("testdata/status_carp.json");
     const UNAUTHORIZED: &str = include_str!("testdata/unauthorized.json");
     const FORBIDDEN: &str = include_str!("testdata/forbidden.json");
 
@@ -321,6 +368,8 @@ mod tests {
             services: data(SERVICES_JSON),
             version: Some(data(VERSION_JSON)),
             restapi: Some(data(RESTAPI_JSON)),
+            states: Some(data(STATES_JSON)),
+            carp: Some(data(CARP_JSON)),
         }
     }
 
@@ -368,6 +417,33 @@ mod tests {
         );
     }
 
+    #[test]
+    fn table_d_etats_et_carp() {
+        let s = samples(&replies(), 0);
+        assert_eq!(value(&s, "pfsense_states", &[]), 81_600.0);
+        assert_eq!(value(&s, "pfsense_states_max", &[]), 96_000.0);
+        assert_eq!(value(&s, "pfsense_states_used_percent", &[]), 85.0);
+        assert_eq!(value(&s, "pfsense_carp_enabled", &[]), 1.0);
+        assert_eq!(value(&s, "pfsense_carp_maintenance_mode", &[]), 1.0);
+    }
+
+    #[test]
+    fn sans_les_parties_facultatives_rien_n_est_invente() {
+        let mut r = replies();
+        r.states = None;
+        r.carp = None;
+        let s = samples(&r, 0);
+        assert!(find(&s, "pfsense_states_used_percent", &[]).is_none());
+        assert!(find(&s, "pfsense_carp_maintenance_mode", &[]).is_none());
+
+        // `currentstates` est annoncé « nullable » : pas de pourcentage sans lui.
+        r.states = Some(serde_json::json!({ "maximumstates": 96000, "currentstates": null }));
+        let s = samples(&r, 0);
+        assert_eq!(value(&s, "pfsense_states_max", &[]), 96_000.0);
+        assert!(find(&s, "pfsense_states", &[]).is_none());
+        assert!(find(&s, "pfsense_states_used_percent", &[]).is_none());
+    }
+
     #[tokio::test]
     async fn interrogation_complete() {
         let app = Router::new().fallback(get(|headers: HeaderMap, uri: Uri| async move {
@@ -393,6 +469,8 @@ mod tests {
         let s = PfsenseCollector::new().probe(&target).await.unwrap();
         assert_eq!(value(&s, "pfsense_gateways_down", &[]), 1.0);
         assert!(find(&s, "pfsense_restapi_update_available", &[]).is_none());
+        assert!(find(&s, "pfsense_states_used_percent", &[]).is_none());
+        assert!(find(&s, "pfsense_carp_enabled", &[]).is_none());
 
         target.credential = Credential::ApiToken { token: "wrong".into() };
         let error = PfsenseCollector::new().probe(&target).await.unwrap_err();

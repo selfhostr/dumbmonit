@@ -13,11 +13,18 @@
     "vms": {
       "domains": [
         { "id": "LOCAL:5f1c", "name": "win11", "state": "RUNNING" },
-        { "id": "LOCAL:77ab", "name": "homeassistant", "state": "SHUTOFF" }
+        { "id": "LOCAL:77ab", "name": "homeassistant", "state": "SHUTOFF" },
+        { "id": "LOCAL:9c2e", "name": "buildbox", "state": "CRASHED" }
       ]
     },
     "notifications": {
       "overview": { "unread": { "info": 2, "warning": 1, "alert": 0, "total": 3 } }
+    },
+    "registration": { "id": "0781-5583-0000-000000000001", "type": "STARTER", "state": "STARTER", "expiration": "0", "updateExpiration": "1800057600000" },
+    "info": { "os": { "uptime": "2026-09-14T06:13:20.000Z" } },
+    "metrics": {
+      "cpu": { "percentTotal": 12.5 },
+      "memory": { "total": "34359738368", "available": "8589934592", "swapTotal": "0", "swapUsed": "0" }
     }
   }
 }
