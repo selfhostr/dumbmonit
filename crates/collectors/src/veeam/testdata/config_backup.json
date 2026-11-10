@@ -1,0 +1,31 @@
+{
+  "isEnabled": true,
+  "backupRepositoryId": "88788f9e-0000-4c0f-9a3f-000000000001",
+  "restorePointsToKeep": 10,
+  "notifications": {
+    "SNMPEnabled": false,
+    "SMTPSettings": {
+      "isEnabled": false,
+      "recipients": [],
+      "settingsType": "Global",
+      "notifyOnSuccess": false,
+      "notifyOnWarning": true,
+      "notifyOnError": true
+    }
+  },
+  "schedule": {
+    "isEnabled": true,
+    "daily": {
+      "isEnabled": true,
+      "localTime": "10:00",
+      "dailyKind": "Everyday",
+      "days": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    },
+    "monthly": { "isEnabled": false }
+  },
+  "lastSuccessfulBackup": {
+    "lastSuccessfulTime": "2026-09-29T10:00:00+02:00",
+    "sessionId": "0b0d7e4c-0000-4b0c-8b65-000000000042"
+  },
+  "encryption": { "isEnabled": false }
+}

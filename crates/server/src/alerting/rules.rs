@@ -29,6 +29,7 @@ mod tailscale;
 mod truenas;
 mod unifi;
 mod unraid;
+mod veeam;
 
 /// Taux d'occupation processeur, toutes sources confondues.
 ///
@@ -7778,6 +7779,7 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(unifi::rules());
     rules.extend(pfsense::rules());
     rules.extend(unraid::rules());
+    rules.extend(veeam::rules());
     rules.extend(opnsense::rules());
     rules.extend(tailscale::rules());
     // Résolveurs DNS et domotique : un fichier par produit (`rules/<produit>.rs`).
@@ -9353,6 +9355,10 @@ mod tests {
             "veeam_repository_full",
             "veeam_license_expiring",
             "veeam_support_expiring",
+            "veeam_repository_offline",
+            "veeam_license_invalid",
+            "veeam_config_backup_disabled",
+            "veeam_config_backup_old",
             "winrm_services_auto_stopped",
             "tailscale_device_offline",
             "tailscale_key_expiring",
@@ -9485,6 +9491,7 @@ mod tests {
                             || unifi::PRODUCED.contains(&mot)
                             || pfsense::PRODUCED.contains(&mot)
                             || unraid::PRODUCED.contains(&mot)
+                            || veeam::PRODUCED.contains(&mot)
                             || opnsense::PRODUCED.contains(&mot)
                             || tailscale::PRODUCED.contains(&mot)
                             || pihole::PRODUCED.contains(&mot)

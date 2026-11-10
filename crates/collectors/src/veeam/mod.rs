@@ -7,16 +7,25 @@
 //! toutes les versions suivantes acceptent encore.
 //!
 //! L'état des travaux est la seule lecture obligatoire. Les autres —
-//! version, sessions des dernières 24 heures, dépôts, licence — sont lues si
-//! le rôle le permet : Veeam réserve certaines routes, la licence en tête, au
-//! rôle Backup Administrator, et un refus n'y est pas une erreur
+//! version, sessions des dernières 24 heures, dépôts, licence, sauvegarde de
+//! configuration — sont lues si le rôle le permet : Veeam réserve certaines
+//! routes, la licence et la sauvegarde de configuration en tête, au rôle
+//! Backup Administrator, et un refus n'y est pas une erreur
 //! (`veeam_section_readable{section="license"} 0`).
+//!
+//! `isOnline`, sur l'état d'un dépôt, n'existe qu'à partir de la révision
+//! `1.2-rev0` de l'API (v12.1) : avec l'en-tête par défaut le serveur ne le
+//! renvoie pas, et `veeam_repository_online` n'est alors pas publié — plutôt
+//! qu'un « en ligne » inventé.
 //!
 //! Les pannes que ce module existe pour voir :
 //!
 //! * **un travail dont la dernière exécution a échoué** ou s'est terminée en
 //!   avertissement ;
 //! * **un dépôt qui se remplit** : les prochaines sauvegardes échoueront ;
+//! * **un dépôt hors ligne** : tous les travaux qui y écrivent vont échouer ;
+//! * **une sauvegarde de configuration désactivée ou ancienne** : sans elle,
+//!   reconstruire le serveur Veeam après sa perte se fait à la main ;
 //! * **une licence qui expire** : les travaux s'arrêtent à la fin de la
 //!   période de grâce ;
 //! * **une machine protégée qui ne sauvegarde plus**, elle précisément plutôt
@@ -76,6 +85,7 @@ const JOBS: &str = "/api/v1/jobs/states?limit=1000";
 const SERVER_INFO: &str = "/api/v1/serverInfo";
 const REPOSITORIES: &str = "/api/v1/backupInfrastructure/repositories/states?limit=500";
 const LICENSE: &str = "/api/v1/license";
+const CONFIG_BACKUP: &str = "/api/v1/configBackup";
 /// Un appel pour tout le serveur plutôt qu'un par objet protégé ; voir le
 /// commentaire de module. Triés du plus récent au plus ancien : le premier
 /// point de restauration rencontré pour un nom est déjà le bon.
@@ -185,6 +195,7 @@ impl Collector for VeeamCollector {
             sessions: section(session.get(&sessions_path).await)?,
             repositories: section(session.get(REPOSITORIES).await)?,
             license: section(session.get(LICENSE).await)?,
+            config_backup: section(session.get(CONFIG_BACKUP).await)?,
             restore_points: section(session.get(RESTORE_POINTS).await)?,
         };
         Ok(samples(&replies, stale_days, now))
@@ -246,6 +257,7 @@ pub struct Replies {
     pub sessions: Section,
     pub repositories: Section,
     pub license: Section,
+    pub config_backup: Section,
     pub restore_points: Section,
 }
 
@@ -407,6 +419,7 @@ pub fn samples(r: &Replies, stale_days: f64, ts_ms: i64) -> Vec<Sample> {
     out.push(readable(&r.sessions, "sessions"));
     out.push(readable(&r.repositories, "repositories"));
     out.push(readable(&r.license, "license"));
+    out.push(readable(&r.config_backup, "config_backup"));
     out.push(readable(&r.restore_points, "restore_points"));
 
     if let Section::Read(points) = &r.restore_points {
@@ -437,6 +450,10 @@ pub fn samples(r: &Replies, stale_days: f64, ts_ms: i64) -> Vec<Sample> {
             let free = number(repository.get("freeGB")).map(|v| v * GIB);
             if let Some(used) = number(repository.get("usedSpaceGB")) {
                 out.push(named(g("veeam_repository_used_bytes", used * GIB)));
+            }
+            // Absent avant la révision 1.2 de l'API : rien n'est alors publié.
+            if let Some(online) = repository.get("isOnline").and_then(Value::as_bool) {
+                out.push(named(flag("veeam_repository_online", online, ts_ms)));
             }
             // Un dépôt objet (S3, Azure) n'a pas de capacité : 0 n'est pas « plein ».
             if let (Some(capacity), Some(free)) = (capacity, free)
@@ -485,6 +502,23 @@ pub fn samples(r: &Replies, stale_days: f64, ts_ms: i64) -> Vec<Sample> {
             }
         }
     }
+
+    if let Section::Read(config) = &r.config_backup {
+        if let Some(enabled) = config.get("isEnabled").and_then(Value::as_bool) {
+            out.push(flag("veeam_config_backup_enabled", enabled, ts_ms));
+        }
+        if let Some(encrypted) = config.pointer("/encryption/isEnabled").and_then(Value::as_bool) {
+            out.push(flag("veeam_config_backup_encrypted", encrypted, ts_ms));
+        }
+        // Jamais réussie : pas de série plutôt qu'un âge nul qui rassurerait.
+        if let Some(age) = config
+            .pointer("/lastSuccessfulBackup/lastSuccessfulTime")
+            .and_then(Value::as_str)
+            .and_then(|t| age_seconds(t, ts_ms))
+        {
+            out.push(g("veeam_config_backup_last_success_age_seconds", age));
+        }
+    }
     out
 }
 
@@ -515,6 +549,10 @@ mod tests {
     const SESSIONS_JSON: &str = include_str!("testdata/sessions.json");
     const REPOS_JSON: &str = include_str!("testdata/repositories_states.json");
     const LICENSE_JSON: &str = include_str!("testdata/license.json");
+    // Modèles `RepositoryStateModel` (révision 1.2-rev0, avec `isOnline`) et
+    // `ConfigBackupModel` de la référence de l'API REST.
+    const REPOS_12_JSON: &str = include_str!("testdata/repositories_states_1.2.json");
+    const CONFIG_BACKUP_JSON: &str = include_str!("testdata/config_backup.json");
     // Cinq points de restauration pour trois objets protégés : web01 sauvegardé
     // ce matin, db01 au même passage, fs01 pas depuis trois jours — cohérent
     // avec le travail "File server" en échec depuis dans `JOBS_JSON` — et
@@ -541,6 +579,7 @@ mod tests {
             sessions: Section::Read(json(SESSIONS_JSON)),
             repositories: Section::Read(json(REPOS_JSON)),
             license: Section::Read(json(LICENSE_JSON)),
+            config_backup: Section::Read(json(CONFIG_BACKUP_JSON)),
             restore_points: Section::Read(json(RESTORE_POINTS_JSON)),
         };
         let s = samples(&replies, 3.0, now());
@@ -621,10 +660,17 @@ mod tests {
             sessions: Section::Refused,
             repositories: Section::Read(json(REPOS_JSON)),
             license: Section::Refused,
+            config_backup: Section::Refused,
             restore_points: Section::Refused,
         };
         let s = samples(&replies, 3.0, now());
         assert_eq!(value(&s, "veeam_section_readable", &[("section", "license")]), 0.0);
+        assert_eq!(value(&s, "veeam_section_readable", &[("section", "config_backup")]), 0.0);
+        assert!(find(&s, "veeam_config_backup_enabled", &[]).is_none());
+        assert!(
+            find(&s, "veeam_repository_online", &[]).is_none(),
+            "API revision 1.1 has no isOnline: nothing is invented"
+        );
         assert!(find(&s, "veeam_license_valid", &[]).is_none());
         assert!(find(&s, "veeam_sessions_24h", &[]).is_none());
         assert_eq!(value(&s, "veeam_section_readable", &[("section", "restore_points")]), 0.0);
@@ -632,6 +678,37 @@ mod tests {
             find(&s, "client_device_last_backup_timestamp_seconds", &[]).is_none(),
             "un refus — vieux serveur ou rôle restreint — ne publie aucun appareil"
         );
+    }
+
+    #[test]
+    fn depot_hors_ligne_et_sauvegarde_de_configuration() {
+        let mut replies = Replies {
+            server: None,
+            jobs: json(JOBS_JSON),
+            sessions: Section::Refused,
+            repositories: Section::Read(json(REPOS_12_JSON)),
+            license: Section::Refused,
+            config_backup: Section::Read(json(CONFIG_BACKUP_JSON)),
+            restore_points: Section::Refused,
+        };
+        let s = samples(&replies, 3.0, now());
+        let online = |name: &str| value(&s, "veeam_repository_online", &[("repository", name)]);
+        assert_eq!(online("Default Backup Repository"), 1.0);
+        assert_eq!(online("NAS repository"), 0.0);
+        assert_eq!(value(&s, "veeam_section_readable", &[("section", "config_backup")]), 1.0);
+        assert_eq!(value(&s, "veeam_config_backup_enabled", &[]), 1.0);
+        assert_eq!(value(&s, "veeam_config_backup_encrypted", &[]), 0.0);
+        assert_eq!(value(&s, "veeam_config_backup_last_success_age_seconds", &[]), 23.0 * 3600.0);
+
+        // Désactivée et jamais réussie : l'âge n'existe pas.
+        replies.config_backup = Section::Read(serde_json::json!({
+            "isEnabled": false,
+            "restorePointsToKeep": 10,
+            "encryption": { "isEnabled": false }
+        }));
+        let s = samples(&replies, 3.0, now());
+        assert_eq!(value(&s, "veeam_config_backup_enabled", &[]), 0.0);
+        assert!(find(&s, "veeam_config_backup_last_success_age_seconds", &[]).is_none());
     }
 
     #[test]
