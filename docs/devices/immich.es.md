@@ -42,6 +42,8 @@ almost full, Immich update available, además de Monitor unreachable.
 
 ## Dispositivos {#devices}
 
+Solo se siguen los teléfonos y tabletas (las aplicaciones de Immich para iOS y Android): las sesiones de navegadores y ordenadores se ignoran en todas partes (métricas, regla de alerta, tabla). Con una clave de API de **administrador**, DumbMonit lee los teléfonos de **todos los usuarios** de la instancia, cada uno etiquetado con el nombre de su propietario; con la clave de una cuenta normal, solo los teléfonos de esa cuenta. Para el primer caso, dé a la clave `adminUser.read` y `adminSession.read` además de los permisos de abajo; si faltan, DumbMonit recurre a los dispositivos del propietario de la clave, sin error.
+
 Cada dispositivo con sesión iniciada en la cuenta propietaria de la
 clave, con su última conexión y última copia de seguridad, se publica
 bajo una familia genérica compartida por toda integración de DumbMonit
@@ -91,7 +93,7 @@ seguridad, estado).
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. Copia la clave ahora: Immich la muestra solo una vez. Lee esas ocho
@@ -112,7 +114,7 @@ seguridad, estado).
     Jobs. DumbMonit avisa cuando hay trabajos esperando en una cola que
     no está en pausa y no ejecuta nada. session.read, asset.read y
     user.read listan todos los dispositivos de la cuenta propietaria de
-    la clave — sus teléfonos, tabletas y navegadores — con la última
+    la clave — sus teléfonos y tabletas; navegadores y ordenadores se ignoran — con la última
     conexión de cada uno. La API de Immich no registra qué dispositivo
     subió una foto concreta, así que «última copia de seguridad» es la
     subida más reciente de toda la biblioteca, mostrada igual para cada

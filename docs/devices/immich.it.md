@@ -42,6 +42,8 @@ full, Immich update available, più Monitor unreachable.
 
 ## Dispositivi
 
+Vengono seguiti solo telefoni e tablet (le app Immich per iOS e Android): le sessioni di browser e computer sono ignorate ovunque (metriche, regola di allarme, tabella). Con una chiave API da **amministratore**, DumbMonit legge i telefoni di **tutti gli utenti** dell'istanza, ciascuno etichettato con il nome del proprietario; con la chiave di un account normale, solo i telefoni di quell'account. Per il primo caso, dai alla chiave `adminUser.read` e `adminSession.read` oltre ai permessi qui sotto; se mancano, DumbMonit ripiega sui dispositivi del proprietario della chiave, senza errori.
+
 Ogni dispositivo collegato all'account che possiede la chiave, con la sua
 ultima connessione e il suo ultimo backup, viene pubblicato sotto una
 famiglia generica condivisa da ogni integrazione DumbMonit che traccia i
@@ -83,7 +85,7 @@ ultima connessione, ultimo backup, stato).
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. Copia la chiave subito: Immich la mostra solo una volta. Legge quelle otto pagine e nient'altro: nessuna foto, nessun album, nessuna impostazione. Se il tuo Immich non offre queue.read, spunta job.read invece.
@@ -93,7 +95,7 @@ ultima connessione, ultimo backup, stato).
 4. In DumbMonit, inserisci l'indirizzo di Immich, per esempio "immich.lan" (porta 2283) oppure "https://photos.example.com" dietro un reverse proxy, e incolla la chiave.
 
 !!! warning
-    Una coda in pausa è facile da dimenticare: le nuove foto non ricevono miniatura, metadati né volti, e Immich lo dice solo nella sua pagina Jobs. DumbMonit avvisa quando i job attendono in una coda che non è in pausa e non esegue nulla. session.read, asset.read e user.read elencano ogni dispositivo dell'account che possiede la chiave — i suoi telefoni, tablet e browser — con l'ultima connessione di ciascuno. L'API di Immich non registra quale dispositivo ha caricato una determinata foto, quindi "last backup" è l'ultimo caricamento più recente dell'intera libreria, mostrato identico per ogni dispositivo: se solo un dispositivo smette di fare backup mentre gli altri continuano, la sua connessione apparirà obsoleta ma il valore di backup condiviso sembrerà ancora recente.
+    Una coda in pausa è facile da dimenticare: le nuove foto non ricevono miniatura, metadati né volti, e Immich lo dice solo nella sua pagina Jobs. DumbMonit avvisa quando i job attendono in una coda che non è in pausa e non esegue nulla. session.read, asset.read e user.read elencano ogni dispositivo dell'account che possiede la chiave — i suoi telefoni e tablet; browser e computer sono ignorati — con l'ultima connessione di ciascuno. L'API di Immich non registra quale dispositivo ha caricato una determinata foto, quindi "last backup" è l'ultimo caricamento più recente dell'intera libreria, mostrato identico per ogni dispositivo: se solo un dispositivo smette di fare backup mentre gli altri continuano, la sua connessione apparirà obsoleta ma il valore di backup condiviso sembrerà ancora recente.
 
 Cosa apre ciascun permesso: `server.about` la versione
 (`/api/server/about`), `server.versionCheck` l'ultima release che Immich

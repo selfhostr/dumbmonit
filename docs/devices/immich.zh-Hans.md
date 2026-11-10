@@ -37,6 +37,8 @@ Immich 有可用更新,以及设备不可达。
 
 ## 设备 {#devices}
 
+只跟踪手机和平板(Immich 的 iOS 和 Android 应用):浏览器和电脑的会话在所有地方(指标、告警规则、表格)都被忽略。使用**管理员** API 密钥时,DumbMonit 会读取实例中**所有用户**的手机,并标注其所有者的名称;使用普通账户的密钥时,只读取该账户的手机。对于前一种情况,请在下列权限之外再授予 `adminUser.read` 和 `adminSession.read`;缺少它们时,DumbMonit 会无错误地回退到密钥所有者自己的设备。
+
 登录到拥有该密钥的账户的每一台设备,连同其上次连接和上次备份
 时间,都会以每个追踪客户端设备的 DumbMonit 集成共享的通用指标族
 发布——`dumbmonit_client_device_*`,前缀中不含 `immich`,完整文档见
@@ -73,7 +75,7 @@ Immich 有可用更新,以及设备不可达。
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. 现在就复制该密钥:Immich 只会显示一次。它只读取这八个接口,不会读取任何其他内容:没有照片、没有相册、没有设置。如果你的 Immich 没有提供 queue.read,请改为勾选 job.read。
@@ -87,7 +89,7 @@ Immich 有可用更新,以及设备不可达。
     人脸识别,而 Immich 只会在其 Jobs 页面上说明这一点。当某个
     未暂停的队列中有任务在等待却没有任何任务运行时,DumbMonit
     会发出警告。session.read、asset.read 和 user.read 会列出拥有
-    该密钥账户的每一台设备——它的手机、平板和浏览器——以及每台
+    该密钥账户的每一台设备——它的手机和平板(浏览器和电脑会被忽略)——以及每台
     设备的上次连接时间。Immich 的 API 不会记录某张照片是由哪台
     设备上传的,因此"上次备份"实际上是整个媒体库最近一次上传
     的时间,对每台设备显示的都是同一个值:如果只有一台设备停止

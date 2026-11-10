@@ -43,6 +43,8 @@ Immich update available, plus Monitor unreachable.
 
 ## Geräte
 
+Verfolgt werden nur Telefone und Tablets (die Immich-Apps für iOS und Android): Sitzungen von Browsern und Computern werden überall ignoriert (Metriken, Alarmregel, Tabelle). Mit einem **Administrator**-API-Key liest DumbMonit die Telefone **aller Benutzer** der Instanz, jeweils mit dem Namen des Besitzers beschriftet; mit dem Key eines normalen Kontos nur die Telefone dieses Kontos. Für den ersten Fall geben Sie dem Key zusätzlich zu den untenstehenden Berechtigungen `adminUser.read` und `adminSession.read`; fehlen sie, fällt DumbMonit ohne Fehler auf die Geräte des Key-Besitzers zurück.
+
 Jedes im Konto, das den Key besitzt, eingeloggte Gerät, mit seiner
 letzten Verbindung und seinem letzten Backup, wird unter einer
 generischen Familie veröffentlicht, die sich jede DumbMonit-
@@ -92,7 +94,7 @@ letzte Verbindung, letztes Backup, Status).
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. Kopieren Sie den Key jetzt: Immich zeigt ihn nur einmal. Er liest
@@ -114,8 +116,7 @@ letzte Verbindung, letztes Backup, Status).
     Immich sagt das nur auf seiner Jobs-Seite. DumbMonit warnt, wenn
     Jobs in einer nicht pausierten Warteschlange warten, die nichts
     ausführt. session.read, asset.read und user.read listen jedes
-    Gerät des Kontos, das den Key besitzt — seine Telefone, Tablets und
-    Browser — mit der letzten Verbindung jedes einzelnen. Immichs API
+    Gerät des Kontos, das den Key besitzt — seine Telefone und Tablets; Browser und Computer werden ignoriert — mit der letzten Verbindung jedes einzelnen. Immichs API
     verzeichnet nicht, welches Gerät ein bestimmtes Foto hochgeladen
     hat, daher ist "letztes Backup" der neueste Upload der gesamten
     Bibliothek, für jedes Gerät gleich angezeigt: Stoppt nur ein Gerät

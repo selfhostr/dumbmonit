@@ -63,6 +63,8 @@ ancien, ces chiffres sont simplement absents et rien n'est signalé.
 
 ## Appareils
 
+Seuls les téléphones et tablettes (les applications Immich iOS et Android) sont suivis : les sessions de navigateurs et d'ordinateurs sont ignorées partout (métriques, règle d'alerte, tableau). Avec une clé d'API d'**administrateur**, DumbMonit lit les téléphones de **tous les utilisateurs** de l'instance, chacun étiqueté du nom de son propriétaire ; avec la clé d'un compte ordinaire, seuls les téléphones de ce compte sont lus. Pour le premier cas, donnez à la clé `adminUser.read` et `adminSession.read` en plus des permissions ci-dessous ; si elles manquent, DumbMonit se rabat sur les appareils du propriétaire de la clé, sans erreur.
+
 Chaque appareil connecté au compte qui possède la clé, avec sa dernière
 connexion et sa dernière sauvegarde, est publié sous une famille générique
 partagée par chaque intégration DumbMonit qui suit les appareils clients —
@@ -120,6 +122,8 @@ sauvegarde, statut).
 - **session.read** : Appareils et dernière connexion
 - **asset.read** : Dernière sauvegarde
 - **user.read** : Le compte propriétaire de la clé
+- **adminUser.read**: Clé d'administrateur uniquement : la liste des comptes
+- **adminSession.read**: Clé d'administrateur uniquement : téléphones et tablettes de chaque compte
 
 Documentation de l'éditeur : <https://immich.app/docs/api/>
 
@@ -129,10 +133,10 @@ La clé lit ces huit pages et rien d'autre : aucune photo, aucun album, aucun r�
 
 Une file en pause s'oublie facilement : les nouvelles photos n'ont ni miniature, ni métadonnées, ni visages, et Immich ne le dit que sur sa page Jobs. DumbMonit prévient quand des tâches attendent dans une file qui n'est pas en pause et ne fait rien tourner.
 
-`session.read`, `asset.read` et `user.read` listent tous les appareils du compte propriétaire de la clé (ses téléphones, tablettes et navigateurs) avec la dernière connexion de chacun. L'API d'Immich n'enregistre pas quel appareil a envoyé une photo donnée : la « dernière sauvegarde » est donc le dernier envoi de toute la bibliothèque, affiché identique pour tous les appareils. Si un seul appareil cesse de sauvegarder alors que les autres continuent, sa connexion apparaîtra périmée mais la sauvegarde partagée paraîtra toujours fraîche.
+`session.read`, `asset.read` et `user.read` listent tous les appareils du compte propriétaire de la clé (ses téléphones et tablettes ; navigateurs et ordinateurs sont ignorés) avec la dernière connexion de chacun. L'API d'Immich n'enregistre pas quel appareil a envoyé une photo donnée : la « dernière sauvegarde » est donc le dernier envoi de toute la bibliothèque, affiché identique pour tous les appareils. Si un seul appareil cesse de sauvegarder alors que les autres continuent, sa connexion apparaîtra périmée mais la sauvegarde partagée paraîtra toujours fraîche.
 
 !!! warning
-    Créez la clé depuis un compte qui peut ouvrir Administration, sinon les décomptes de photos et les files de tâches sont ignorés ; la « dernière sauvegarde » est le dernier envoi de toute la bibliothèque, identique pour chaque appareil.
+    Créez la clé depuis un compte administrateur : elle couvre alors les téléphones et tablettes de tous les utilisateurs, et les décomptes de photos et les files de tâches sont lus. Avec un compte ordinaire, seuls ses propres appareils sont lus. La « dernière sauvegarde » est le dernier envoi de toute la bibliothèque, identique pour chaque appareil.
 
 Ce que chaque permission ouvre : `server.about` la version
 (`/api/server/about`), `server.versionCheck` la dernière release connue

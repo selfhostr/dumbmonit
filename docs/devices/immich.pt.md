@@ -42,6 +42,8 @@ almost full, Immich update available, mais Monitor unreachable.
 
 ## Dispositivos {#devices}
 
+Só são seguidos os telemóveis e tablets (as aplicações Immich para iOS e Android): as sessões de navegadores e computadores são ignoradas em todo o lado (métricas, regra de alerta, tabela). Com uma chave de API de **administrador**, o DumbMonit lê os telemóveis de **todos os utilizadores** da instância, cada um etiquetado com o nome do proprietário; com a chave de uma conta normal, apenas os telemóveis dessa conta. Para o primeiro caso, dê à chave `adminUser.read` e `adminSession.read` além das permissões abaixo; se faltarem, o DumbMonit recorre aos dispositivos do proprietário da chave, sem erro.
+
 Todo dispositivo com sessão iniciada na conta que detém a chave, com a
 sua última ligação e última cópia de segurança, é publicado sob uma
 família genérica partilhada por toda integração do DumbMonit que
@@ -84,7 +86,7 @@ estado).
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. Copie a chave agora: o Immich mostra-a só uma vez. Lê essas oito páginas e nada mais: nenhuma foto, nenhum álbum, nenhuma definição. Se o seu Immich não oferecer queue.read, marque job.read em vez disso.
@@ -94,7 +96,7 @@ estado).
 4. No DumbMonit, introduza o endereço do Immich, por exemplo «immich.lan» (porta 2283) ou «https://photos.example.com» atrás de um proxy inverso, e cole a chave.
 
 !!! warning
-    Uma fila pausada é fácil de esquecer: as fotos novas não recebem miniatura, metadados nem rosto, e o Immich só o diz na sua página Jobs. O DumbMonit avisa quando tarefas esperam numa fila que não está pausada e não corre nada. session.read, asset.read e user.read listam todo monitor da conta que detém a chave — os seus telefones, tablets e navegadores — com a última ligação de cada um. A API do Immich não regista qual monitor enviou uma determinada foto, por isso «last backup» é o envio mais recente de toda a biblioteca, mostrado igual para cada monitor: se só um monitor deixar de fazer cópia de segurança enquanto os outros continuam, a sua ligação mostrar-se-á como obsoleta mas o valor de cópia de segurança partilhado continuará a parecer recente.
+    Uma fila pausada é fácil de esquecer: as fotos novas não recebem miniatura, metadados nem rosto, e o Immich só o diz na sua página Jobs. O DumbMonit avisa quando tarefas esperam numa fila que não está pausada e não corre nada. session.read, asset.read e user.read listam todo monitor da conta que detém a chave — os seus telemóveis e tablets; navegadores e computadores são ignorados — com a última ligação de cada um. A API do Immich não regista qual monitor enviou uma determinada foto, por isso «last backup» é o envio mais recente de toda a biblioteca, mostrado igual para cada monitor: se só um monitor deixar de fazer cópia de segurança enquanto os outros continuam, a sua ligação mostrar-se-á como obsoleta mas o valor de cópia de segurança partilhado continuará a parecer recente.
 
 O que cada permissão abre: `server.about` a versão
 (`/api/server/about`), `server.versionCheck` a versão mais recente que o

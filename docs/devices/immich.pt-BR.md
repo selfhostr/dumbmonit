@@ -41,6 +41,8 @@ full, Immich update available, além de Monitor unreachable.
 
 ## Dispositivos {#devices}
 
+Apenas celulares e tablets (os aplicativos Immich para iOS e Android) são acompanhados: sessões de navegadores e computadores são ignoradas em todo lugar (métricas, regra de alerta, tabela). Com uma chave de API de **administrador**, o DumbMonit lê os celulares de **todos os usuários** da instância, cada um etiquetado com o nome do proprietário; com a chave de uma conta comum, apenas os celulares dessa conta. Para o primeiro caso, dê à chave `adminUser.read` e `adminSession.read` além das permissões abaixo; se faltarem, o DumbMonit recorre aos dispositivos do proprietário da chave, sem erro.
+
 Todo dispositivo conectado à conta que possui a chave, com sua última
 conexão e último backup, é publicado sob uma família genérica compartilhada
 por toda integração do DumbMonit que rastreia dispositivos clientes —
@@ -86,7 +88,7 @@ tipo, SO, última conexão, último backup, status).
 
     ```
     dumbmonit
-    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read
+    server.about server.versionCheck server.storage server.statistics queue.read session.read asset.read user.read adminUser.read adminSession.read
     ```
 
 2. Copie a chave agora: o Immich a mostra apenas uma vez. Ela lê essas oito
@@ -106,8 +108,7 @@ tipo, SO, última conexão, último backup, status).
     miniatura, metadados ou reconhecimento facial, e o Immich só avisa isso
     em sua página Jobs. O DumbMonit avisa quando jobs esperam em uma fila
     que não está pausada e não executa nada. session.read, asset.read e
-    user.read listam todo dispositivo da conta que possui a chave — seus
-    celulares, tablets e navegadores — com a última conexão de cada um. A
+    user.read listam todo dispositivo da conta que possui a chave — seus celulares e tablets; navegadores e computadores são ignorados — com a última conexão de cada um. A
     API do Immich não registra qual dispositivo enviou uma dada foto, então
     "último backup" é o envio mais recente de toda a biblioteca, mostrado
     igual para todo dispositivo: se apenas um dispositivo parar de fazer

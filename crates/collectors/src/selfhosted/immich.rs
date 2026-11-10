@@ -21,12 +21,22 @@
 //! Immich ≥ 2 expose les files sous `/api/queues` ; les versions antérieures
 //! sous `/api/jobs` (permission `job.read`), lu en repli.
 //!
-//! # Appareils (`session.read`, `asset.read`, `user.read`)
+//! # Appareils (`session.read`, `asset.read`, `user.read`, et pour tous les
+//! comptes `adminUser.read` + `adminSession.read`)
 //!
-//! `GET /api/sessions` renvoie les connexions de **l'unique compte qui a créé
-//! la clé** : pas une liste d'utilisateurs, mais la liste de ses téléphones,
-//! tablettes et navigateurs — exactement l'usage courant d'un homelab, un
-//! compte partagé entre les appareils d'un foyer. `updatedAt` vaut la
+//! `GET /api/sessions` ne renvoie que les connexions du compte qui a créé la
+//! clé. Mais la spécification OpenAPI d'Immich (v3.4) expose aussi, aux
+//! administrateurs, `GET /api/admin/users` (permission `adminUser.read`) et
+//! `GET /api/admin/users/{id}/sessions` (permission `adminSession.read`) :
+//! une seule clé d'administrateur suffit donc à lister les sessions de tous
+//! les utilisateurs, chacune étiquetée avec le nom de son propriétaire. Si
+//! ces deux permissions manquent (403), on retombe sur `/api/sessions`, la
+//! liste du seul compte de la clé.
+//!
+//! **Seuls les mobiles comptent** : une session est retenue quand son type
+//! ou son système est celui d'une application iOS / Android
+//! ([`is_mobile`]) ; les navigateurs et les ordinateurs sont écartés avant
+//! toute métrique. `updatedAt` vaut la
 //! dernière activité de la session, prise ici comme dernière connexion ;
 //! l'appareil n'a ni nom ni identifiant stable au-delà de son `id` de
 //! session, d'où l'étiquette composée dans [`session_device`].
@@ -110,6 +120,23 @@ pub struct Session {
     /// Date de dernière activité de la session : la meilleure approximation
     /// d'une dernière connexion que l'API offre.
     pub updated_at: String,
+}
+
+/// `GET /api/admin/users` : de quoi nommer chaque compte et lire ses sessions.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminUser {
+    pub id: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub email: String,
+}
+
+impl AdminUser {
+    fn display_name(&self) -> &str {
+        if !self.name.trim().is_empty() { &self.name } else { &self.email }
+    }
 }
 
 /// `GET /api/users/me` : juste assez pour nommer le compte propriétaire des
@@ -216,13 +243,12 @@ pub async fn probe(
     // La preuve de vie et d'authentification : le seul appel qui condamne.
     let about: About = client.get_json("/api/server/about").await?;
     let mut errors = 0u32;
-    let (check, storage, stats, queues, config, sessions, user, newest, backups) = futures::join!(
+    let (check, storage, stats, queues, config, user, newest, backups) = futures::join!(
         client.get_json::<VersionCheck>("/api/server/version-check"),
         client.get_json::<Storage>("/api/server/storage"),
         optional::<Statistics>(client, "/api/server/statistics"),
         queues(client),
         client.get_json::<Value>("/api/server/config"),
-        optional::<Vec<Session>>(client, "/api/sessions"),
         optional::<UserMe>(client, "/api/users/me"),
         last_asset_created_at(client),
         // Immich 2.5 et plus, permission `databaseBackup.list` (facultative).
@@ -280,14 +306,11 @@ pub async fn probe(
         "users/me",
     );
     let mut devices: Vec<Device> = Vec::new();
-    note(
-        sessions.map(|sessions| {
-            if let Some(sessions) = sessions {
-                devices.extend(sessions.iter().filter_map(|s| session_device(s, &user_name)));
-            }
-        }),
-        "sessions",
-    );
+    let (mobiles, session_errors) = mobile_devices(client, &user_name).await;
+    devices.extend(mobiles);
+    for (path, error) in session_errors {
+        note(Err(error), &path);
+    }
     note(
         newest.map(|instant| {
             if let Some(instant) = instant {
@@ -307,6 +330,66 @@ pub async fn probe(
 
     out.push(gauge("immich_scrape_errors", f64::from(errors), ts_ms));
     Ok(out)
+}
+
+/// Application iOS / Android ? Seuls les téléphones et tablettes entrent dans
+/// le contrôle : `deviceType` et `deviceOS` sont des textes libres, déduits
+/// par Immich de l'en-tête de la requête ou fournis par l'application (la
+/// spécification ne les énumère pas). On retient un système iOS / iPadOS /
+/// Android, ou un type « Mobile » / « iOS » / « Android » / « Tablet », sauf
+/// si le type est celui d'un navigateur (Safari mobile n'est pas
+/// l'application, qui seule sauvegarde les photos).
+pub fn is_mobile(session: &Session) -> bool {
+    let kind = session.device_type.to_ascii_lowercase();
+    let os = session.device_os.to_ascii_lowercase();
+    const BROWSERS: [&str; 9] =
+        ["safari", "chrome", "firefox", "edge", "opera", "chromium", "browser", "web", "brave"];
+    if BROWSERS.iter().any(|b| kind.contains(b)) {
+        return false;
+    }
+    let word = |text: &str, words: &[&str]| words.iter().any(|w| text.contains(w));
+    word(&os, &["ios", "ipados", "iphone", "ipad", "android"])
+        || word(&kind, &["ios", "ipados", "iphone", "ipad", "android", "mobile", "tablet", "phone"])
+}
+
+/// Les téléphones de tous les comptes avec une clé d'administrateur, sinon
+/// ceux du seul compte de la clé. Renvoie aussi les erreurs rencontrées (une
+/// par appel en échec) : un compte illisible ne retire pas les autres.
+async fn mobile_devices(
+    client: &HttpClient,
+    own_name: &str,
+) -> (Vec<Device>, Vec<(String, ProbeError)>) {
+    let mut errors = Vec::new();
+    let mut devices = Vec::new();
+    match optional::<Vec<AdminUser>>(client, "/api/admin/users").await {
+        Ok(Some(users)) => {
+            let reads = users.iter().map(|user| async move {
+                let path = format!("/api/admin/users/{}/sessions", user.id);
+                (user, path.clone(), optional::<Vec<Session>>(client, &path).await)
+            });
+            for (user, path, result) in futures::future::join_all(reads).await {
+                match result {
+                    Ok(sessions) => devices.extend(session_devices(
+                        &sessions.unwrap_or_default(),
+                        user.display_name(),
+                    )),
+                    Err(error) => errors.push((path, error)),
+                }
+            }
+            return (devices, errors);
+        }
+        Ok(None) => {} // clé sans `adminUser.read` : repli sur le compte de la clé
+        Err(error) => errors.push(("admin/users".to_string(), error)),
+    }
+    match optional::<Vec<Session>>(client, "/api/sessions").await {
+        Ok(sessions) => devices.extend(session_devices(&sessions.unwrap_or_default(), own_name)),
+        Err(error) => errors.push(("sessions".to_string(), error)),
+    }
+    (devices, errors)
+}
+
+fn session_devices(sessions: &[Session], user: &str) -> Vec<Device> {
+    sessions.iter().filter(|s| is_mobile(s)).filter_map(|s| session_device(s, user)).collect()
 }
 
 /// Un appareil Immich n'a ni nom, ni identifiant stable au-delà de celui de
@@ -704,6 +787,11 @@ mod tests {
     fn une_session_devient_un_appareil_nomme_type_et_id() {
         let sessions: Vec<Session> = serde_json::from_str(SESSIONS).unwrap();
         assert_eq!(sessions.len(), 3);
+        assert_eq!(
+            sessions.iter().map(is_mobile).collect::<Vec<_>>(),
+            [true, true, false],
+            "iOS et Android oui, le navigateur Web non"
+        );
         let device = session_device(&sessions[0], "Noe").unwrap();
         assert_eq!(device.name, "Mobile-3fa85f64");
         assert_eq!(device.device_type, "Mobile");
@@ -726,6 +814,89 @@ mod tests {
         let page: SearchMetadata = serde_json::from_str(SEARCH_METADATA).unwrap();
         let instant = parse_instant(&page.assets.items[0].created_at).unwrap();
         assert_eq!(instant, 1790798700); // 2026-09-30T20:05:00Z
+    }
+
+    fn session_of(kind: &str, os: &str) -> Session {
+        Session {
+            id: "3fa85f64-5717-4562-b3fc-2c963f66afa6".into(),
+            device_type: kind.into(),
+            device_os: os.into(),
+            updated_at: "2026-09-30T18:42:11.000Z".into(),
+        }
+    }
+
+    #[test]
+    fn seuls_les_telephones_et_tablettes_sont_des_mobiles() {
+        for (kind, os) in
+            [("iOS", "iOS"), ("Android", "Android"), ("Mobile", "iPadOS 17"), ("", "Android 14")]
+        {
+            assert!(is_mobile(&session_of(kind, os)), "{kind}/{os}");
+        }
+        for (kind, os) in [
+            ("Web", "Linux"),
+            ("Chrome", "Windows"),
+            ("Firefox", "macOS"),
+            ("Mobile Safari", "iOS"),
+            ("", ""),
+            ("Desktop", "Windows"),
+        ] {
+            assert!(!is_mobile(&session_of(kind, os)), "{kind}/{os}");
+        }
+    }
+
+    #[tokio::test]
+    async fn une_cle_d_administrateur_lit_les_telephones_de_tous_les_comptes() {
+        use axum::http::StatusCode;
+        use axum::routing::post;
+        let app = Router::new()
+            .route("/api/server/about", get(|| async { ABOUT }))
+            .route("/api/server/version-check", get(|| async { VERSION_CHECK }))
+            .route("/api/server/storage", get(|| async { STORAGE }))
+            .route("/api/server/statistics", get(|| async { STATISTICS }))
+            .route("/api/queues", get(|| async { QUEUES }))
+            .route("/api/server/config", get(|| async { CONFIG }))
+            .route(
+                "/api/admin/users",
+                get(|| async {
+                    r#"[{"id":"u-1","name":"Alice","email":"a@x.lan"},
+                        {"id":"u-2","name":"","email":"bob@x.lan"},
+                        {"id":"u-3","name":"Carol","email":"c@x.lan"}]"#
+                }),
+            )
+            .route("/api/admin/users/u-1/sessions", get(|| async { SESSIONS }))
+            .route(
+                "/api/admin/users/u-2/sessions",
+                get(|| async {
+                    r#"[{"id":"aaaaaaaa-0000-4000-8000-000000000000","createdAt":"2026-01-01T00:00:00.000Z",
+                        "updatedAt":"2026-09-01T00:00:00.000Z","deviceType":"Android","deviceOS":"Android 15",
+                        "appVersion":"v2.1.0","current":false,"isPendingSyncReset":false}]"#
+                }),
+            )
+            // Un compte illisible ne fait pas tomber les autres.
+            .route(
+                "/api/admin/users/u-3/sessions",
+                get(|| async { (StatusCode::INTERNAL_SERVER_ERROR, "boom") }),
+            )
+            .route("/api/users/me", get(|| async { USERS_ME }))
+            .route("/api/search/metadata", post(|| async { SEARCH_METADATA }));
+        let base = serve(app).await;
+        let samples = ImmichCollector::new().probe(&target(base, "cle")).await.unwrap();
+        let users: std::collections::BTreeSet<_> = samples
+            .iter()
+            .filter(|s| s.metric == "client_device_last_seen_timestamp_seconds")
+            .filter_map(|s| s.labels.get("user").cloned())
+            .collect();
+        assert!(users.contains("Alice") && users.contains("bob@x.lan"), "{users:?}");
+        assert!(
+            device_value(&samples, "client_device_last_seen_timestamp_seconds", "Android-aaaaaaaa")
+                .is_some()
+        );
+        // Alice : deux mobiles, pas son navigateur.
+        assert!(
+            device_value(&samples, "client_device_last_seen_timestamp_seconds", "Web-9b2d3c1a")
+                .is_none()
+        );
+        assert_eq!(value(&samples, "immich_scrape_errors"), Some(1.0));
     }
 
     async fn serve(app: Router) -> String {
@@ -774,6 +945,7 @@ mod tests {
             .route("/api/server/config", get(|| async { CONFIG }))
             // Compte ordinaire : les appareils, eux, restent lisibles (ce ne
             // sont pas des pages d'administration).
+            .route("/api/admin/users", get(forbidden))
             .route("/api/sessions", get(|| async { SESSIONS }))
             .route("/api/users/me", get(|| async { USERS_ME }))
             .route("/api/search/metadata", post(|| async { SEARCH_METADATA }));
@@ -787,8 +959,13 @@ mod tests {
         let info = samples.iter().find(|s| s.metric == "immich_version_info").unwrap();
         assert_eq!(info.labels["version"], "v3.2.4");
         assert_eq!(
-            device_value(&samples, "client_device_last_seen_timestamp_seconds", "Web-9b2d3c1a"),
-            Some(1_790_798_730.0)
+            device_value(&samples, "client_device_last_seen_timestamp_seconds", "Mobile-3fa85f64"),
+            Some(1_790_793_731.0)
+        );
+        // La session « Web » de la fixture (navigateur) n'est pas un mobile.
+        assert!(
+            device_value(&samples, "client_device_last_seen_timestamp_seconds", "Web-9b2d3c1a")
+                .is_none()
         );
         assert_eq!(
             device_value(&samples, "client_device_last_backup_timestamp_seconds", LIBRARY_DEVICE),
@@ -809,6 +986,10 @@ mod tests {
             .route("/api/server/statistics", get(|| async { STATISTICS }))
             .route("/api/jobs", get(|| async { JOBS }))
             .route("/api/server/config", get(|| async { CONFIG }))
+            .route(
+                "/api/admin/users",
+                get(|| async { (axum::http::StatusCode::FORBIDDEN, "{}") }),
+            )
             .route("/api/sessions", get(|| async { SESSIONS }))
             .route("/api/users/me", get(|| async { USERS_ME }))
             .route("/api/search/metadata", post(|| async { SEARCH_METADATA }));
@@ -817,14 +998,14 @@ mod tests {
         assert_eq!(value(&samples, "immich_queues_paused"), Some(1.0));
         assert_eq!(value(&samples, "immich_photos"), Some(6.0));
         assert_eq!(value(&samples, "immich_scrape_errors"), Some(0.0));
-        // Les trois sessions de la fixture donnent trois appareils, plus
-        // l'appareil « bibliothèque » qui porte la dernière sauvegarde.
+        // Des trois sessions de la fixture, seules les deux mobiles restent ;
+        // l'appareil « bibliothèque » porte la dernière sauvegarde.
         let devices: std::collections::HashSet<_> = samples
             .iter()
             .filter(|s| s.metric == "client_device_last_seen_timestamp_seconds")
             .filter_map(|s| s.labels.get("device"))
             .collect();
-        assert_eq!(devices.len(), 3);
+        assert_eq!(devices.len(), 2);
         assert_eq!(
             device_value(&samples, "client_device_last_backup_timestamp_seconds", LIBRARY_DEVICE),
             Some(1_790_798_700.0)
@@ -832,7 +1013,7 @@ mod tests {
         // L'écart au seuil dépend de l'horloge au moment du test (le seuil
         // par défaut compare à `now()`) : on vérifie seulement qu'il existe
         // pour chaque signal, pas son signe.
-        for (device, signal) in [("Web-9b2d3c1a", "connection"), (LIBRARY_DEVICE, "backup")] {
+        for (device, signal) in [("Mobile-7c9e6679", "connection"), (LIBRARY_DEVICE, "backup")] {
             assert!(
                 samples.iter().any(|s| {
                     s.metric == "client_device_stale_seconds"
@@ -856,6 +1037,7 @@ mod tests {
             .route("/api/server/statistics", get(forbidden))
             .route("/api/queues", get(forbidden))
             .route("/api/server/config", get(|| async { CONFIG }))
+            .route("/api/admin/users", get(forbidden))
             .route("/api/sessions", get(forbidden))
             .route("/api/users/me", get(forbidden))
             .route("/api/search/metadata", post(forbidden));
