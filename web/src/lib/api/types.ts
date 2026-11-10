@@ -938,6 +938,8 @@ export interface CollectorInfo {
 	metrics: MetricDescription[];
 	/** Recommended device-page views; empty: the page charts every family, as before. */
 	views: ViewDescription[];
+	/** Beta integration, still being tested on real installations. */
+	beta: boolean;
 }
 
 /**
@@ -989,6 +991,7 @@ export function normalizeCollector(raw: Partial<CollectorInfo> & { kind: string 
 		options: options
 			.filter((option) => option && typeof option.key === 'string' && option.key.trim())
 			.map(normalizeOption),
+		beta: raw.beta === true,
 		requirements: Array.isArray(raw.requirements)
 			? raw.requirements
 					.filter((r) => r && typeof r.id === 'string' && r.id.trim())

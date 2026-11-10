@@ -64,8 +64,11 @@ déjà des surveillances et un canal.
    « Aucun site » n'est simplement pas rattachée à un lieu de la carte. Les sites
    sont facultatifs : sans aucun lieu, vous arrivez directement à la liste des
    types.
-3. Choisissez un type. Les plus courants viennent en premier ; la recherche
-   (*Rechercher : switch, NAS, Docker, sauvegarde, site web…*) trouve les autres.
+3. Choisissez un type. Chaque type est rangé dans une catégorie ; la recherche
+   (*Rechercher : switch, NAS, Docker, sauvegarde, site web…*) et les puces de
+   filtre (catégorie, sans identifiants, bêta, packs communautaires) réduisent la
+   liste. Un badge **Bêta** signale une intégration encore en cours de test sur
+   de vraies installations.
 4. Un avis à droite (au-dessus sur téléphone) liste ce qu'il faut préparer sur
    l'appareil. Le formulaire ne montre que les champs utiles pour ce type.
 5. Remplissez le formulaire et cliquez sur **Ajouter la surveillance**.

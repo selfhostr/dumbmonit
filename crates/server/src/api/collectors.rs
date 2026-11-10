@@ -4924,6 +4924,32 @@ const OPENVPN_OPTIONS: &[OptionView] = &[
     ),
 ];
 
+/// Types encore en bêta : l'interface les signale par un badge (`beta` dans le
+/// catalogue). Une seule liste : sortir un type de la bêta, c'est l'en retirer.
+const BETA_KINDS: &[&str] = &[
+    "arubacentral",
+    "authentik",
+    "ceph",
+    "duplicati",
+    "frigate",
+    "keycloak",
+    "kopia",
+    "lidarr",
+    "mailcow",
+    "meraki",
+    "minio",
+    "omada",
+    "paloalto",
+    "prowlarr",
+    "qbittorrent",
+    "qnap",
+    "radarr",
+    "sonarr",
+    "sonicwall",
+    "unifiprotect",
+    "vaultwarden",
+];
+
 pub async fn list(State(state): State<AppState>) -> Json<Vec<KindDescription>> {
     let registry = &state.collectors;
     let mut kinds = Vec::new();
@@ -6218,7 +6244,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "sonarr" => CollectorView {
             kind: "sonarr",
-            label: "Sonarr (beta)",
+            label: "Sonarr",
             summary: "Health warnings, failing download clients and indexers, download queue errors, library disk space, updates.",
             examples: &["Sonarr v4"],
             credential_types: &["api_token"],
@@ -6246,7 +6272,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "radarr" => CollectorView {
             kind: "radarr",
-            label: "Radarr (beta)",
+            label: "Radarr",
             summary: "Health warnings, failing download clients and indexers, download queue errors, library disk space, updates.",
             examples: &["Radarr v5"],
             credential_types: &["api_token"],
@@ -6274,7 +6300,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "lidarr" => CollectorView {
             kind: "lidarr",
-            label: "Lidarr (beta)",
+            label: "Lidarr",
             summary: "Health warnings, failing download clients and indexers, download queue errors, library disk space, updates.",
             examples: &["Lidarr"],
             credential_types: &["api_token"],
@@ -6302,7 +6328,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "prowlarr" => CollectorView {
             kind: "prowlarr",
-            label: "Prowlarr (beta)",
+            label: "Prowlarr",
             summary: "Health warnings, indexers disabled after failures, disk space, updates.",
             examples: &["Prowlarr"],
             credential_types: &["api_token"],
@@ -6330,7 +6356,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "qbittorrent" => CollectorView {
             kind: "qbittorrent",
-            label: "qBittorrent (beta)",
+            label: "qBittorrent",
             summary: "Torrents in error or stalled, lost connectivity, download and upload speed, free space, torrents by state.",
             examples: &["qBittorrent 4.x and 5.x"],
             credential_types: &["username_password", "none"],
@@ -6359,7 +6385,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "unifiprotect" => CollectorView {
             kind: "unifiprotect",
-            label: "UniFi Protect (beta)",
+            label: "UniFi Protect",
             summary: "Cameras offline or not recording, NVR disks and storage, recording switched off.",
             examples: &["UNVR", "Dream Machine Pro", "Cloud Key Gen2+"],
             credential_types: &["username_password"],
@@ -6381,7 +6407,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "frigate" => CollectorView {
             kind: "frigate",
-            label: "Frigate NVR (beta)",
+            label: "Frigate NVR",
             summary: "Cameras that stopped delivering frames, detector speed and hangs, frame rates, recording storage, updates.",
             examples: &["Frigate 0.14 and later"],
             credential_types: &["none", "api_token"],
@@ -6410,7 +6436,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "keycloak" => CollectorView {
             kind: "keycloak",
-            label: "Keycloak (beta)",
+            label: "Keycloak",
             summary: "Readiness and database health, version, realms (disabled ones), active sessions and users per realm.",
             examples: &["Keycloak 25 and later", "Keycloak 24 and earlier"],
             credential_types: &["none", "username_password"],
@@ -6448,7 +6474,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "authentik" => CollectorView {
             kind: "authentik",
-            label: "authentik (beta)",
+            label: "authentik",
             summary: "Readiness, workers, failed system tasks, outpost connections, version updates, users.",
             examples: &["authentik 2025.x"],
             credential_types: &["api_token"],
@@ -6483,7 +6509,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "vaultwarden" => CollectorView {
             kind: "vaultwarden",
-            label: "Vaultwarden (beta)",
+            label: "Vaultwarden",
             summary: "Liveness, version, open sign-ups, and with the admin token disabled-account and two-step login counts.",
             examples: &["Vaultwarden"],
             credential_types: &["none", "api_token"],
@@ -6512,7 +6538,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "mailcow" => CollectorView {
             kind: "mailcow",
-            label: "mailcow (beta)",
+            label: "mailcow",
             summary: "Stopped containers, Postfix queue size and age, mail volume, mailboxes near their quota.",
             examples: &["mailcow: dockerized"],
             credential_types: &["api_token"],
@@ -7842,7 +7868,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "meraki" => CollectorView {
             kind: "meraki",
-            label: "Cisco Meraki (beta)",
+            label: "Cisco Meraki",
             summary: "Beta. A Cisco Meraki organization through the Dashboard API: devices offline, Internet uplinks that failed, license out of compliance or expiring, clients per network.",
             examples: &["Meraki MX / MS / MR", "Cisco Meraki cloud dashboard"],
             credential_types: &["api_token"],
@@ -7867,7 +7893,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         },
         "omada" => CollectorView {
             kind: "omada",
-            label: "TP-Link Omada (beta)",
+            label: "TP-Link Omada",
             summary: "Beta. A TP-Link Omada controller through its OpenAPI: devices disconnected, CPU and memory saturated, firmware updates offered, clients per site.",
             examples: &[
                 "Omada software controller",
@@ -8242,6 +8268,7 @@ impl CollectorView {
             metrics: Vec::new(),
             views: Vec::new(),
             requirements: Vec::new(),
+            beta: BETA_KINDS.contains(&self.kind),
         }
     }
 }
@@ -8290,6 +8317,18 @@ impl CredentialView {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// La bêta est une donnée du catalogue, pas du libellé : chaque type listé existe,
+    /// et son libellé ne porte plus « (beta) ».
+    #[test]
+    fn la_beta_est_un_champ_et_non_un_suffixe_du_libelle() {
+        for kind in BETA_KINDS {
+            let view = describe(kind);
+            assert!(view.description().beta, "{kind} devrait être en bêta");
+            assert!(!view.label.contains("(beta)"), "{kind} : « (beta) » reste dans le libellé");
+        }
+        assert!(!describe("snmp").description().beta);
+    }
 
     /// Un type compilé, tel que les tables le décrivent.
     fn describe(kind: &str) -> CollectorView {

@@ -60,8 +60,10 @@ monitors and a channel.
    site**. There is no default site: a monitor with **No site** is simply not
    tied to a place on the map. Sites are optional, so with no location at all
    you go straight to the list of types.
-3. Pick a type. The most common ones come first; use the search box
-   (*Search: switch, NAS, Docker, backup, website…*) for the rest.
+3. Pick a type. Every type sits under a category; use the search box
+   (*Search: switch, NAS, Docker, backup, website…*) and the filter chips
+   (category, no login needed, beta, community packs) to narrow the list. A
+   **Beta** badge marks an integration still being tested on real installations.
 4. A notice on the right (or above on a phone) lists what to prepare on the
    device. The form only shows the fields that matter for that type.
 5. Fill in the form and click **Add monitor**.

@@ -11822,6 +11822,11 @@ components:
             with whether the server found it in place. Omitted when the type needs nothing. The
             interface writes the sentences from `id` and shows the notice while `satisfied` is false.
           items: { $ref: "#/components/schemas/Requirement" }
+        beta:
+          type: boolean
+          description: >-
+            The integration is in beta: still being tested on real installations. Omitted when
+            false. The interface shows a badge on its tile.
     MetricDescription:
       type: object
       required: [name, kind]

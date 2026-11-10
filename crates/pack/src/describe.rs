@@ -51,6 +51,7 @@ impl Pack {
             metrics: Vec::new(),
             views: Vec::new(),
             requirements: Vec::new(),
+            beta: false,
         }
     }
 

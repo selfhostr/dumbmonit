@@ -3,68 +3,83 @@
 	/**
 	 * Step 1 of adding anything: what do you want to watch?
 	 *
-	 * A search box first, then the few things most people add (website, machine
-	 * with the agent, network device, hypervisor, NAS…), then every other kind
-	 * grouped by category and folded away. Typing searches the whole catalog and
-	 * lists the matches flat. The agent is one choice: what it reports is found
-	 * by search and detected once it runs. Every kind comes from
-	 * `GET /api/collectors`; only icons, groups and search words are ours.
+	 * A search box with filters (category, no login needed, beta, community
+	 * packs: all combine with the text), a two-line legend for the badges, then
+	 * every kind under its category. Every kind comes from `GET /api/collectors`;
+	 * only icons, categories and search words are ours. The agent is one choice:
+	 * what it reports is found by search and detected once it runs.
 	 * Arrow keys move between choices, Space/Enter select.
 	 */
-	import { Check, ChevronDown, Radar, Search } from 'lucide-svelte';
+	import { Check, Radar, Search, Upload, X } from 'lucide-svelte';
 	import type { CollectorInfo } from '#lib/api/index.js';
-	import { Plate } from '#lib/ui/index.js';
+	import { Chip, DocLink, Plate } from '#lib/ui/index.js';
 	import KindIcon from '#lib/components/KindIcon.svelte';
-	import { filterGroups, groupCollectors, POPULAR_KINDS, type ImportChoice, type KindChoice } from './kinds';
+	import { FACETS, passesFilters, type Facet } from './categories';
+	import { CATEGORY_ICON, categoryTitle, groupCollectors, matchesQuery, type ImportChoice, type KindChoice } from './kinds';
 
 	interface Props {
 		collectors: CollectorInfo[];
-		/** Listed in their own "Import" category, last, beside "Everything else". */
+		/** Listed in their own "Import" category, last. */
 		imports?: ImportChoice[];
 		/** Id of the current choice: a kind, or `agent:<feature>`. */
 		selected: string | null;
 		onselect: (kind: string, feature: string | null) => void;
 		/** Three columns on large screens, when nothing sits beside the picker. */
 		wide?: boolean;
-		/** Adds a "Scan the network" shortcut among the common choices. */
+		/** Adds a "Scan the network" shortcut at the head of the network category. */
 		onscan?: () => void;
-		/** Shown when the search finds nothing: a way out. */
+		/** Shown when nothing matches: a way out. */
 		empty?: import('svelte').Snippet<[string]>;
 	}
 
 	let { collectors, imports = [], selected, onselect, onscan, wide = false, empty }: Props = $props();
 
 	let query = $state('');
+	let categories = $state<Set<string>>(new Set());
+	let facets = $state<Set<Facet>>(new Set());
+
 	const groups = $derived(groupCollectors(collectors));
-	const visible = $derived(filterGroups(groups, query));
-	/** Typing searches the whole catalog, flat: no folded section hides a match. */
+	const all = $derived(groups.flatMap((g) => g.choices));
+	const hasBeta = $derived(all.some((c) => c.beta));
+	const hasPack = $derived(all.some((c) => c.pack));
 	const searching = $derived(query.trim().length > 0);
-	const popular = $derived(
-		POPULAR_KINDS.flatMap((kind) => groups.flatMap((g) => g.choices).filter((c) => c.id === kind))
+	const filtering = $derived(categories.size > 0 || facets.size > 0);
+	const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+	/** Matching the text and the facets, whatever the categories: what the chips count. */
+	const inScope = $derived(all.filter((c) => matchesQuery(c, query) && passesFilters(c, new Set(), facets)));
+	const importScope = $derived(
+		facets.size > 0 ? [] : imports.filter((i) => !searching || fold(`${i.label} ${i.summary}`).includes(fold(query.trim())))
 	);
-	const rest = $derived(
+	const counts = $derived.by(() => {
+		const n = new Map<string, number>();
+		for (const c of inScope) n.set(c.category, (n.get(c.category) ?? 0) + 1);
+		if (importScope.length > 0) n.set('import', importScope.length);
+		return n;
+	});
+
+	const sections = $derived(
 		groups
-			.map((g) => ({ ...g, choices: g.choices.filter((c) => !POPULAR_KINDS.includes(c.id)) }))
+			.map((g) => ({ ...g, choices: g.choices.filter((c) => inScope.includes(c) && passesFilters(c, categories, new Set())) }))
 			.filter((g) => g.choices.length > 0)
 	);
-	/** Which categories are open. Empty: every one starts folded. */
-	let expanded = $state<Set<string>>(new Set());
-	function toggleExpanded(id: string) {
-		const next = new Set(expanded);
-		if (next.has(id)) next.delete(id);
-		else next.add(id);
-		expanded = next;
-	}
-	const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-	/** Searching also finds the imports, by label or summary. */
-	const importMatches = $derived(
-		searching ? imports.filter((i) => fold(`${i.label} ${i.summary}`).includes(fold(query.trim()))) : imports
-	);
-	const flat = $derived<KindChoice[]>(
-		searching ? visible.flatMap((g) => g.choices) : [...popular, ...rest.filter((g) => expanded.has(g.id)).flatMap((g) => g.choices)]
-	);
+	const showImports = $derived(importScope.length > 0 && (categories.size === 0 || categories.has('import')));
+	const flat = $derived<KindChoice[]>(sections.flatMap((g) => g.choices));
+	/** The scan shortcut leads the network category when nothing narrows the list. */
+	const showScan = $derived(!!onscan && !searching && facets.size === 0 && (categories.size === 0 || categories.has('network')));
 	/** Roving tabindex: the selected choice, or the first one, is the tab stop. */
 	const tabStop = $derived(selected && flat.some((c) => c.id === selected) ? selected : flat[0]?.id);
+
+	function toggle<T>(set: Set<T>, value: T): Set<T> {
+		const next = new Set(set);
+		if (next.has(value)) next.delete(value);
+		else next.add(value);
+		return next;
+	}
+	function clearFilters() {
+		categories = new Set();
+		facets = new Set();
+	}
 
 	let host = $state<HTMLDivElement | null>(null);
 
@@ -113,7 +128,7 @@
 	}
 </script>
 
-<div class="grid gap-5">
+<div class="grid gap-4">
 	<div class="relative">
 		<Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" aria-hidden="true" />
 		<input
@@ -129,60 +144,100 @@
 		/>
 	</div>
 
-	{#if flat.length === 0 && (!searching || importMatches.length === 0)}
+	<div class="grid gap-2">
+		<div
+			role="group"
+			aria-label={m.deviceform_picker_categories_label()}
+			class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0"
+		>
+			{#each groups as group (group.id)}
+				{@const Icon = group.icon}
+				{@const n = counts.get(group.id) ?? 0}
+				<Chip pressed={categories.has(group.id)} disabled={n === 0 && !categories.has(group.id)} count={n} onclick={() => (categories = toggle(categories, group.id))}>
+					<Icon class="size-4 shrink-0" aria-hidden="true" />
+					{group.title}
+				</Chip>
+			{/each}
+			{#if imports.length > 0}
+				{@const n = counts.get('import') ?? 0}
+				<Chip pressed={categories.has('import')} disabled={n === 0 && !categories.has('import')} count={n} onclick={() => (categories = toggle(categories, 'import'))}>
+					<Upload class="size-4 shrink-0" aria-hidden="true" />
+					{m.deviceform_picker_import()}
+				</Chip>
+			{/if}
+		</div>
+		<div role="group" aria-label={m.deviceform_picker_facets_label()} class="flex flex-wrap items-center gap-2">
+			{#each FACETS as facet (facet)}
+				{#if facet === 'nologin' || (facet === 'beta' && hasBeta) || (facet === 'pack' && hasPack)}
+					<Chip pressed={facets.has(facet)} onclick={() => (facets = toggle(facets, facet))}>
+						{facet === 'nologin' ? m.deviceform_picker_facet_nologin() : facet === 'beta' ? m.deviceform_picker_facet_beta() : m.deviceform_picker_facet_pack()}
+					</Chip>
+				{/if}
+			{/each}
+			{#if filtering}
+				<button
+					type="button"
+					class="inline-flex min-h-10 items-center gap-1 rounded px-2 text-[0.8125rem] font-medium text-ink-2 hover:text-ink hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+					onclick={clearFilters}
+				>
+					<X class="size-3.5" aria-hidden="true" />
+					{m.deviceform_picker_clear()}
+				</button>
+			{/if}
+		</div>
+	</div>
+
+	<ul class="grid gap-1 text-[0.8125rem] leading-snug text-ink-2">
+		{#if hasBeta}
+			<li class="flex items-start gap-2">
+				<Plate tone="advisory" bare label={m.deviceform_picker_beta()} class="mt-px shrink-0" />
+				<span>{m.deviceform_picker_beta_note()}</span>
+			</li>
+		{/if}
+		<li class="flex items-start gap-2">
+			<Plate tone="info" bare label={m.deviceform_picker_pack()} class="mt-px shrink-0" />
+			<span class="grid">
+				{m.deviceform_picker_pack_note()}
+				<DocLink page="packs/" label={m.deviceform_picker_pack_learn()} />
+			</span>
+		</li>
+	</ul>
+
+	{#if flat.length === 0 && !showImports}
 		<div class="rounded-[var(--radius-card)] border border-dashed border-line px-4 py-6 text-center">
-			<p class="text-sm text-ink">{m.deviceform_picker_no_match({ query: query.trim() })}</p>
-			{#if empty}{@render empty(query.trim())}{/if}
+			<p class="text-sm text-ink">{searching ? m.deviceform_picker_no_match({ query: query.trim() }) : m.deviceform_picker_no_match_filters()}</p>
+			{#if filtering}
+				<button type="button" class="mt-2 min-h-10 text-sm font-medium text-signal-ink hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal" onclick={clearFilters}>
+					{m.deviceform_picker_clear()}
+				</button>
+			{/if}
+			{#if empty && searching}{@render empty(query.trim())}{/if}
 		</div>
 	{:else}
-		<div bind:this={host} role="radiogroup" aria-label={m.deviceform_picker_group_label()} class="grid gap-5">
-			{#if searching}
-				{#if flat.length > 0}{@render tiles(flat)}{/if}
-				{#if importMatches.length > 0}{@render importTiles(importMatches)}{/if}
-			{:else}
-				<section aria-labelledby="picker-popular">
-					<h3 id="picker-popular" class="label-tape mb-2">{m.deviceform_picker_popular()}</h3>
-					{@render tiles(popular, true)}
+		<div bind:this={host} role="radiogroup" aria-label={m.deviceform_picker_group_label()} class="grid gap-6">
+			{#each sections as group (group.id)}
+				{@const Icon = group.icon}
+				<section aria-labelledby={`picker-cat-${group.id}`}>
+					<h3 id={`picker-cat-${group.id}`} class="mb-2.5 flex items-center gap-2.5 text-[0.9375rem] font-semibold text-ink">
+						<span class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-ink-2"><Icon class="size-4" aria-hidden="true" /></span>
+						{group.title}
+						<span class="text-[0.8125rem] font-normal tabular-nums text-ink-3">{group.choices.length}</span>
+						<span class="h-px min-w-4 flex-1 bg-line" aria-hidden="true"></span>
+					</h3>
+					{@render tiles(group.choices, group.id === 'network' && showScan)}
 				</section>
-				<div class="grid gap-1 border-t border-line pt-3">
-					<h3 class="label-tape mb-1">{m.deviceform_picker_more()}</h3>
-					{#each rest as group (group.id)}
-						{@const open = expanded.has(group.id)}
-						<section>
-							<button
-								type="button"
-								class="flex min-h-10 w-full items-center gap-2 rounded text-left text-sm font-semibold text-ink-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-								aria-expanded={open}
-								onclick={() => toggleExpanded(group.id)}
-							>
-								<ChevronDown class={`size-4 shrink-0 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} aria-hidden="true" />
-								<span>{group.title} ({group.choices.length})</span>
-								{#if group.hint}<span class="hidden min-w-0 truncate font-normal text-ink-3 sm:inline">{group.hint}</span>{/if}
-							</button>
-							{#if open}
-								<div class="mt-2 mb-3">{@render tiles(group.choices)}</div>
-							{/if}
-						</section>
-					{/each}
-					{#if imports.length > 0}
-						{@const open = expanded.has('import')}
-						<section>
-							<button
-								type="button"
-								class="flex min-h-10 w-full items-center gap-2 rounded text-left text-sm font-semibold text-ink-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-								aria-expanded={open}
-								onclick={() => toggleExpanded('import')}
-							>
-								<ChevronDown class={`size-4 shrink-0 transition-transform duration-200 ${open ? '' : '-rotate-90'}`} aria-hidden="true" />
-								<span>{m.deviceform_picker_import()} ({imports.length})</span>
-								<span class="hidden min-w-0 truncate font-normal text-ink-3 sm:inline">{m.deviceform_picker_import_hint()}</span>
-							</button>
-							{#if open}
-								<div class="mt-2 mb-3">{@render importTiles(imports)}</div>
-							{/if}
-						</section>
-					{/if}
-				</div>
+			{/each}
+			{#if showImports}
+				<section aria-labelledby="picker-cat-import">
+					<h3 id="picker-cat-import" class="mb-2.5 flex items-center gap-2.5 text-[0.9375rem] font-semibold text-ink">
+						<span class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-ink-2"><Upload class="size-4" aria-hidden="true" /></span>
+						{m.deviceform_picker_import()}
+						<span class="text-[0.8125rem] font-normal tabular-nums text-ink-3">{importScope.length}</span>
+						<span class="h-px min-w-4 flex-1 bg-line" aria-hidden="true"></span>
+					</h3>
+					<p class="mb-2 text-[0.8125rem] text-ink-3">{m.deviceform_picker_import_hint()}</p>
+					{@render importTiles(importScope)}
+				</section>
 			{/if}
 		</div>
 	{/if}
@@ -190,6 +245,24 @@
 
 {#snippet tiles(items: KindChoice[], withScan = false)}
 	<ul class={`grid gap-2 sm:grid-cols-2 ${wide ? 'xl:grid-cols-3' : ''}`}>
+		{#if withScan && onscan}
+			<li class="min-w-0">
+				<button
+					type="button"
+					data-choice="scan"
+					onclick={onscan}
+					class="flex h-full w-full items-start gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-3.5 py-3 text-left transition-[transform,box-shadow,border-color] duration-200 ease-out-expo hover:-translate-y-px hover:border-line-strong hover:shadow-float focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
+				>
+					<span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface-2 text-ink-2">
+						<Radar class="size-4" aria-hidden="true" />
+					</span>
+					<span class="min-w-0 flex-1">
+						<span class="text-[0.9375rem] leading-tight font-semibold text-ink">{m.deviceform_new_scan()}</span>
+						<span class="mt-1 line-clamp-2 block text-[0.8125rem] leading-snug text-ink-2">{m.deviceform_new_door_scan_desc()}</span>
+					</span>
+				</button>
+			</li>
+		{/if}
 		{#each items as choice, i (choice.id)}
 			{@const Icon = choice.icon}
 			{@const active = choice.id === selected}
@@ -223,7 +296,8 @@
 					<span class="min-w-0 flex-1 pr-5">
 						<span class="flex flex-wrap items-center gap-x-2 gap-y-1">
 							<span class="text-[0.9375rem] leading-tight font-semibold text-ink">{choice.label}</span>
-							{#if choice.pack}<Plate tone="info" label={m.deviceform_picker_pack()} title={m.deviceform_picker_pack_title()} />{/if}
+							{#if choice.beta}<Plate tone="advisory" bare label={m.deviceform_picker_beta()} title={m.deviceform_picker_beta_title()} />{/if}
+							{#if choice.pack}<Plate tone="info" bare label={m.deviceform_picker_pack()} title={m.deviceform_picker_pack_title()} />{/if}
 						</span>
 						{#if choice.summary}
 							<span class="mt-1 line-clamp-2 text-[0.8125rem] leading-snug text-ink-2">{choice.summary}</span>
@@ -237,24 +311,6 @@
 				</button>
 			</li>
 		{/each}
-		{#if withScan && onscan}
-			<li class="min-w-0">
-				<button
-					type="button"
-					data-choice="scan"
-					onclick={onscan}
-					class="flex h-full w-full items-start gap-3 rounded-[var(--radius-card)] border border-line bg-surface px-3.5 py-3 text-left transition-[transform,box-shadow,border-color] duration-200 ease-out-expo hover:-translate-y-px hover:border-line-strong hover:shadow-float focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-				>
-					<span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface-2 text-ink-2">
-						<Radar class="size-4" aria-hidden="true" />
-					</span>
-					<span class="min-w-0 flex-1">
-						<span class="text-[0.9375rem] leading-tight font-semibold text-ink">{m.deviceform_new_scan()}</span>
-						<span class="mt-1 line-clamp-2 block text-[0.8125rem] leading-snug text-ink-2">{m.deviceform_new_door_scan_desc()}</span>
-					</span>
-				</button>
-			</li>
-		{/if}
 	</ul>
 {/snippet}
 

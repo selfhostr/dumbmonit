@@ -7,6 +7,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- **A clearer "Add a monitor" screen.** The "Most common" block is gone: every integration now sits
+  under a category (servers, network, virtualization, storage, databases, web, checks, mail, metrics
+  and logs, security, cloud, apps, media and home, community packs). The search box has filter chips
+  that combine with the text: by category, no login needed, beta and community packs. A beta
+  integration shows a **Beta** badge instead of "(beta)" in its name, a line at the top explains it,
+  and community packs get their own badge and a short explanation with a link to the docs. The
+  catalogue (`GET /api/collectors`) gains a `beta` field.
 - **One typeface family everywhere: Inter and JetBrains Mono.** The console, the status pages, the
   topology exports and the documentation now use Inter (headings in semibold) and JetBrains Mono
   for code and figures, replacing Geist and Bricolage Grotesque. Both are open source (SIL OFL 1.1)

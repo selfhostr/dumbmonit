@@ -83,7 +83,7 @@ import {
 } from 'lucide-svelte';
 import type { CollectorInfo } from '#lib/api/index.js';
 import { isPackKind } from '#lib/api/packs.js';
-import { isUptimeKind, PUSH_KIND } from '#lib/format.js';
+import { CATEGORY_IDS, categoryOf, needsLogin, rankInCategory, type CategoryId, type Filterable } from './categories';
 import { AGENT_SERVICE_KIND } from '#lib/components/devices/agent/services.js';
 
 const KIND_ICON: Record<string, typeof LucideIcon> = {
@@ -206,18 +206,6 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 export function kindIcon(kind: string): typeof LucideIcon {
 	return KIND_ICON[kind] ?? (isPackKind(kind) ? Puzzle : Server);
 }
-
-/** Kinds that describe a machine the collector polls, in display order. */
-const DEVICE_KINDS = ['snmp', 'netconfig', 'proxmox', 'vsphere', 'xcpng', 'nutanix', 'pbs', 'pdm', 'pmg', 'synology', 'truenas', 'unraid', 'opnsense', 'pfsense', 'fortigate', 'sophos', 'openvpn', 'unifi', 'omada', 'meraki', 'homeassistant', 'mikrotik', 'nut', 'redfish', 'pihole', 'adguard', 'mdaemon', 'securitygateway', 'victoriametrics', 'victorialogs', 'loki', 'graylog', 'nextcloud', 'immich', 'paperless', 'jellyfin', 'plex', 'gitlab', 'forgejo', 'sonarr', 'radarr', 'lidarr', 'prowlarr', 'qbittorrent', 'unifiprotect', 'frigate', 'keycloak', 'authentik', 'vaultwarden', 'mailcow', 'redis', 'mongodb', 'rabbitmq', 'mssql', 'oracle', 'elasticsearch', 'influxdb', 'kafka', 'crowdsec', 'traefik', 'caddy', 'prometheus', 'otlp', 'nginx', 'apache', 'npm', 'kubernetes', 'activedirectory', 'winrm', 'veeam', 'tailscale', 'arubacentral', 'paloalto', 'sonicwall', 'qnap', 'ceph', 'minio', 'kopia', 'duplicati', 'm365', 'entra', 'azure', 'aws', 'cloudflare', 'hetzner', 'ovh', 'infomaniak'];
-
-/** Services in display order: the everyday checks first, the specialised ones after. */
-const SERVICE_KINDS = ['http', 'ping', 'tcp', 'dns', 'tls', 'ntp', 'domain', 'provider', 'mail_blacklist', 'ip_blacklist', 'push', 'smtp', 'postgres', 'mysql', 'mqtt', 'websocket', 'udp', 'ssh', 'imap', 'pop3', 'snmp_oid', 'radius', 'grpc'];
-
-/** A domain's registration, read over RDAP: a service, polled rarely. */
-const DOMAIN_KIND = 'domain';
-
-/** DNS blocklist checks: services too, polled rarely (every 6 hours by default). */
-const BLOCKLIST_KINDS = ['mail_blacklist', 'ip_blacklist'];
 
 /**
  * Words people type that the label does not contain. The search also reads
@@ -463,7 +451,7 @@ export function agentFeature(id: string | null | undefined): AgentFeature | null
 }
 
 /** One entry of the picker: a kind, or a shortcut into the agent. */
-export interface KindChoice {
+export interface KindChoice extends Filterable {
 	/** Unique: the kind, or `agent:<feature>`. */
 	id: string;
 	/** The kind the choice selects. */
@@ -473,17 +461,14 @@ export interface KindChoice {
 	label: string;
 	summary: string;
 	icon: typeof LucideIcon;
-	/** Added by an integration pack (`pack.<id>`), not built into the server. */
-	pack: boolean;
 	/** Lower-case words the search matches against. */
 	haystack: string;
 }
 
 export interface KindGroup {
-	id: 'devices' | 'services' | 'packs' | 'other';
+	id: CategoryId;
 	title: string;
-	/** One line under the title saying how this group is collected. */
-	hint: string;
+	icon: typeof LucideIcon;
 	choices: KindChoice[];
 }
 
@@ -494,7 +479,63 @@ function fold(text: string): string {
 		.toLowerCase();
 }
 
-function kindChoice(c: CollectorInfo, groupTitle: string): KindChoice {
+/** Icon of each category, for its header and its filter chip. */
+export const CATEGORY_ICON: Record<CategoryId, typeof LucideIcon> = {
+	machines: Cpu,
+	network: Network,
+	virtualization: Boxes,
+	storage: HardDrive,
+	databases: Database,
+	web: Globe,
+	checks: HeartPulse,
+	mail: Mail,
+	observability: ChartLine,
+	security: ShieldCheck,
+	cloud: Cloud,
+	apps: LayoutGrid,
+	media: Tv,
+	packs: Puzzle,
+	other: Server
+};
+
+/** Translated title of a category. */
+export function categoryTitle(id: CategoryId): string {
+	switch (id) {
+		case 'machines':
+			return m.deviceform_cat_machines();
+		case 'network':
+			return m.deviceform_cat_network();
+		case 'virtualization':
+			return m.deviceform_cat_virtualization();
+		case 'storage':
+			return m.deviceform_cat_storage();
+		case 'databases':
+			return m.deviceform_cat_databases();
+		case 'web':
+			return m.deviceform_cat_web();
+		case 'checks':
+			return m.deviceform_cat_checks();
+		case 'mail':
+			return m.deviceform_cat_mail();
+		case 'observability':
+			return m.deviceform_cat_observability();
+		case 'security':
+			return m.deviceform_cat_security();
+		case 'cloud':
+			return m.deviceform_cat_cloud();
+		case 'apps':
+			return m.deviceform_cat_apps();
+		case 'media':
+			return m.deviceform_cat_media();
+		case 'packs':
+			return m.deviceform_cat_packs();
+		case 'other':
+			return m.deviceform_cat_other();
+	}
+}
+
+function kindChoice(c: CollectorInfo): KindChoice {
+	const category = categoryOf(c.kind);
 	return {
 		id: c.kind,
 		kind: c.kind,
@@ -502,102 +543,73 @@ function kindChoice(c: CollectorInfo, groupTitle: string): KindChoice {
 		label: kindLabel(c.kind, c.label),
 		summary: c.summary,
 		icon: kindIcon(c.kind),
+		category,
 		pack: isPackKind(c.kind),
+		beta: c.beta === true,
+		noLogin: !needsLogin(c.credential_types),
 		haystack: fold(
-			[c.label, c.kind, c.summary, c.examples.join(' '), KIND_KEYWORDS[c.kind] ?? (isPackKind(c.kind) ? 'pack community' : ''), groupTitle].join(' ')
+			[c.label, c.kind, c.summary, c.examples.join(' '), KIND_KEYWORDS[c.kind] ?? (isPackKind(c.kind) ? 'pack community' : ''), categoryTitle(category), c.beta ? 'beta' : ''].join(' ')
 		)
 	};
 }
 
 /**
- * Splits the server's kinds into "Devices" (the agent and the relay first),
- * "Services", "Community packs" and "Other".
- *
- * Known device kinds keep a fixed order so the picker reads the same on every
- * instance;
- * services are recognised by `isUptimeKind`; kinds added by an integration
- * pack (`pack.<id>`) have their own group, by label; anything else (a demo collector,
- * a kind added by a newer server) lands in "Other" untouched.
+ * Sorts the server's kinds into categories (see `categories.ts`), in a fixed
+ * order so the picker reads the same on every instance. The agent is one
+ * choice, with the relay and the Active Directory rollout beside it: what it
+ * reports (Docker, disks, backups…) is found by search, then detected once it
+ * runs. A kind this build does not know lands in "Other", untouched; kinds
+ * added by integration packs are in "Community packs", by label.
  */
 export function groupCollectors(collectors: CollectorInfo[]): KindGroup[] {
-	const DEVICES = m.deviceform_group_devices();
-	const AGENT = m.deviceform_group_agent();
-	const SERVICES = m.deviceform_group_services();
-	const PACKS = m.deviceform_group_packs();
-	const OTHER = m.deviceform_group_other();
-	const devices = collectors
-		.filter((c) => DEVICE_KINDS.includes(c.kind))
-		.sort((a, b) => DEVICE_KINDS.indexOf(a.kind) - DEVICE_KINDS.indexOf(b.kind))
-		.map((c) => kindChoice(c, DEVICES));
 	const agent = collectors.find((c) => c.kind === AGENT_KIND);
-	// The agent is one choice: what it reports (Docker, disks, backups…) is found
-	// by search, then detected once it runs. Only the relay and the AD rollout are different things.
-	const agentChoices: KindChoice[] = agent
-		? [
-				{
-					...kindChoice(agent, AGENT),
-					haystack: fold(
-						[agent.label, agent.kind, agent.summary, KIND_KEYWORDS.agent, AGENT_FEATURES.map((f) => `${f.label} ${f.keywords}`).join(' '), AGENT].join(' ')
-					)
-				}
-			]
-		: [];
-	// Relay and Active Directory deployment are not machines to watch: their own entries.
-	const specialChoices: KindChoice[] = agent
-		? AGENT_FEATURES.filter((f) => f.id === 'relay' || f.id === 'ad').map((f) => ({
+	const machines = categoryTitle('machines');
+	const choices: KindChoice[] = collectors
+		// A service an agent found is created by its agent, never from the form.
+		.filter((c) => c.kind !== AGENT_SERVICE_KIND)
+		.map((c) =>
+			c.kind === AGENT_KIND
+				? {
+						...kindChoice(c),
+						haystack: fold(
+							[c.label, c.kind, c.summary, KIND_KEYWORDS.agent, AGENT_FEATURES.map((f) => `${f.label} ${f.keywords}`).join(' '), machines].join(' ')
+						)
+					}
+				: kindChoice(c)
+		);
+	if (agent) {
+		// Relay and Active Directory deployment are not machines to watch: their own entries.
+		for (const f of AGENT_FEATURES.filter((f) => f.id === 'relay' || f.id === 'ad')) {
+			choices.push({
 				id: `${AGENT_KIND}:${f.id}`,
 				kind: AGENT_KIND,
 				feature: f.id,
 				label: f.label,
 				summary: f.summary,
 				icon: f.icon,
+				category: 'machines',
 				pack: false,
-				haystack: fold([f.label, f.summary, f.keywords, 'agent', DEVICES].join(' '))
-			}))
-		: [];
-	// Heartbeats and domain registrations sit with the services: they watch
-	// a job or a name, not a machine.
-	const isService = (kind: string) =>
-		isUptimeKind(kind) || kind === PUSH_KIND || kind === DOMAIN_KIND || BLOCKLIST_KINDS.includes(kind);
-	// Fixed order, most asked first; a service kind this build does not know goes last.
-	const rank = (kind: string) => {
-		const i = SERVICE_KINDS.indexOf(kind);
-		return i === -1 ? SERVICE_KINDS.length : i;
-	};
-	const services = collectors
-		.filter((c) => isService(c.kind))
-		.sort((a, b) => rank(a.kind) - rank(b.kind))
-		.map((c) => kindChoice(c, SERVICES));
-	const packs = collectors
-		.filter((c) => isPackKind(c.kind))
-		.sort((a, b) => a.label.localeCompare(b.label))
-		.map((c) => kindChoice(c, PACKS));
-	const other = collectors
-		// A service an agent found is created by its agent, never from the form.
-		.filter((c) => !DEVICE_KINDS.includes(c.kind) && c.kind !== AGENT_KIND && c.kind !== AGENT_SERVICE_KIND && !isService(c.kind) && !isPackKind(c.kind))
-		.map((c) => kindChoice(c, OTHER));
-	const groups: KindGroup[] = [
-		{ id: 'devices', title: DEVICES, hint: m.deviceform_group_devices_hint(), choices: [...agentChoices, ...specialChoices, ...devices] },
-		{ id: 'services', title: SERVICES, hint: m.deviceform_group_services_hint(), choices: services },
-		{ id: 'packs', title: PACKS, hint: m.deviceform_group_packs_hint(), choices: packs },
-		{ id: 'other', title: OTHER, hint: '', choices: other }
-	];
-	return groups.filter((group) => group.choices.length > 0);
+				beta: false,
+				noLogin: true,
+				haystack: fold([f.label, f.summary, f.keywords, 'agent', machines].join(' '))
+			});
+		}
+	}
+	choices.sort((a, b) => rankInCategory(a.id) - rankInCategory(b.id) || a.label.localeCompare(b.label));
+	return CATEGORY_IDS.map((id) => ({
+		id,
+		title: categoryTitle(id),
+		icon: CATEGORY_ICON[id],
+		choices: choices.filter((c) => c.category === id)
+	})).filter((group) => group.choices.length > 0);
 }
 
-/** Choices promoted above the categories, in order; the ones this server lacks are skipped. */
-export const POPULAR_KINDS = ['http', 'ping', 'agent', 'snmp', 'proxmox', 'synology'];
-
-/**
- * Keeps the choices matching every word of `query`, dropping empty groups.
- * An empty query keeps everything.
- */
-export function filterGroups(groups: KindGroup[], query: string): KindGroup[] {
-	const words = fold(query).split(/\s+/).filter(Boolean);
-	if (words.length === 0) return groups;
-	return groups
-		.map((group) => ({ ...group, choices: group.choices.filter((c) => words.every((w) => c.haystack.includes(w))) }))
-		.filter((group) => group.choices.length > 0);
+/** Whether a choice matches every word of `query` (an empty query matches everything). */
+export function matchesQuery(choice: KindChoice, query: string): boolean {
+	return fold(query)
+		.split(/\s+/)
+		.filter(Boolean)
+		.every((w) => choice.haystack.includes(w));
 }
 
 /** The kind that enrols itself: no address form, an install command instead. */

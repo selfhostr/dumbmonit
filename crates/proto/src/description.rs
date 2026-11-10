@@ -55,6 +55,10 @@ pub struct KindDescription {
     /// du JSON quand il n'y en a aucun.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub requirements: Vec<Requirement>,
+    /// Intégration en bêta : encore en cours de test sur de vraies installations.
+    /// Absent du JSON pour un type stable.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub beta: bool,
 }
 
 /// Ce qu'un collecteur déclare de ses mesures : les familles et les vues qui les
