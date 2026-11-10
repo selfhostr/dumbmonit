@@ -43,6 +43,9 @@ REST API (`/api/vcenter/*`): у отдельного хоста ESXi нет REST
 | `vm_power_state` | 0 включена, 1 выключена, 2 приостановлена; не более 1000 ВМ | `vm` |
 | `vm_status` | общее состояние | `vm` |
 | `vm_tools_status` | только включённые ВМ: 0 актуальна, 1 устаревшая версия, 2 установлена, но не запущена, 3 не установлена | `vm` |
+| `vm_snapshots` | число снимков ВМ; только для ВМ, у которой есть хотя бы один | `vm` |
+| `vm_snapshot_oldest_age_seconds` | возраст самого старого снимка ВМ; только для ВМ, у которой есть хотя бы один | `vm` |
+| `vm_consolidation_needed` | 1, когда vSphere сообщает, что диски ВМ требуют консолидации | `vm` |
 | `datastores` | хранилища данных | |
 | `datastore_capacity_bytes`, `datastore_free_bytes`, `datastore_used_percent` | | `datastore` |
 | `datastore_accessible` | 1 доступно, 0 недоступно | `datastore` |
@@ -52,10 +55,21 @@ REST API (`/api/vcenter/*`): у отдельного хоста ESXi нет REST
 | `alarm` | одна серия на каждую неподтверждённую тревогу, значение = её код состояния, не более 64 | `alarm` (её имя), `entity`, `entity_type`, `status` |
 | `scrape_errors` | вызовы, завершившиеся ошибкой при последнем опросе | |
 
-Применяемые [встроенные правила](../alerting/rules.md#vmware-vsphere): vSphere
-host not responding, vSphere host health red, vSphere host left in
-maintenance, vSphere datastore almost full, vSphere datastore inaccessible,
-vSphere VM tools not running, vSphere red alarm, а также Monitor unreachable.
+Снимки читаются из дерева снимков каждой ВМ, за тот же проход, что и остальной инвентарь. DumbMonit хранит их число и дату самого старого, но никогда не их имена. У ВМ без снимков нет рядов о снимках.
+
+Применяемые [встроенные правила](../alerting/rules.md#vmware-vsphere):
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| vSphere host not responding | Хост vSphere не отвечает vCenter (`dumbmonit_vsphere_host_connection_state`: 2 не отвечает). Намеренно отключённый хост (1) не вызывает срабатывания. | ≥ 2 | 3 мин | Warning (`critical`) | 1 ч |
+| vSphere host health red | vSphere сообщает общее состояние хоста как красное (`dumbmonit_vsphere_host_status == 2`). Серый означает неизвестно и не вызывает срабатывания. | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| vSphere host left in maintenance | Хост vSphere находится в режиме обслуживания сутки: его ВМ перенесены, и о нём могли забыть (`dumbmonit_vsphere_host_maintenance`). | > 0 | 24 ч | Info (`info`) | 24 ч |
+| vSphere datastore almost full | Хранилище данных vSphere заполнено на 90% или более (`dumbmonit_vsphere_datastore_used_percent`); сбрасывается ниже 85 %. | ≥ 90 % | 15 мин | Advisory (`warning`), эскалируется через 24 ч | 6 ч |
+| vSphere datastore inaccessible | Хранилище данных vSphere недоступно: хранящиеся на нём ВМ не могут работать (`dumbmonit_vsphere_datastore_accessible`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
+| vSphere VM tools not running | VMware Tools установлены, но не запущены во включённой ВМ: гость, возможно, завис (`dumbmonit_vsphere_vm_tools_status == 2`). ВМ без Tools не вызывают срабатывания. | > 0 | 30 мин | Info (`info`) | 24 ч |
+| vSphere red alarm | vSphere поднял красную тревогу, которую никто не подтвердил (`dumbmonit_vsphere_alarm{status="red"}`, один ряд на тревогу, названный по тревоге и объекту). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| vSphere VM snapshot too old | Самому старому снимку ВМ больше трёх дней: снимки растут, замедляют ВМ и могут заполнить datastore. VMware рекомендует не хранить ни одного дольше 72 часов (`dumbmonit_vsphere_vm_snapshot_oldest_age_seconds`). | > 3 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| vSphere VM disks need consolidation | vSphere сообщает, что диски ВМ требуют консолидации: после удаления снимка остались delta-файлы, и они продолжают расти (`dumbmonit_vsphere_vm_consolidation_needed`). | > 0 | 1 ч | Advisory (`warning`) | 24 ч |
 
 ## Страница монитора
 
@@ -101,3 +115,11 @@ API.
 Адрес: имя хоста или IP (`vcenter.lan`), `host:port` или полный URL; завершающий
 `/sdk` или `/ui` допускается. Параметры: порт (443), проверка сертификата,
 тайм-аут запроса (20 с) и сработавшие тревоги (читать).
+
+## Известные ограничения
+
+- Срок действия лицензий не читается: роль «Только чтение» лицензий не видит.
+- Не более 1000 ВМ и 64 тревог описываются по одной.
+- Счётчиков производительности по ВМ нет (процессор, память, задержка диска): DumbMonit читает инвентарь и его состояния.
+- Вентиляторы, блоки питания и температуры видны только через общее состояние хоста и тревоги, которые поднимает vSphere.
+- Снимки и консолидация построены по документированной структуре API и пока не проверены на настоящем vCenter.

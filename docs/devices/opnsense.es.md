@@ -228,6 +228,41 @@ del renombrado.
 | `firmware` | Watch for updates | `true` | Lee el resultado de la última comprobación de actualización del cortafuegos y si hay un reinicio pendiente. |
 | `temperature` | Read the temperature sensors | `true` | Lee los sensores de CPU y placa que expone el cortafuegos. |
 
+## Reglas de alerta integradas
+
+Estas reglas vienen con DumbMonit y están activas desde el principio. Cada una se puede editar o desactivar en Alertas; la [referencia de reglas integradas](../alerting/rules.md#opnsense) enumera todas las reglas de todas las integraciones.
+
+| Regla | Qué | Umbral por defecto | Espera | Severidad | Recordatorio |
+|---|---|---|---|---|---|
+| Internet gateway down | dpinger ya no obtiene respuesta de un gateway (`dumbmonit_opnsense_gateway_up`). En un cortafuegos multi-WAN el tráfico ya se movió a otro enlace, silenciosamente. `loss` y `delay` son avisos, no fallos, y no activan esta regla. | < 1 | 5 min | Warning (`critical`) | 6 h |
+| Gateway losing packets | Un gateway pierde más de un quinto de los paquetes enviados a él (`dumbmonit_opnsense_gateway_loss_percent`): el enlace responde, mal. Se limpia por debajo del 10 %. | > 20 % | 10 min | Advisory (`warning`) | 6 h |
+| Gateway slow | El tiempo de ida y vuelta de un gateway se ha mantenido por encima de 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Trescientos milisegundos deja en paz un enlace de respaldo móvil. | > 300 ms | 15 min | Info (`info`) | 12 h |
+| Firewall state table filling up | pf está rastreando más del 80 % de las conexiones que se le permiten (`dumbmonit_opnsense_pf_states_used_percent`). Más allá del límite el cortafuegos descarta conexiones nuevas sin ningún otro síntoma. | > 80 % | 10 min | Advisory (`warning`) | 6 h |
+| Firewall network buffers exhausted | Más del 90 % de los buffers de red de FreeBSD están en uso (`dumbmonit_opnsense_mbuf_used_percent`). Un cortafuegos que se agota deja de reenviar con la CPU todavía inactiva. | > 90 % | 10 min | Advisory (`warning`) | 6 h |
+| VPN tunnel down | Un túnel VPN configurado no ha tenido ninguna sesión durante diez minutos (`dumbmonit_opnsense_vpn_tunnel_up`). Un plugin no instalado, o una conexión desactivada, no tiene serie y no puede activarse. | < 1 | 10 min | Advisory (`warning`) | 6 h |
+| Firewall resolver stopped | Unbound dejó de responder (`dumbmonit_opnsense_unbound_running`). El cortafuegos sigue enrutando; las máquinas detrás de él ya no resuelven. Desactiva esta regla si tu cortafuegos resuelve con otra cosa. | < 1 | 5 min | Advisory (`warning`) | 6 h |
+| Firewall core service stopped | dpinger, que vigila los gateways, o configd, que ejecuta todo lo demás, está detenido (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Solo esos dos, porque un servicio apagado a propósito no es un fallo. | < 1 | 5 min | Warning (`critical`) | 6 h |
+| Firewall too hot | Un sensor lee por encima de 85 °C (`dumbmonit_opnsense_temperature_celsius`): la caja sin ventilador en el armario está a punto de empezar a limitarse. Se limpia a 78 °C. | > 85 °C | 10 min | Advisory (`warning`) | 6 h |
+| Firewall left in CARP maintenance mode | CARP se dejó en modo de mantenimiento persistente (`dumbmonit_opnsense_carp_maintenance_mode`): este cortafuegos entregó sus direcciones virtuales a su pareja y no las recuperará por sí mismo. | > 0 | 1 h | Info (`info`) | 24 h |
+| Firewall reboot pending | Una actualización está instalada pero necesita un reinicio para aplicarse (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Info (`info`) | 7 d |
+| Firewall updates pending | El cortafuegos tiene paquetes esperando actualización (`dumbmonit_opnsense_firmware_updates_pending`). Es la máquina más expuesta de la red. | > 0 | 1 h | Info (`info`) | 7 d |
+| OPNsense certificate expiring | Un certificado que usa el cortafuegos (interfaz web, portal cautivo, VPN) caduca en menos de 14 días (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 d | 1 h | Advisory (`warning`) | 24 h |
+| OPNsense certificate expired | Un certificado que usa el cortafuegos ha caducado: los clientes ahora lo rechazan (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Warning (`critical`) | 12 h |
+| OPNsense disk almost full | El disco del cortafuegos está lleno en más de un 90 %: los registros, las capturas y las actualizaciones fallarán. Se resuelve por debajo del 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Advisory (`warning`) | 12 h |
+| OPNsense CPU high | El procesador del cortafuegos se ha mantenido por encima del 90 % durante quince minutos. Se resuelve por debajo del 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Advisory (`warning`) | 6 h |
+| OPNsense swap in use | El cortafuegos lleva una hora usando más de la mitad de su swap: le falta memoria (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Advisory (`warning`) | 24 h |
+| OPNsense packet filter disabled | El filtro de paquetes (pf) está desactivado: el cortafuegos ya no filtra ni traduce nada (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Warning (`critical`) | 1 h |
+| OPNsense interface errors | Una interfaz ha registrado más de 100 errores de recepción o de transmisión en quince minutos: revise el cable, el módulo SFP y el ajuste de dúplex (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Advisory (`warning`) | 24 h |
+| OPNsense update mirror unreachable | El cortafuegos lleva doce horas sin poder alcanzar su servidor espejo de actualizaciones: no se enterará de las actualizaciones de seguridad (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Info (`info`) | 7 d |
+
+## Límites conocidos
+
+- La comprobación de actualizaciones nunca se lanza: DumbMonit lee el resultado de la última comprobación que hizo el propio cortafuegos. Un cortafuegos que nunca ha comprobado no dice nada sobre actualizaciones.
+- Como máximo 64 series por familia: puertas de enlace, interfaces, servicios, túneles, particiones, sensores.
+- Un plugin que no está instalado (WireGuard, OpenVPN, IPsec, Unbound, Kea) no hace ruido: ni serie, ni regla, ni error.
+- Las sesiones VPN y las concesiones DHCP se cuentan, nunca se enumeran: no se lee ninguna dirección de cliente ni ningún nombre de host.
+- Los certificados que OPNsense marca como no usados se ignoran.
+
 ## Errores comunes {#common-errors}
 
 | Síntoma | Causa probable |

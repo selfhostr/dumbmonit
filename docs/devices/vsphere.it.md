@@ -45,6 +45,9 @@ Tutte le metriche hanno il prefisso `dumbmonit_vsphere_`. I valori di salute seg
 | `vm_power_state` | 0 accesa, 1 spenta, 2 sospesa; al massimo 1000 VM | `vm` |
 | `vm_status` | salute complessiva | `vm` |
 | `vm_tools_status` | solo VM accese: 0 aggiornate, 1 versione obsoleta, 2 installate ma non in esecuzione, 3 non installate | `vm` |
+| `vm_snapshots` | numero di snapshot della VM; solo per una VM che ne ha almeno uno | `vm` |
+| `vm_snapshot_oldest_age_seconds` | età dello snapshot più vecchio della VM; solo per una VM che ne ha almeno uno | `vm` |
+| `vm_consolidation_needed` | 1 quando vSphere segnala che i dischi della VM hanno bisogno di un consolidamento | `vm` |
 | `datastores` | datastore | |
 | `datastore_capacity_bytes`, `datastore_free_bytes`, `datastore_used_percent` | | `datastore` |
 | `datastore_accessible` | 1 accessibile, 0 inaccessibile | `datastore` |
@@ -54,10 +57,21 @@ Tutte le metriche hanno il prefisso `dumbmonit_vsphere_`. I valori di salute seg
 | `alarm` | una serie per allarme non riconosciuto, valore = il suo codice di salute, al massimo 64 | `alarm` (il suo nome), `entity`, `entity_type`, `status` |
 | `scrape_errors` | chiamate che hanno fallito durante l'ultimo probe | |
 
-Le [regole integrate](../alerting/rules.md#vmware-vsphere) che si applicano: host vSphere
-non rispondente, salute host vSphere rossa, host vSphere lasciato in
-manutenzione, datastore vSphere quasi pieno, datastore vSphere inaccessibile,
-VM vSphere tools non in esecuzione, allarme vSphere rosso, più monitor irraggiungibile.
+Gli snapshot vengono letti dall'albero degli snapshot di ogni VM, nello stesso passaggio del resto dell'inventario. DumbMonit conserva il loro numero e la data del più vecchio, mai i loro nomi. Una VM senza snapshot non ha nessuna serie di snapshot.
+
+Le [regole integrate](../alerting/rules.md#vmware-vsphere) che si applicano:
+
+| Regola | Cosa | Soglia predefinita | Mantenimento | Gravità | Promemoria |
+|---|---|---|---|---|---|
+| Host vSphere non risponde | Un host vSphere non risponde a vCenter (`dumbmonit_vsphere_host_connection_state`: 2 non risponde). Un host disconnesso di proposito (1) non scatta. | ≥ 2 | 3 min | Avvertenza (`critical`) | 1 h |
+| Salute dell'host vSphere rossa | vSphere segnala la salute complessiva di un host come rossa (`dumbmonit_vsphere_host_status == 2`). Grigio significa sconosciuto e non scatta. | > 0 | 5 min | Avvertenza (`critical`) | 1 h |
+| Host vSphere lasciato in manutenzione | Un host vSphere è in modalità manutenzione da un giorno: le sue VM sono state spostate ed è stato forse dimenticato lì (`dumbmonit_vsphere_host_maintenance`). | > 0 | 24 h | Informazioni (`info`) | 24 h |
+| Datastore vSphere quasi pieno | Un datastore vSphere è pieno per il 90% o più (`dumbmonit_vsphere_datastore_used_percent`); rientra sotto l'85 %. | ≥ 90 % | 15 min | Avviso (`warning`), escalation dopo 24 h | 6 h |
+| Datastore vSphere inaccessibile | Un datastore vSphere è inaccessibile: le VM che vi sono memorizzate non possono funzionare (`dumbmonit_vsphere_datastore_accessible`). | < 1 | 5 min | Avvertenza (`critical`) | 1 h |
+| VMware Tools non in esecuzione in una VM | VMware Tools è installato ma non in esecuzione in una VM accesa: il guest potrebbe essere bloccato (`dumbmonit_vsphere_vm_tools_status == 2`). Le VM senza Tools non scattano. | > 0 | 30 min | Informazioni (`info`) | 24 h |
+| Allarme rosso vSphere | vSphere ha sollevato un allarme rosso che nessuno ha riconosciuto (`dumbmonit_vsphere_alarm{status="red"}`, una serie per allarme, con il nome dell'allarme e dell'oggetto). | > 0 | 5 min | Avviso (`warning`) | 6 h |
+| Snapshot di VM vSphere troppo vecchio | Lo snapshot più vecchio di una VM ha più di tre giorni: gli snapshot crescono, rallentano la VM e possono riempire il datastore. VMware raccomanda di non tenerne nessuno oltre le 72 ore (`dumbmonit_vsphere_vm_snapshot_oldest_age_seconds`). | > 3 d | 1 h | Avviso (`warning`) | 24 h |
+| Dischi di VM vSphere da consolidare | vSphere segnala che i dischi di una VM hanno bisogno di un consolidamento: la rimozione di uno snapshot ha lasciato dei file delta, e continuano a crescere (`dumbmonit_vsphere_vm_consolidation_needed`). | > 0 | 1 h | Avviso (`warning`) | 24 h |
 
 ## La pagina del monitor
 
@@ -102,3 +116,11 @@ convalidata rispetto alla struttura `AlarmState` documentata dell'API Web Servic
 Indirizzo: un nome host o IP (`vcenter.lan`), `host:port`, o un URL completo; un
 `/sdk` o `/ui` finale è accettato. Opzioni: porta (443), verifica certificato,
 timeout delle richieste (20 s) e allarmi attivati (lettura).
+
+## Limiti noti
+
+- La scadenza delle licenze non viene letta: il ruolo di sola lettura non vede le licenze.
+- Al massimo 1000 VM e 64 allarmi vengono descritti uno per uno.
+- Nessun contatore di prestazioni per VM (processore, memoria, latenza del disco): DumbMonit legge l'inventario e i suoi stati.
+- Ventole, alimentatori e temperature si vedono solo attraverso la salute complessiva di un host e gli allarmi che vSphere solleva.
+- Gli snapshot e il consolidamento sono stati costruiti in base alla struttura documentata dell'API e non sono ancora stati verificati su un vCenter reale.

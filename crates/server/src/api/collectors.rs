@@ -7586,6 +7586,8 @@ fn compiled(kind: &str) -> Option<CollectorView> {
                     "/api/v2/status/services GET\nStopped services",
                     "/api/v2/system/version GET\npfSense version",
                     "/api/v2/system/restapi/version GET\nOptional: updates of the REST API package",
+                    "/api/v2/firewall/states/size GET\nOptional: state table usage",
+                    "/api/v2/status/carp GET\nOptional: CARP maintenance mode",
                     "/api/v2/auth/key POST\nOnly while creating the key, then remove it",
                 ],
                 warning: "The REST API package is a community project, not part of pfSense: reinstall it after each pfSense upgrade. pfSense ships a self-signed certificate: tick \"Accept an unverifiable certificate\" unless you replaced it.",

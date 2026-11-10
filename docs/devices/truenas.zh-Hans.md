@@ -156,6 +156,41 @@ WebSocket API。在那之前,REST 是直到 25.10 的每个发行版都提供
 | `tasks` | 监控复制和快照任务 | `true` | 每个任务的状态、上次运行和最新快照。 |
 | `services` | 监控服务 | `true` | 设置为随 NAS 启动的服务,以及它们是否在运行。 |
 
+## 内置告警规则
+
+这些规则随 DumbMonit 提供，从一开始就已启用。每条规则都可以在“告警”中修改或关闭；[内置规则参考](../alerting/rules.md#truenas)列出了所有集成的全部规则。
+
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| NAS 池降级 | ZFS 不再称池为健康(`dumbmonit_truenas_pool_healthy`)。降级池仍然服务其数据,这正是为什么没有人注意直到下一个磁盘失败。监控项页面命名磁盘。 | < 1 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| NAS 磁盘错误 | 池的磁盘已报告读、写或校验和错误因最后的`zpool clear`(`dumbmonit_truenas_pool_device_errors`,每个类型一个系列)。 | > 0 | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| NAS 池即将满 | 池超过 85% 满(`dumbmonit_truenas_pool_used_percent`)。ZFS 在满前减慢。在 80% 下清除。 | > 85 % | 30 分钟 | 通知 (`warning`),7 天后升级 | 24 小时 |
+| NAS 清理发现错误 | 池的最后清理发现了损坏数据(`dumbmonit_truenas_pool_last_scrub_errors`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 24 小时 |
+| NAS 清理逾期 | 池已 45 天未完成清理(`dumbmonit_truenas_pool_last_scrub_age_seconds`)。恢复后缺席,它删除最后清理的记录。 | > 45 天 | 1 小时 | 信息 (`info`) | 7 天 |
+| NAS 磁盘 SMART 测试失败 | SMART 自我测试在磁盘日志中失败(`dumbmonit_truenas_disk_smart_failed`)。从未测试的磁盘没有系列。 | > 0 | 5 分钟 | 警告 (`critical`) | 24 小时 |
+| NAS 磁盘太热 | 磁盘在 55°C 以上(`dumbmonit_truenas_disk_temperature_celsius`,从 TrueNAS 缓存读取)。在 50°C 下清除。 | > 55°C | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| NAS 数据集接近其配额 | 数据集已使用超过 90% 其配额(`dumbmonit_truenas_dataset_quota_used_percent`):在 100% 其写入失败而池仍有空间。无配额,无系列。 | > 90 % | 30 分钟 | 通知 (`warning`) | 24 小时 |
+| NAS 复制失败 | 启用的复制任务处于错误(`dumbmonit_truenas_replication_error`):另一侧的副本在变旧。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 快照任务失败 | 启用的定期快照任务处于错误(`dumbmonit_truenas_snapshot_task_error`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 快照陈旧 | 启用的定期快照任务已 8 天未运行(`dumbmonit_truenas_snapshot_task_last_run_age_seconds`):停止运行的任务不失败,它变安静。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| TrueNAS 告警提升 | TrueNAS 本身已提升错误或以上级别的告警(`dumbmonit_truenas_alerts`)。其自己的句子在监控项页面。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 服务停止 | 设置为与 NAS 一起启动的服务已停止(`dumbmonit_truenas_service_running`)。故意关闭的服务没有系列。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| NAS 证书即将到期 | 为 TrueNAS Web 界面提供服务的证书将在 14 天内到期：浏览器、应用和复制对端都会拒绝它(`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| NAS 证书已过期 | 为 TrueNAS Web 界面提供服务的证书将在 2 天内到期，或已经过期(`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`)。 | < 2 天 | 15 分钟 | 警告 (`critical`) | 12 小时 |
+| NAS 启动池降级 | 启动池不再健康：NAS 仍能从剩下的设备启动，直到那块设备也发生故障(`dumbmonit_truenas_boot_pool_healthy`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 启动池几乎已满 | 启动池使用率超过 85 %：旧的启动环境随每次更新不断累积，并会阻止下一次更新。低于 80 % 时解除(`dumbmonit_truenas_boot_pool_used_percent`)。 | > 85 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| NAS 异地备份任务失败 | 某个云同步、rsync 或云备份任务的最近一次运行失败：远端副本越来越旧(`dumbmonit_truenas_backup_task_failed`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 应用已崩溃 | 某个应用处于崩溃（crashed）状态(`dumbmonit_truenas_app_crashed`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| NAS 虚拟机已停止 | 某台设置为随 NAS 启动的虚拟机没有在运行(`dumbmonit_truenas_vm_running`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+
+## 已知限制
+
+- 在 DumbMonit 使用的 REST API 上，TrueNAS 没有只读密钥：密钥属于一个完整的管理员。DumbMonit 只做读取，从不启动 scrub、SMART 测试或复制。
+- 数据集最新快照的存在时间，取自覆盖它的快照任务的最近一次运行。没有任何任务覆盖的数据集没有这个时间。
+- 温度来自 TrueNAS 的缓存，大约每五分钟刷新一次。休眠的磁盘绝不会被唤醒。
+- SMART 测试结果在 TrueNAS 25.10 中已从 API 移除，从该版本起会被跳过。
+- 证书规则只监视为 Web 界面提供服务的证书。
+
 ## 常见错误 {#common-errors}
 
 | 现象 | 可能原因 |

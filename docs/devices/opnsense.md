@@ -201,22 +201,9 @@ spelling, and on 25.1 on some of the new ones. DumbMonit asks for the current
 spelling first and falls back to the other on a `403`, so the same group works
 on either side of the rename.
 
-## Certificates and default alerts
+## Certificates
 
 The expiry date of the certificates the firewall keeps (web interface, captive portal, VPN) is read from System: Trust: Certificates. Certificates OPNsense marks as unused are ignored. The option is skipped silently if the account lacks the privilege.
-
-| Alert | Fires when |
-|---|---|
-| OPNsense certificate expiring / expired | A certificate expires in less than 14 days / has expired |
-| OPNsense disk almost full | The disk is more than 90% full for 15 minutes |
-| OPNsense CPU high | The processor is above 90% for 15 minutes |
-| OPNsense swap in use | More than half of the swap is used for an hour |
-| OPNsense packet filter disabled | pf is disabled for 5 minutes |
-| OPNsense interface errors | An interface logs more than 100 errors in 15 minutes |
-| OPNsense update mirror unreachable | The firewall cannot reach its update mirror for 12 hours (information) |
-| Gateway down, loss, latency, state table, VPN tunnel, services, CARP, updates | As before |
-
-All rules can be edited or disabled in Alerts.
 
 ## Options
 
@@ -271,6 +258,41 @@ rules and ports that come up most.
   left out; the discs and the steady arcs of the busiest countries remain.
 - A firewall polled through a relay agent has no live map: the server cannot
   reach its log.
+
+## Built-in alert rules
+
+These rules come with DumbMonit and are enabled from the start. Each one can be edited or turned off under Alerts; the [built-in rules reference](../alerting/rules.md#opnsense) lists every rule of every integration.
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Internet gateway down | dpinger no longer gets an answer from a gateway (`dumbmonit_opnsense_gateway_up`). On a multi-WAN firewall the traffic has already moved to another link, quietly. `loss` and `delay` are warnings, not failures, and do not fire this rule. | < 1 | 5 min | Warning (`critical`) | 6 h |
+| Gateway losing packets | A gateway is losing more than a fifth of the packets sent to it (`dumbmonit_opnsense_gateway_loss_percent`): the link answers, badly. Clears below 10 %. | > 20 % | 10 min | Advisory (`warning`) | 6 h |
+| Gateway slow | A gateway's round-trip time has stayed above 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Three hundred milliseconds leaves a mobile backup link alone. | > 300 ms | 15 min | Info (`info`) | 12 h |
+| Firewall state table filling up | pf is tracking more than 80 % of the connections it is allowed (`dumbmonit_opnsense_pf_states_used_percent`). Past the limit the firewall drops new connections with no other symptom. | > 80 % | 10 min | Advisory (`warning`) | 6 h |
+| Firewall network buffers exhausted | More than 90 % of the FreeBSD network buffers are in use (`dumbmonit_opnsense_mbuf_used_percent`). A firewall that runs out stops forwarding with the CPU still idle. | > 90 % | 10 min | Advisory (`warning`) | 6 h |
+| VPN tunnel down | A configured VPN tunnel has had no session for ten minutes (`dumbmonit_opnsense_vpn_tunnel_up`). A plugin that is not installed, or a connection that is disabled, has no series and cannot fire. | < 1 | 10 min | Advisory (`warning`) | 6 h |
+| Firewall resolver stopped | Unbound has stopped answering (`dumbmonit_opnsense_unbound_running`). The firewall still routes; the machines behind it no longer resolve. Turn this rule off if your firewall resolves with something else. | < 1 | 5 min | Advisory (`warning`) | 6 h |
+| Firewall core service stopped | dpinger, which watches the gateways, or configd, which runs everything else, is stopped (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Only those two, because a service switched off on purpose is not a failure. | < 1 | 5 min | Warning (`critical`) | 6 h |
+| Firewall too hot | A sensor reads above 85 °C (`dumbmonit_opnsense_temperature_celsius`): the fanless box in the cupboard is about to start throttling. Clears at 78 °C. | > 85 °C | 10 min | Advisory (`warning`) | 6 h |
+| Firewall left in CARP maintenance mode | CARP has been left in persistent maintenance mode (`dumbmonit_opnsense_carp_maintenance_mode`): this firewall handed its virtual addresses to its partner and will not take them back on its own. | > 0 | 1 h | Info (`info`) | 24 h |
+| Firewall reboot pending | An update is installed but needs a reboot to take effect (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Info (`info`) | 7 d |
+| Firewall updates pending | The firewall has packages waiting to be updated (`dumbmonit_opnsense_firmware_updates_pending`). It is the most exposed machine on the network. | > 0 | 1 h | Info (`info`) | 7 d |
+| OPNsense certificate expiring | A certificate the firewall uses (web interface, captive portal, VPN) expires in less than 14 days (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 d | 1 h | Advisory (`warning`) | 24 h |
+| OPNsense certificate expired | A certificate the firewall uses has expired: clients now refuse it (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Warning (`critical`) | 12 h |
+| OPNsense disk almost full | The firewall's disk is more than 90 % full: logs, captures and updates will fail. Clears below 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Advisory (`warning`) | 12 h |
+| OPNsense CPU high | The firewall's processor has stayed above 90 % for fifteen minutes. Clears below 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Advisory (`warning`) | 6 h |
+| OPNsense swap in use | The firewall has used more than half of its swap for an hour: it is short of memory (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Advisory (`warning`) | 24 h |
+| OPNsense packet filter disabled | The packet filter (pf) is disabled: the firewall no longer filters or translates anything (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Warning (`critical`) | 1 h |
+| OPNsense interface errors | An interface logged more than 100 receive or transmit errors in fifteen minutes: check the cable, the SFP module and the duplex setting (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Advisory (`warning`) | 24 h |
+| OPNsense update mirror unreachable | The firewall has been unable to reach its update mirror for twelve hours: it will not learn about security updates (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Info (`info`) | 7 d |
+
+## Known limits
+
+- The update check is never triggered: DumbMonit reads the result of the firewall's own last check. A firewall that never checked reports nothing about updates.
+- At most 64 series per family: gateways, interfaces, services, tunnels, partitions, sensors.
+- A plugin that is not installed (WireGuard, OpenVPN, IPsec, Unbound, Kea) makes no noise: no series, no rule, no error.
+- VPN sessions and DHCP leases are counted, never listed: no client address or host name is read.
+- Certificates OPNsense marks as unused are ignored.
 
 ## Common errors
 

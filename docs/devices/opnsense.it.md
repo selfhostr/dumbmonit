@@ -209,6 +209,41 @@ rinomina.
 | `firmware` | Watch for updates | `true` | Legge il risultato dell'ultimo controllo aggiornamenti del firewall e se un riavvio è in sospeso. |
 | `temperature` | Read the temperature sensors | `true` | Legge i sensori di CPU e scheda che il firewall espone. |
 
+## Regole di avviso integrate
+
+Queste regole sono fornite con DumbMonit e sono attive fin dall'inizio. Ognuna si può modificare o disattivare in Avvisi; il [riferimento delle regole integrate](../alerting/rules.md#opnsense) elenca tutte le regole di tutte le integrazioni.
+
+| Regola | Cosa | Soglia predefinita | Mantenimento | Gravità | Promemoria |
+|---|---|---|---|---|---|
+| Gateway Internet non attivo | dpinger non riceve più risposta da un gateway (`dumbmonit_opnsense_gateway_up`). Su un firewall multi-WAN il traffico si è già spostato su un altro collegamento, in silenzio. `loss` e `delay` sono avvisi, non guasti, e non fanno scattare questa regola. | < 1 | 5 min | Avvertenza (`critical`) | 6 h |
+| Gateway con perdita di pacchetti | Un gateway perde più di un quinto dei pacchetti inviati (`dumbmonit_opnsense_gateway_loss_percent`): il collegamento risponde, male. Rientra sotto il 10 %. | > 20 % | 10 min | Avviso (`warning`) | 6 h |
+| Gateway lento | Il tempo di andata e ritorno di un gateway resta sopra i 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Trecento millisecondi lasciano in pace un collegamento di backup mobile. | > 300 ms | 15 min | Informazioni (`info`) | 12 h |
+| Tabella degli stati del firewall in riempimento | pf sta tracciando più dell'80 % delle connessioni consentite (`dumbmonit_opnsense_pf_states_used_percent`). Oltre il limite il firewall scarta le nuove connessioni senza altri sintomi. | > 80 % | 10 min | Avviso (`warning`) | 6 h |
+| Buffer di rete del firewall esauriti | Più del 90 % dei buffer di rete FreeBSD è in uso (`dumbmonit_opnsense_mbuf_used_percent`). Un firewall che li esaurisce smette di inoltrare mentre la CPU è ancora a riposo. | > 90 % | 10 min | Avviso (`warning`) | 6 h |
+| Tunnel VPN non attivo | Un tunnel VPN configurato non ha sessioni da dieci minuti (`dumbmonit_opnsense_vpn_tunnel_up`). Un plugin non installato, o una connessione disabilitata, non ha serie e non può scattare. | < 1 | 10 min | Avviso (`warning`) | 6 h |
+| Resolver del firewall fermo | Unbound ha smesso di rispondere (`dumbmonit_opnsense_unbound_running`). Il firewall instrada ancora; le macchine dietro di esso non risolvono più i nomi. Disattiva questa regola se il tuo firewall risolve con qualcos'altro. | < 1 | 5 min | Avviso (`warning`) | 6 h |
+| Servizio essenziale del firewall fermo | dpinger, che sorveglia i gateway, o configd, che esegue tutto il resto, è fermo (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Solo questi due, perché un servizio spento di proposito non è un guasto. | < 1 | 5 min | Avvertenza (`critical`) | 6 h |
+| Firewall troppo caldo | Un sensore legge più di 85 °C (`dumbmonit_opnsense_temperature_celsius`): la scatola senza ventole nell'armadio sta per iniziare a ridurre le prestazioni. Rientra a 78 °C. | > 85 °C | 10 min | Avviso (`warning`) | 6 h |
+| Firewall lasciato in modalità manutenzione CARP | CARP è stato lasciato in modalità manutenzione persistente (`dumbmonit_opnsense_carp_maintenance_mode`): questo firewall ha ceduto i propri indirizzi virtuali al partner e non li riprenderà da solo. | > 0 | 1 h | Informazioni (`info`) | 24 h |
+| Riavvio del firewall in sospeso | Un aggiornamento è installato ma richiede un riavvio per avere effetto (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Informazioni (`info`) | 7 d |
+| Aggiornamenti del firewall in sospeso | Il firewall ha pacchetti in attesa di aggiornamento (`dumbmonit_opnsense_firmware_updates_pending`). È la macchina più esposta della rete. | > 0 | 1 h | Informazioni (`info`) | 7 d |
+| Certificato OPNsense in scadenza | Un certificato usato dal firewall (interfaccia web, captive portal, VPN) scade tra meno di 14 giorni (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Certificato OPNsense scaduto | Un certificato usato dal firewall è scaduto: i client ora lo rifiutano (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Avvertenza (`critical`) | 12 h |
+| Disco OPNsense quasi pieno | Il disco del firewall è pieno per più del 90 %: i log, le catture e gli aggiornamenti falliranno. Rientra sotto l'85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Avviso (`warning`) | 12 h |
+| CPU OPNsense elevata | Il processore del firewall è rimasto sopra il 90 % per quindici minuti. Rientra sotto l'80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Avviso (`warning`) | 6 h |
+| Swap OPNsense in uso | Il firewall usa più della metà del suo swap da un'ora: è a corto di memoria (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Avviso (`warning`) | 24 h |
+| Filtro di pacchetti OPNsense disattivato | Il filtro di pacchetti (pf) è disattivato: il firewall non filtra e non traduce più nulla (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Avvertenza (`critical`) | 1 h |
+| Errori di interfaccia OPNsense | Un'interfaccia ha registrato più di 100 errori di ricezione o di trasmissione in quindici minuti: controlla il cavo, il modulo SFP e l'impostazione duplex (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Avviso (`warning`) | 24 h |
+| Mirror degli aggiornamenti OPNsense non raggiungibile | Il firewall non riesce a raggiungere il suo mirror degli aggiornamenti da dodici ore: non verrà a sapere degli aggiornamenti di sicurezza (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Informazioni (`info`) | 7 d |
+
+## Limiti noti
+
+- Il controllo degli aggiornamenti non viene mai avviato: DumbMonit legge il risultato dell'ultimo controllo fatto dal firewall stesso. Un firewall che non ha mai controllato non dice nulla sugli aggiornamenti.
+- Al massimo 64 serie per famiglia: gateway, interfacce, servizi, tunnel, partizioni, sensori.
+- Un plugin non installato (WireGuard, OpenVPN, IPsec, Unbound, Kea) non fa rumore: nessuna serie, nessuna regola, nessun errore.
+- Le sessioni VPN e i lease DHCP vengono contati, mai elencati: non viene letto nessun indirizzo di client né nessun nome host.
+- I certificati che OPNsense contrassegna come non usati vengono ignorati.
+
 ## Errori comuni
 
 | Sintomo | Causa probabile |

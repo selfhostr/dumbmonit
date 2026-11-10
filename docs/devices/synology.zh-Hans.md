@@ -63,6 +63,20 @@ Active Backup for Business 指标是例外：它们以 `dumbmonit_abb_` 为前�
 | Synology 卷几乎满 | advisory | 卷是 90% 满或更多，持续 15 分钟。 |
 | Synology 温度高 | advisory | 磁盘在 55°C 以上，或 DSM 升高其温度警告，持续 15 分钟。 |
 | Synology 内存高 | advisory | 内存使用在 95% 以上，持续 15 分钟。 |
+| Synology 系统分区已崩溃 | warning | DSM 报告其系统分区已崩溃：NAS 可能撑不过一次重启。请检查“存储管理器”。 |
+| Synology 系统分区需要修复 | advisory | DSM 表示其系统分区需要修复；“存储管理器”会提供修复操作。 |
+| Synology CPU 持续偏高 | advisory | NAS 的处理器连续十五分钟高于 90 %；数据清理或索引通常远在此之前就结束。低于 85 % 时解除。 |
+| Synology 交换空间使用率高 | info | 超过 60 % 的交换空间被占用已达一小时：NAS 内存不足。 |
+| Synology DSM 有可用更新 | info | 有可用的 DSM 更新。 |
+| Synology Hyper Backup 失败 | advisory | 某个 Hyper Backup 任务的最近一次运行失败（目的地不可达、校验和错误……）。正在进行的运行、被取消的运行或从未运行过的任务不会触发。 |
+| Synology Hyper Backup 上次成功时间过久 | info | 某个 Hyper Backup 任务已超过八天没有成功运行：它被禁用、被挂起，或者始终没能运行。按月运行的任务需要更长的期限。 |
+| Synology 卷只读 | warning | 某个卷为只读：无法向其写入任何内容（文件系统错误或卷已降级）。请检查“存储管理器”。 |
+| Synology 卷已锁定 | advisory | 某个加密卷被锁定：在输入密钥或挂载密钥保管库之前，其共享文件夹不可用。 |
+| Synology 卷 inode 耗尽 | advisory | 某个卷已没有空闲 inode：即使还有可用空间，也无法创建任何文件。 |
+| Synology 数据清理逾期 | info | 某个存储池的上一次数据清理结束于 200 多天前：请在“存储管理器”中安排定期清理。 |
+| Synology 证书即将到期 | advisory | 某个 DSM 证书将在 14 天内到期：它的自动续期很可能正在失败。 |
+| Synology 证书马上到期 | warning | 某个 DSM 证书将在 3 天内到期，或已经过期。 |
+| Synology 证书损坏 | advisory | DSM 将某个证书标记为损坏：无法读取其密钥或证书链。 |
 
 ## Active Backup for Business {#active-backup-for-business}
 
@@ -196,6 +210,13 @@ Synology Photos 运送一个良好文档的浏览 API，但 Synology 都没有�
 | `abb` | 观察 Active Backup for Business | `true` | 读 Active Backup for Business 任务。需要包已安装和被允许使用它的账户；没有包的 NAS 简单被跳过。 |
 | `drive` | 观察 Synology Drive | `true` | 读 Synology Drive 服务是否回答、其团队文件夹和其活动连接计数。没有包的 NAS 简单被跳过。 |
 | `photos` | 观察 Synology Photos | `true` | 显示 Synology Photos 包是否已安装，无额外请求到 NAS。Synology 不通过任何 API 暴露一个移动备份设备列表。 |
+
+## 已知限制
+
+- 账户必须属于管理员组：DSM 的存储 API 不响应任何其他账户。请按上文所述，收回它的共享文件夹和应用权限。
+- 该账户必须保持关闭两步验证。
+- 证书、套件和当前连接来自 Synology 未提供文档的 DSM API。它们作为可选项读取，尚未在真实的 NAS 上验证。
+- 按月运行的 Hyper Backup 任务会触发八天规则：请为该任务调高阈值，或将其静默。
 
 ## 常见错误 {#common-errors}
 

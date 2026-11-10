@@ -238,6 +238,41 @@ Umbenennung funktioniert.
 | `firmware` | Watch for updates | `true` | Liest das Ergebnis der letzten Update-Prüfung der Firewall und ob ein Reboot ausstehend ist. |
 | `temperature` | Read the temperature sensors | `true` | Liest die von der Firewall exponierten CPU- und Board-Sensoren. |
 
+## Integrierte Alarmregeln
+
+Diese Regeln werden mit DumbMonit ausgeliefert und sind von Anfang an aktiv. Jede lässt sich unter Warnungen bearbeiten oder abschalten; die [Referenz der integrierten Regeln](../alerting/rules.md#opnsense) führt alle Regeln aller Integrationen auf.
+
+| Regel | Was | Standardschwelle | Haltezeit | Schweregrad | Erinnerung |
+|---|---|---|---|---|---|
+| Internet-Gateway ausgefallen | dpinger erhält von einem Gateway keine Antwort mehr (`dumbmonit_opnsense_gateway_up`). Bei einer Multi-WAN-Firewall ist der Verkehr bereits still auf eine andere Verbindung gewandert. `loss` und `delay` sind Warnungen, keine Ausfälle, und lösen diese Regel nicht aus. | < 1 | 5 Min. | Warnung (`critical`) | 6 h |
+| Gateway verliert Pakete | Ein Gateway verliert mehr als ein Fünftel der an es gesendeten Pakete (`dumbmonit_opnsense_gateway_loss_percent`): Die Verbindung antwortet, schlecht. Löst sich unter 10 %. | > 20 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| Gateway langsam | Die Round-Trip-Zeit eines Gateways liegt dauerhaft über 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Dreihundert Millisekunden lassen eine mobile Backup-Verbindung in Ruhe. | > 300 ms | 15 Min. | Info (`info`) | 12 h |
+| Zustandstabelle der Firewall füllt sich | pf verfolgt mehr als 80 % der erlaubten Verbindungen (`dumbmonit_opnsense_pf_states_used_percent`). Über dem Limit verwirft die Firewall neue Verbindungen ohne anderes Symptom. | > 80 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| Netzwerkpuffer der Firewall erschöpft | Mehr als 90 % der FreeBSD-Netzwerkpuffer sind in Gebrauch (`dumbmonit_opnsense_mbuf_used_percent`). Eine Firewall, der sie ausgehen, hört auf zu forwarden, während die CPU noch im Leerlauf ist. | > 90 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| VPN-Tunnel ausgefallen | Ein konfigurierter VPN-Tunnel hat seit zehn Minuten keine Sitzung (`dumbmonit_opnsense_vpn_tunnel_up`). Ein nicht installiertes Plugin oder eine deaktivierte Verbindung hat keine Serie und kann nicht auslösen. | < 1 | 10 Min. | Hinweis (`warning`) | 6 h |
+| Resolver der Firewall gestoppt | Unbound antwortet nicht mehr (`dumbmonit_opnsense_unbound_running`). Die Firewall routet weiter; die Maschinen dahinter lösen nicht mehr auf. Schalten Sie diese Regel aus, wenn Ihre Firewall mit etwas anderem auflöst. | < 1 | 5 Min. | Hinweis (`warning`) | 6 h |
+| Kerndienst der Firewall gestoppt | dpinger, der die Gateways überwacht, oder configd, der alles andere ausführt, ist gestoppt (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Nur diese beiden, weil ein absichtlich abgeschalteter Dienst kein Ausfall ist. | < 1 | 5 Min. | Warnung (`critical`) | 6 h |
+| Firewall zu heiß | Ein Sensor liest über 85 °C (`dumbmonit_opnsense_temperature_celsius`): Die lüfterlose Box im Schrank beginnt gleich zu drosseln. Löst sich bei 78 °C. | > 85 °C | 10 Min. | Hinweis (`warning`) | 6 h |
+| Firewall im CARP-Wartungsmodus belassen | CARP wurde im dauerhaften Wartungsmodus belassen (`dumbmonit_opnsense_carp_maintenance_mode`): Diese Firewall hat ihre virtuellen Adressen an ihren Partner übergeben und nimmt sie nicht von selbst zurück. | > 0 | 1 h | Info (`info`) | 24 h |
+| Firewall-Neustart ausstehend | Ein Update ist installiert, braucht aber einen Neustart, um zu wirken (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Info (`info`) | 7 T. |
+| Firewall-Updates ausstehend | Die Firewall hat Pakete, die auf ein Update warten (`dumbmonit_opnsense_firmware_updates_pending`). Sie ist die am stärksten exponierte Maschine im Netzwerk. | > 0 | 1 h | Info (`info`) | 7 T. |
+| OPNsense-Zertifikat läuft ab | Ein Zertifikat, das die Firewall verwendet (Weboberfläche, Captive Portal, VPN), läuft in weniger als 14 Tagen ab (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 T. | 1 h | Hinweis (`warning`) | 24 h |
+| OPNsense-Zertifikat abgelaufen | Ein Zertifikat, das die Firewall verwendet, ist abgelaufen: Clients lehnen es jetzt ab (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 Min. | Warnung (`critical`) | 12 h |
+| OPNsense-Platte fast voll | Die Platte der Firewall ist zu mehr als 90 % voll: Protokolle, Mitschnitte und Updates werden scheitern. Endet unter 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 Min. | Hinweis (`warning`) | 12 h |
+| OPNsense-CPU hoch | Der Prozessor der Firewall lag fünfzehn Minuten lang über 90 %. Endet unter 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 Min. | Hinweis (`warning`) | 6 h |
+| OPNsense-Swap in Benutzung | Die Firewall nutzt seit einer Stunde mehr als die Hälfte ihres Swap: Ihr fehlt Arbeitsspeicher (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Hinweis (`warning`) | 24 h |
+| OPNsense-Paketfilter deaktiviert | Der Paketfilter (pf) ist deaktiviert: Die Firewall filtert und übersetzt nichts mehr (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 Min. | Warnung (`critical`) | 1 h |
+| OPNsense-Schnittstellenfehler | Eine Schnittstelle hat in fünfzehn Minuten mehr als 100 Empfangs- oder Sendefehler verzeichnet: Prüfen Sie das Kabel, das SFP-Modul und die Duplex-Einstellung (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 Min. | Hinweis (`warning`) | 24 h |
+| OPNsense-Update-Spiegel nicht erreichbar | Die Firewall erreicht ihren Update-Spiegel seit zwölf Stunden nicht: Sie erfährt nichts von Sicherheitsupdates (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Info (`info`) | 7 T. |
+
+## Bekannte Grenzen
+
+- Die Update-Prüfung wird nie ausgelöst: DumbMonit liest das Ergebnis der letzten Prüfung, die die Firewall selbst durchgeführt hat. Eine Firewall, die nie geprüft hat, sagt nichts über Updates.
+- Höchstens 64 Reihen pro Familie: Gateways, Schnittstellen, Dienste, Tunnel, Partitionen, Sensoren.
+- Ein nicht installiertes Plugin (WireGuard, OpenVPN, IPsec, Unbound, Kea) macht kein Geräusch: keine Reihe, keine Regel, kein Fehler.
+- VPN-Sitzungen und DHCP-Leases werden gezählt, nie aufgelistet: Es wird keine Client-Adresse und kein Hostname gelesen.
+- Zertifikate, die OPNsense als unbenutzt markiert, werden ignoriert.
+
 ## Häufige Fehler
 
 | Symptom | Wahrscheinliche Ursache |

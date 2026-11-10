@@ -198,6 +198,41 @@ Release bis 25.10 bedient.
 | `tasks` | Watch replication and snapshot tasks | `true` | Zustand, letzter Lauf und letzter Snapshot jedes Tasks. |
 | `services` | Watch the services | `true` | Zum Start mit dem NAS vorgesehene Dienste, und ob sie laufen. |
 
+## Integrierte Alarmregeln
+
+Diese Regeln werden mit DumbMonit ausgeliefert und sind von Anfang an aktiv. Jede lässt sich unter Warnungen bearbeiten oder abschalten; die [Referenz der integrierten Regeln](../alerting/rules.md#truenas) führt alle Regeln aller Integrationen auf.
+
+| Regel | Was | Standardschwelle | Haltezeit | Schweregrad | Erinnerung |
+|---|---|---|---|---|---|
+| NAS-Pool degradiert | ZFS nennt einen Pool nicht mehr gesund (`dumbmonit_truenas_pool_healthy`). Ein degradierter Pool liefert seine Daten weiter aus, und genau deshalb merkt es niemand, bis die nächste Platte ausfällt. Die Monitorseite nennt die Platte. | < 1 | 5 Min. | Warnung (`critical`) | 6 h |
+| NAS-Plattenfehler | Platten eines Pools haben seit dem letzten `zpool clear` Lese-, Schreib- oder Prüfsummenfehler gemeldet (`dumbmonit_truenas_pool_device_errors`, eine Serie pro Art). | > 0 | 15 Min. | Hinweis (`warning`) | 24 h |
+| NAS-Pool fast voll | Ein Pool ist zu mehr als 85 % voll (`dumbmonit_truenas_pool_used_percent`). ZFS wird lange vor dem Vollwerden langsam. Löst sich bei 80 %. | > 85 % | 30 Min. | Hinweis (`warning`), eskaliert nach 7 T. | 24 h |
+| NAS-Scrub hat Fehler gefunden | Der letzte Scrub eines Pools hat beschädigte Daten gefunden (`dumbmonit_truenas_pool_last_scrub_errors`). | > 0 | 5 Min. | Warnung (`critical`) | 24 h |
+| NAS-Scrub überfällig | Ein Pool hat seit mehr als 45 Tagen keinen Scrub abgeschlossen (`dumbmonit_truenas_pool_last_scrub_age_seconds`). Fehlt nach einem Resilver, der die Aufzeichnung des letzten Scrubs löscht. | > 45 T. | 1 h | Info (`info`) | 7 T. |
+| NAS-Platte hat ihren SMART-Test nicht bestanden | Ein SMART-Selbsttest im Log einer Platte ist fehlgeschlagen (`dumbmonit_truenas_disk_smart_failed`). Eine nie getestete Platte hat keine Serie. | > 0 | 5 Min. | Warnung (`critical`) | 24 h |
+| NAS-Platte zu heiß | Eine Platte liegt über 55 °C (`dumbmonit_truenas_disk_temperature_celsius`, aus dem Cache von TrueNAS gelesen). Löst sich bei 50 °C. | > 55 °C | 15 Min. | Hinweis (`warning`) | 6 h |
+| NAS-Dataset nahe seiner Quota | Ein Dataset hat mehr als 90 % seiner Quota verbraucht (`dumbmonit_truenas_dataset_quota_used_percent`): Bei 100 % scheitern seine Schreibvorgänge, obwohl der Pool noch Platz hat. Keine Quota, keine Serie. | > 90 % | 30 Min. | Hinweis (`warning`) | 24 h |
+| NAS-Replikation fehlgeschlagen | Ein aktivierter Replikations-Task ist im Fehler (`dumbmonit_truenas_replication_error`): Die Kopie auf der anderen Seite wird älter. | > 0 | 10 Min. | Hinweis (`warning`) | 12 h |
+| NAS-Snapshot-Task fehlgeschlagen | Ein aktivierter periodischer Snapshot-Task ist im Fehler (`dumbmonit_truenas_snapshot_task_error`). | > 0 | 10 Min. | Hinweis (`warning`) | 12 h |
+| NAS-Snapshots veraltet | Ein aktivierter periodischer Snapshot-Task ist seit mehr als acht Tagen nicht gelaufen (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): Ein Task, der aufhört zu laufen, schlägt nicht fehl, er wird still. | > 8 T. | 1 h | Hinweis (`warning`) | 24 h |
+| TrueNAS-Alarm ausgelöst | TrueNAS selbst hat einen Alarm der Stufe ERROR oder höher ausgelöst (`dumbmonit_truenas_alerts`). Sein eigener Satz steht auf der Monitorseite. | > 0 | 10 Min. | Hinweis (`warning`) | 12 h |
+| NAS-Dienst gestoppt | Ein Dienst, der mit dem NAS starten soll, ist gestoppt (`dumbmonit_truenas_service_running`). Ein absichtlich abgeschalteter Dienst hat keine Serie. | < 1 | 10 Min. | Hinweis (`warning`) | 6 h |
+| NAS-Zertifikat läuft bald ab | Das Zertifikat, das die TrueNAS-Weboberfläche ausliefert, läuft in weniger als 14 Tagen ab: Browser, Apps und Replikationspartner werden es ablehnen (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 T. | 1 h | Hinweis (`warning`) | 24 h |
+| NAS-Zertifikat abgelaufen | Das Zertifikat, das die TrueNAS-Weboberfläche ausliefert, läuft in weniger als 2 Tagen ab oder ist bereits abgelaufen (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 T. | 15 Min. | Warnung (`critical`) | 12 h |
+| NAS-Boot-Pool degradiert | Der Boot-Pool ist nicht mehr gesund: Das NAS startet noch vom verbleibenden Gerät, bis auch dieses ausfällt (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 Min. | Hinweis (`warning`) | 12 h |
+| NAS-Boot-Pool fast voll | Der Boot-Pool ist zu mehr als 85 % voll: Alte Boot-Umgebungen sammeln sich mit jedem Update an und blockieren das nächste. Endet unter 80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 h | Hinweis (`warning`) | 24 h |
+| NAS-Aufgabe für externe Sicherung fehlgeschlagen | Der letzte Lauf einer Cloud-Sync-, Rsync- oder Cloud-Backup-Aufgabe ist fehlgeschlagen: Die externe Kopie veraltet (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 Min. | Hinweis (`warning`) | 12 h |
+| NAS-App abgestürzt | Eine App ist im Zustand „abgestürzt“ (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 Min. | Hinweis (`warning`) | 6 h |
+| Virtuelle Maschine des NAS gestoppt | Eine virtuelle Maschine, die mit dem NAS starten soll, läuft nicht (`dumbmonit_truenas_vm_running`). | < 1 | 10 Min. | Hinweis (`warning`) | 6 h |
+
+## Bekannte Grenzen
+
+- Über die REST-API, die DumbMonit verwendet, kennt TrueNAS keinen Nur-Lese-Schlüssel: Der Schlüssel gehört einem vollwertigen Administrator. DumbMonit liest ausschließlich und startet nie einen Scrub, einen SMART-Test oder eine Replikation.
+- Das Alter des neuesten Snapshots eines Datasets ist der letzte Lauf der Snapshot-Aufgabe, die es abdeckt. Ein Dataset, das keine Aufgabe abdeckt, hat kein Alter.
+- Temperaturen stammen aus dem Cache von TrueNAS, der etwa alle fünf Minuten aufgefrischt wird. Eine schlafende Platte wird nie aufgeweckt.
+- Die Ergebnisse der SMART-Tests sind mit TrueNAS 25.10 aus der API verschwunden und werden ab dieser Version übersprungen.
+- Die Zertifikatsregeln überwachen nur das Zertifikat, das die Weboberfläche ausliefert.
+
 ## Häufige Fehler
 
 | Symptom | Wahrscheinliche Ursache |

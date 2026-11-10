@@ -115,6 +115,20 @@ NAS.
 | Synology volume almost full | advisory | Un volumen está al 90 % lleno o más, durante 15 minutos. |
 | Synology temperature high | advisory | Un disco está por encima de 55 °C, o DSM lanzó su aviso de temperatura, durante 15 minutos. |
 | Synology memory high | advisory | Uso de memoria por encima del 95 % durante 15 minutos. |
+| Synology system partition crashed | warning | DSM indica que su partición del sistema ha fallado (crashed): puede que el NAS no sobreviva a un reinicio. Revise el Administrador de almacenamiento. |
+| Synology system partition needs repair | advisory | DSM dice que su partición del sistema necesita reparación; el Administrador de almacenamiento ofrece repararla. |
+| Synology CPU sustained high | advisory | El procesador del NAS se ha mantenido por encima del 90 % durante quince minutos; una limpieza de datos o una indexación suelen terminar mucho antes. Se resuelve por debajo del 85 %. |
+| Synology swap heavily used | info | Hace una hora que se usa más del 60 % del swap: al NAS le falta memoria. |
+| Synology DSM update available | info | Hay una actualización de DSM disponible. |
+| Synology Hyper Backup failed | advisory | La última ejecución de una tarea de Hyper Backup ha fallado (destino inalcanzable, error de suma de comprobación…). Una ejecución en curso, una ejecución cancelada o una tarea que nunca se ha ejecutado no disparan la regla. |
+| Synology Hyper Backup success too old | info | Ninguna ejecución correcta de una tarea de Hyper Backup desde hace más de ocho días: está desactivada, suspendida o nunca llega a ejecutarse. Una tarea mensual necesita un límite más largo. |
+| Synology volume read-only | warning | Un volumen está en solo lectura: nada puede escribir en él (errores del sistema de archivos o volumen degradado). Revise el Administrador de almacenamiento. |
+| Synology volume locked | advisory | Un volumen cifrado está bloqueado: sus carpetas compartidas no están disponibles hasta que se introduzca la clave o se monte el almacén de claves. |
+| Synology volume out of inodes | advisory | A un volumen no le queda ningún inodo libre: no se puede crear ningún archivo, aunque haya espacio libre. |
+| Synology data scrubbing overdue | info | La última limpieza de datos de un grupo de almacenamiento terminó hace más de 200 días: programe una periódica en el Administrador de almacenamiento. |
+| Synology certificate expiring | advisory | Un certificado de DSM caduca en menos de 14 días: probablemente su renovación automática está fallando. |
+| Synology certificate about to expire | warning | Un certificado de DSM caduca en menos de 3 días, o ya ha caducado. |
+| Synology certificate broken | advisory | DSM marca un certificado como defectuoso: su clave o su cadena no se pueden leer. |
 
 ## Active Backup for Business
 
@@ -391,6 +405,13 @@ usa 5001 por HTTPS y 5000 por HTTP.
 | `abb` | Watch Active Backup for Business | `true` | Lee las tareas de Active Backup for Business. Necesita el paquete instalado y una cuenta autorizada a usarlo; un NAS sin el paquete simplemente se omite. |
 | `drive` | Watch Synology Drive | `true` | Lee si el servicio Synology Drive responde, sus carpetas de equipo y su recuento de conexiones activas. Un NAS sin el paquete simplemente se omite. |
 | `photos` | Watch Synology Photos | `true` | Muestra si el paquete Synology Photos está instalado, sin ninguna petición extra al NAS. Synology no expone una lista de dispositivos de copia móvil a través de ninguna API. |
+
+## Límites conocidos
+
+- La cuenta tiene que estar en el grupo de administradores: la API de almacenamiento de DSM no responde a ninguna otra cuenta. Quítele sus carpetas compartidas y sus aplicaciones, como se describe más arriba.
+- La verificación en dos pasos tiene que seguir desactivada para esta cuenta.
+- Los certificados, los paquetes y las conexiones actuales proceden de API de DSM que Synology no documenta. Se leen como opcionales y todavía no se han comprobado en un NAS real.
+- Una tarea de Hyper Backup que se ejecuta cada mes dispara la regla de los ocho días: suba el umbral para esa tarea, o silénciela.
 
 ## Errores comunes {#common-errors}
 

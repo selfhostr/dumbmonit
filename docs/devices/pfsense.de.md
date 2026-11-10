@@ -47,6 +47,8 @@ Alle Metriken haben das Präfix `dumbmonit_pfsense_`.
 | `service_running`, `service_enabled` | `service`, `description` | Wie Status > Services sie zeigt. |
 | `service_stopped` | `service`, `description` | 1, wenn der Dienst aktiviert ist und nicht läuft. |
 | `services_stopped` | | Zählung. |
+| `states`, `states_max`, `states_used_percent` | | Verbindungen, die pf verfolgt, die Grenze und der belegte Anteil. Braucht das Privileg `/api/v2/firewall/states/size GET`. |
+| `carp_enabled`, `carp_maintenance_mode` | | 1, wenn CARP aktiviert ist; 1, wenn es in den dauerhaften Wartungsmodus versetzt wurde. Braucht das Privileg `/api/v2/status/carp GET`. |
 | `restapi_update_available` | | Mit dem Recht `/api/v2/system/restapi/version`: 1, wenn das REST-API-Paket eine neuere Version hat. |
 | `restapi_version_info` | `version`, `latest` | Wert 1: installierte und neueste Version des Pakets. |
 
@@ -55,20 +57,25 @@ Die einzige Route, die Systemupdates betrifft
 (`/api/v2/system/update`), startet eines. DumbMonit meldet nur die
 eigenen Updates des Pakets.
 
+Die Zustandstabelle und CARP sind optionale Abfragen. Jede braucht ein weiteres Privileg für den Benutzer `dumbmonit`: `/api/v2/firewall/states/size GET` und `/api/v2/status/carp GET`. Ohne das Privileg lehnt pfSense diese Abfrage ab, und die zugehörigen Werte fehlen einfach: kein Fehler, kein Alarm.
+
 Die geltenden [eingebauten Regeln](../alerting/rules.md#pfsense):
 
-- **pfSense gateway down**: ein Gateway ist seit drei Minuten als down
-  markiert (Warning).
-- **pfSense gateway losing packets**: mehr als 10 % Verlust seit zehn
-  Minuten, bei einem Gateway, das nicht schon down ist (Advisory).
-- **pfSense gateway slow**: Round Trip über 500 ms seit fünfzehn
-  Minuten (Advisory). Für eine Satellitenverbindung anheben.
-- **pfSense interface without link**: eine aktivierte Schnittstelle
-  ohne Link seit fünf Minuten (Advisory).
-- **pfSense service stopped**: ein aktivierter, nicht laufender Dienst
-  seit fünf Minuten (Advisory).
-- **pfSense disk nearly full**: mehr als 90 % seit dreißig Minuten
-  (Advisory).
+| Regel | Was | Standardschwelle | Haltezeit | Schweregrad | Erinnerung |
+|---|---|---|---|---|---|
+| pfSense-Gateway ausgefallen | Ein pfSense-Gateway ist ausgefallen: Seine Monitor-Adresse antwortet nicht mehr, und der von ihm getragene Verkehr stoppt oder wechselt (`dumbmonit_pfsense_gateway_up`). | < 1 | 3 Min. | Warnung (`critical`) | 6 h |
+| pfSense-Gateway verliert Pakete | Ein pfSense-Gateway verliert mehr als 10 % der Probes zu seiner Monitor-Adresse: Die Leitung ist beeinträchtigt (`dumbmonit_pfsense_gateway_loss_percent unless on (target, gateway) dumbmonit_pfsense_gateway_up == 0`). | > 10 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Gateway langsam | Der Round-Trip zur Monitor-Adresse eines pfSense-Gateways liegt seit fünfzehn Minuten über 500 ms (`dumbmonit_pfsense_gateway_delay_milliseconds`). | > 500 ms | 15 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Schnittstelle ohne Link | Eine aktivierte pfSense-Schnittstelle hat keinen Link: Kabel, Switch-Port oder Netzwerkkarte (`dumbmonit_pfsense_interface_down`). | > 0 | 5 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Dienst gestoppt | Ein aktivierter pfSense-Dienst läuft nicht: DNS-Resolver, VPN, NTP … (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Platte fast voll | Die pfSense-Platte ist zu mehr als 90 % voll: Logs, Berichte und Paket-Updates werden nicht mehr geschrieben (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 Min. | Hinweis (`warning`) | 1 T. |
+| pfSense-Zustandstabelle fast voll | pf verfolgt mehr als 80 % der Verbindungen, die ihm erlaubt sind: Jenseits der Grenze verwirft die Firewall neue Verbindungen ohne jedes andere Symptom. Endet unter 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Netzwerkpuffer fast erschöpft | Mehr als 90 % der Netzwerkpuffer sind belegt: Eine Firewall, der sie ausgehen, leitet nichts mehr weiter, während ihr Prozessor im Leerlauf ist. Endet unter 80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Temperatur hoch | Die Temperatur, die pfSense misst, lag zehn Minuten lang über 85 °C: Das Gerät wird sich gleich selbst drosseln. Endet bei 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-CPU hoch | Der Prozessor lag fünfzehn Minuten lang über 90 %. Endet unter 80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 Min. | Hinweis (`warning`) | 6 h |
+| pfSense-Swap in Benutzung | pfSense nutzt seit einer Stunde mehr als die Hälfte seines Swap: Ihm fehlt Arbeitsspeicher (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 h | Hinweis (`warning`) | 24 h |
+| pfSense-Schnittstellenfehler | Eine Schnittstelle hat in fünfzehn Minuten mehr als 100 Empfangs- oder Sendefehler verzeichnet: Prüfen Sie das Kabel, das SFP-Modul und die Duplex-Einstellung (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 Min. | Hinweis (`warning`) | 24 h |
+| pfSense-CARP-Wartungsmodus aktiv belassen | CARP ist seit einer Stunde im dauerhaften Wartungsmodus: Diese Firewall hat ihre virtuellen Adressen an ihren Partner abgegeben und holt sie nicht von selbst zurück (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 h | Info (`info`) | 24 h |
 
 ## Die Monitorseite
 
@@ -133,6 +140,13 @@ URL. Optionen:
 - **Accept an unverifiable certificate**: pfSenses eigenes Zertifikat
   ist selbstsigniert.
 - **Timeout pro Request** (15 s).
+
+## Bekannte Grenzen
+
+- Zertifikate werden nicht gelesen: Das Paket liefert ihre privaten Schlüssel gleich mit, und DumbMonit weigert sich, sie anzufordern. Überwachen Sie ein Ablaufdatum mit einem [TLS-Monitor](services.md#tls) auf der Adresse, die das Zertifikat ausliefert.
+- VPN-Tunnel (IPsec, OpenVPN, WireGuard) werden nicht einzeln verfolgt. Ihre Dienste schon, über „pfSense-Dienst gestoppt“.
+- pfSense-Updates werden nicht gemeldet: Die einzige API-Route, die sie berührt, startet eines.
+- Für den Arbeitsspeicher gibt es keine Regel: pfSense zählt den ZFS-Cache als belegten Speicher, ein hoher Wert ist also normal. Belegter Swap ist das verlässliche Zeichen für eine Firewall, der Arbeitsspeicher fehlt.
 
 ## Fehlerbehebung
 

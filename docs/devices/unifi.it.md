@@ -64,10 +64,23 @@ nome, o il suo indirizzo MAC quando non ha un nome), `mac`, `model` e `type`
 | `port_rx_bytes_total`, `port_tx_bytes_total`, `port_rx_errors_total`, `port_tx_errors_total` | contatori per porta, disegnati dal pannello dello switch | le stesse |
 | `port_neighbor_info` | valore 1, vicino LLDP della porta (`lldp_table`) | le stesse, `remote_chassis`, `remote_port` |
 
-Le [regole integrate](../alerting/rules.md#unifi-network) che
-si applicano: dispositivo UniFi offline, UniFi Internet inattivo, link WAN UniFi inattivo, CPU UniFi gateway
-alta, dispositivo UniFi in attesa di adozione, aggiornamento del firmware UniFi disponibile,
-allarmi UniFi, più dispositivo irraggiungibile.
+Le [regole integrate](../alerting/rules.md#unifi-network) che si applicano:
+
+| Regola | Cosa | Soglia predefinita | Mantenimento | Gravità | Promemoria |
+|---|---|---|---|---|---|
+| Dispositivo UniFi offline | Un dispositivo UniFi adottato dal controller è offline, isolato o non è riuscito ad essere adottato (`dumbmonit_unifi_device_up`). | < 1 | 5 min | Avviso (`warning`), escalation dopo 1 h | 6 h |
+| Internet UniFi non disponibile | Il gateway UniFi non segnala alcuna connessione a Internet (`dumbmonit_unifi_internet_up`). Senza un gateway UniFi la serie non esiste e la regola resta silenziosa. | < 1 | 3 min | Avvertenza (`critical`) | 1 h |
+| Collegamento WAN UniFi non attivo | Un collegamento WAN del gateway UniFi è giù (`dumbmonit_unifi_wan_link_up`): con due collegamenti, la ridondanza è persa mentre nulla sembra guasto. Una porta disabilitata non ha serie. | < 1 | 5 min | Avviso (`warning`) | 6 h |
+| CPU del gateway UniFi elevata | Il processore del gateway UniFi è sopra il 90% da quindici minuti (`dumbmonit_unifi_device_cpu_percent{type="gateway"}`); rientra sotto l'80 %. | > 90 % | 15 min | Avviso (`warning`) | 6 h |
+| Dispositivo UniFi in attesa di adozione | Un dispositivo è comparso sulla rete e attende di essere adottato in UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 min | Informazioni (`info`) | 24 h |
+| Aggiornamento firmware UniFi disponibile | È disponibile un aggiornamento firmware per dispositivi UniFi (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 h | Informazioni (`info`) | 7 d |
+| Allarmi UniFi | UniFi ha registrato eventi critici o sollevato allarmi nelle ultime 24 ore (`dumbmonit_unifi_alarms`). Letto solo con un account View Only. | > 0 | 5 min | Avviso (`warning`) | 24 h |
+| Sottosistema UniFi in errore | Un sottosistema UniFi (Wi-Fi, LAN o VPN) segnala un errore nella vista di salute del controller. Internet e i collegamenti WAN hanno le loro regole (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 min | Avviso (`warning`) | 6 h |
+| Dispositivo UniFi in surriscaldamento | Un dispositivo UniFi segnala che si sta surriscaldando (`dumbmonit_unifi_device_overheating`). | > 0 | 5 min | Avviso (`warning`) | 6 h |
+| Budget PoE UniFi quasi esaurito | Uno switch assorbe più del 90 % del suo budget PoE: il prossimo dispositivo collegato potrebbe non essere alimentato. Rientra sotto l'80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 min | Avviso (`warning`) | 24 h |
+| Canale Wi-Fi UniFi saturo | Il canale di una radio di un access point è occupato per più dell'80 % del tempo da trenta minuti: il Wi-Fi è lento per tutti quelli che lo usano. Rientra sotto il 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 min | Avviso (`warning`) | 24 h |
+| Client Wi-Fi UniFi con segnale debole | Più del 40 % dei client Wi-Fi, con almeno cinque connessi, ha un segnale più debole di -75 dBm: gli access point sono mal posizionati o troppo pochi (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 h | Informazioni (`info`) | 7 d |
+| Errori di porta UniFi | Una porta di uno switch ha registrato più di 100 errori di ricezione o di trasmissione in quindici minuti: controlla il cavo e i connettori (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 min | Avviso (`warning`) | 24 h |
 
 ## Dispositivi
 
@@ -141,3 +154,10 @@ server ospitato autonomamente), o un URL completo; un indirizzo copiato dal brow
 verifica certificato, timeout delle richieste (15 s), client da osservare oltre quelli contrassegnati
 (vuoto, o `all`), e obsolescenza del dispositivo (`device_stale_days`, 3 giorni di
 impostazione predefinita).
+
+## Limiti noti
+
+- Lo stato di Internet e della WAN, gli allarmi, il PoE e i dettagli del Wi-Fi esistono solo nell'API classica. Alcuni controller la negano a una chiave API: quelle serie sono allora assenti, senza errore. Un account View Only legge tutto.
+- Gli allarmi sono le voci critiche del registro di sistema delle ultime 24 ore da UniFi Network 8 in poi, gli allarmi non archiviati prima.
+- Solo i client che hai contrassegnato in UniFi (con un nome, con IP fisso o con una nota) vengono seguiti uno per uno, a meno che l'opzione `watched_clients` non dica altrimenti.
+- Non viene mai inviato alcun comando: nessun riavvio, nessuna adozione, nessun aggiornamento del firmware.

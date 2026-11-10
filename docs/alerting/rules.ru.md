@@ -173,6 +173,13 @@
 | Proxmox security updates pending | Хотя бы одно ожидающее обновление приходит из архива безопасности (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
 | Proxmox packages changed | Установленная версия пакета Proxmox изменилась между двумя опросами — кто-то выполнил `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, публикуется в течение одного часа, подробности в его метке `changes`: `pve1 · pve-manager 8.2.4→8.2.7`). Разрешается само через час. | > 0 | 1 мин | Info (`info`) | 24 ч |
 | Node certificate expiring | Сертификат узла Proxmox истекает менее чем через четырнадцать дней (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Proxmox storage inactive | Включённое хранилище не активно на узле (недоступный общий ресурс, несмонтированный диск, выключенный сервер резервного копирования): резервное копирование в него и диски на нём не работают (`dumbmonit_proxmox_storage_active`). | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+| Proxmox node needs a reboot | На узле уже три дня установлено более новое ядро без перезагрузки: узел по-прежнему работает на старом (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 дн | Info (`info`) | 7 дн |
+| Proxmox subscription expired | Подписка узла истекла, недействительна или приостановлена: репозиторий enterprise перестаёт отдавать обновления (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
+| Proxmox replication overdue | Задание репликации хранилища отстаёт от расписания более чем на шесть часов: копия на другом узле устаревает (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 ч | 15 мин | Advisory (`warning`) | 12 ч |
+| Proxmox backup job not running | Включённое задание резервного копирования не запускалось более восьми дней (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Proxmox guest not in any backup job | ВМ или контейнер уже сутки не входит ни в одно задание резервного копирования (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 ч | Info (`info`) | 7 дн |
+| Proxmox tasks failed | За последние шесть часов на узле завершились ошибкой задачи (запуск гостя, миграция, восстановление…). У резервных копий своё правило (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 мин | Info (`info`) | 24 ч |
 
 ### Proxmox Backup Server
 
@@ -199,6 +206,11 @@
 | PBS certificate expiring | Сертификат, который отдаёт сервер резервного копирования, истекает менее чем через три недели (`dumbmonit_pbs_node_certificate_expires_seconds`). Требуется параметр `certificates`. | < 21 дн | 1 ч | Advisory (`warning`) | 48 ч |
 | PBS restart pending after upgrade | Пакет обновлён, но работающий демон всё ещё старый (`dumbmonit_pbs_node_running_version_stale`). | > 0 | 6 ч | Info (`info`) | 7 дн |
 | PBS updates pending | На сервере резервного копирования ожидает более двадцати обновлений пакетов (`dumbmonit_pbs_node_updates_pending`). | > 20 | 1 ч | Info (`info`) | 7 дн |
+| PBS datastore unavailable | Datastore не удаётся открыть: резервное копирование в него и восстановление из него завершаются ошибкой. Съёмный datastore, который просто размонтирован, правило не вызывает (`dumbmonit_pbs_datastore_available`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
+| PBS datastore left in maintenance mode | Datastore находится в режиме обслуживания (только чтение или офлайн) больше суток: возможно, его оставили так по ошибке (`dumbmonit_pbs_datastore_maintenance`). | > 0 | 24 ч | Advisory (`warning`) | 24 ч |
+| PBS root file system almost full | Корневая файловая система сервера резервного копирования заполнена более чем на 90 %: когда она заполняется, задачи перестают запускаться, сколько бы места ни оставалось в datastore. Снимается ниже 85 % (`dumbmonit_pbs_node_rootfs_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 12 ч |
+| PBS scheduled job not running | Включённое задание синхронизации или prune с расписанием не запускалось более восьми дней. Задание, которое перестало запускаться, не завершается ошибкой, поэтому ни одно другое правило его не видит (`dumbmonit_pbs_job_last_run_age_seconds`). | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| PBS subscription expired | Подписка сервера резервного копирования истекла, недействительна или приостановлена: репозиторий enterprise перестаёт отдавать обновления (`dumbmonit_pbs_node_subscription_info`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
 
 ### Proxmox Datacenter Manager
 
@@ -254,6 +266,14 @@
 | Firewall left in CARP maintenance mode | CARP оставлен в постоянном режиме обслуживания (`dumbmonit_opnsense_carp_maintenance_mode`): этот межсетевой экран передал свои виртуальные адреса партнёру и сам их не заберёт обратно. | > 0 | 1 ч | Info (`info`) | 24 ч |
 | Firewall reboot pending | Обновление установлено, но для вступления в силу требуется перезагрузка (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 ч | Info (`info`) | 7 дн |
 | Firewall updates pending | У межсетевого экрана есть пакеты, ожидающие обновления (`dumbmonit_opnsense_firmware_updates_pending`). Это самая уязвимая машина в сети. | > 0 | 1 ч | Info (`info`) | 7 дн |
+| OPNsense certificate expiring | Сертификат, который использует межсетевой экран (веб-интерфейс, captive portal, VPN), истекает менее чем через 14 дней (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| OPNsense certificate expired | Сертификат, который использует межсетевой экран, истёк: клиенты теперь его отвергают (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 мин | Warning (`critical`) | 12 ч |
+| OPNsense disk almost full | Диск межсетевого экрана заполнен более чем на 90 %: журналы, захваты трафика и обновления перестанут работать. Снимается ниже 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 12 ч |
+| OPNsense CPU high | Процессор межсетевого экрана пятнадцать минут держался выше 90 %. Снимается ниже 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| OPNsense swap in use | Межсетевой экран уже час использует больше половины своего swap: ему не хватает памяти (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 ч | Advisory (`warning`) | 24 ч |
+| OPNsense packet filter disabled | Пакетный фильтр (pf) отключён: межсетевой экран больше ничего не фильтрует и не транслирует (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
+| OPNsense interface errors | Интерфейс зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель, SFP-модуль и настройку дуплекса (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
+| OPNsense update mirror unreachable | Межсетевой экран уже двенадцать часов не может связаться со своим зеркалом обновлений: он не узнает об обновлениях безопасности (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 ч | Info (`info`) | 7 дн |
 
 ### TrueNAS
 
@@ -272,6 +292,13 @@
 | NAS snapshots stale | Включённая задача периодических снимков не запускалась более восьми дней (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): задача, которая перестаёт запускаться, не завершается ошибкой, она просто замолкает. | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
 | TrueNAS alert raised | Сам TrueNAS поднял оповещение уровня ERROR или выше (`dumbmonit_truenas_alerts`). Его собственная формулировка — на странице монитора. | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
 | NAS service stopped | Служба, настроенная на запуск вместе с NAS, остановлена (`dumbmonit_truenas_service_running`). У намеренно выключенной службы ряда нет. | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+| NAS certificate expiring | Сертификат, с которым работает веб-интерфейс TrueNAS, истекает менее чем через 14 дней: браузеры, приложения и партнёры по репликации будут его отвергать (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| NAS certificate expired | Сертификат, с которым работает веб-интерфейс TrueNAS, истекает менее чем через 2 дня или уже истёк (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 дн | 15 мин | Warning (`critical`) | 12 ч |
+| NAS boot pool degraded | Загрузочный пул больше не исправен: NAS пока загружается с оставшегося устройства, пока не откажет и оно (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS boot pool almost full | Загрузочный пул заполнен более чем на 85 %: старые загрузочные окружения накапливаются с каждым обновлением и блокируют следующее. Снимается ниже 80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 ч | Advisory (`warning`) | 24 ч |
+| NAS remote backup task failed | Последний запуск задачи облачной синхронизации, rsync или облачного резервного копирования завершился ошибкой: удалённая копия устаревает (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS app crashed | Приложение находится в состоянии сбоя (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 мин | Advisory (`warning`) | 6 ч |
+| NAS virtual machine stopped | Виртуальная машина, настроенная на запуск вместе с NAS, не работает (`dumbmonit_truenas_vm_running`). | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
 
 ### Synology DSM
 
@@ -294,6 +321,20 @@
 | Active Backup task disabled | У задачи нет расписания или её непрерывное резервное копирование приостановлено (`dumbmonit_abb_task_enabled == bool 0`): она ничего не скопирует, пока кто-нибудь её не запустит. | > 0 | 1 ч | Info (`info`) | 7 дн |
 | Active Backup device overdue | Устройство дольше без успешного запуска Active Backup for Business, чем позволяет его собственный ритм, исключая выходные дни (`dumbmonit_abb_device_overdue`, см. [Synology](../devices/synology.md#how-overdue-is-judged)). | > 0 | 30 мин | Advisory (`warning`) | 24 ч |
 | Active Backup device failing | Последние две или более попытки устройства завершились неудачей (`dumbmonit_abb_device_consecutive_failures`); отменённый запуск не считается ни тем, ни другим. | ≥ 2 | 10 мин | Warning (`critical`) | 24 ч |
+| Synology system partition crashed | DSM сообщает, что его системный раздел повреждён (crashed): NAS может не пережить перезагрузку. Проверьте «Диспетчер хранения» (`dumbmonit_synology_system_crashed`). | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| Synology system partition needs repair | DSM сообщает, что его системный раздел требует восстановления; «Диспетчер хранения» предлагает его выполнить (`dumbmonit_synology_system_need_repair`). | > 0 | 30 мин | Advisory (`warning`) | 12 ч |
+| Synology CPU sustained high | Процессор NAS пятнадцать минут держался выше 90 %; очистка данных или индексация обычно заканчиваются намного раньше. Снимается ниже 85 % (`dumbmonit_synology_cpu_usage_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| Synology swap heavily used | Уже час занято более 60 % swap: NAS не хватает памяти (`dumbmonit_synology_swap_usage_percent`). | > 60 % | 1 ч | Info (`info`) | 24 ч |
+| Synology DSM update available | Доступно обновление DSM (`dumbmonit_synology_update_available`). | > 0 | 1 ч | Info (`info`) | 7 дн |
+| Synology Hyper Backup failed | Последний запуск задачи Hyper Backup завершился ошибкой (недоступное место назначения, ошибка контрольной суммы…). Выполняющийся запуск, отменённый запуск или задача, которая ни разу не запускалась, правило не вызывают (`dumbmonit_synology_backup_last_result`). | ≥ 2 | 10 мин | Advisory (`warning`) | 12 ч |
+| Synology Hyper Backup success too old | Ни одного успешного запуска задачи Hyper Backup более восьми дней: она отключена, приостановлена или ей никогда не удаётся запуститься. Ежемесячной задаче нужен более длинный предел (`dumbmonit_synology_backup_last_success_age_seconds`). | > 8 дн | 1 ч | Info (`info`) | 7 дн |
+| Synology volume read-only | Том доступен только для чтения: записать на него ничего нельзя (ошибки файловой системы или деградировавший том). Проверьте «Диспетчер хранения» (`dumbmonit_synology_volume_read_only`). | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| Synology volume locked | Зашифрованный том заблокирован: его общие папки недоступны, пока не введён ключ или не подключено хранилище ключей (`dumbmonit_synology_volume_locked`). | > 0 | 10 мин | Advisory (`warning`) | 6 ч |
+| Synology volume out of inodes | На томе не осталось свободных inode: создать файл нельзя, даже при свободном месте (`dumbmonit_synology_volume_inode_full`). | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| Synology data scrubbing overdue | Последняя очистка данных пула хранения закончилась более 200 дней назад: запланируйте регулярную в «Диспетчере хранения» (`dumbmonit_synology_pool_scrub_age_seconds`). | > 200 дн | 1 ч | Info (`info`) | 30 дн |
+| Synology certificate expiring | Сертификат DSM истекает менее чем через 14 дней: его автоматическое продление, вероятно, не срабатывает (`dumbmonit_synology_certificate_expires_in_seconds`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Synology certificate about to expire | Сертификат DSM истекает менее чем через 3 дня или уже истёк (`dumbmonit_synology_certificate_expires_in_seconds`). | < 3 дн | 10 мин | Warning (`critical`) | 6 ч |
+| Synology certificate broken | DSM помечает сертификат как повреждённый: его ключ или цепочку не удаётся прочитать (`dumbmonit_synology_certificate_broken`). | > 0 | 1 ч | Advisory (`warning`) | 24 ч |
 
 ### Серверы логов и метрик {#log-and-metrics-servers}
 
@@ -437,6 +478,12 @@ DNS-фильтр ([монитор](../devices/adguard.md)). Показатели
 | UniFi device waiting for adoption | В сети появилось устройство, которое ждёт принятия в UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 мин | Info (`info`) | 24 ч |
 | UniFi firmware update available | Для устройств UniFi доступно обновление прошивки (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 ч | Info (`info`) | 7 дн |
 | UniFi alarms | UniFi зафиксировал критические события или поднял тревоги за последние 24 часа (`dumbmonit_unifi_alarms`). Читается только с учётной записью View Only. | > 0 | 5 мин | Advisory (`warning`) | 24 ч |
+| UniFi subsystem in error | Подсистема UniFi (Wi-Fi, LAN или VPN) сообщает об ошибке в обзоре состояния контроллера. У Интернета и WAN-каналов свои правила (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 мин | Advisory (`warning`) | 6 ч |
+| UniFi device overheating | Устройство UniFi сообщает о перегреве (`dumbmonit_unifi_device_overheating`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| UniFi PoE budget nearly used | Коммутатор потребляет более 90 % своего бюджета PoE: следующее подключённое устройство может остаться без питания. Снимается ниже 80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 мин | Advisory (`warning`) | 24 ч |
+| UniFi Wi-Fi channel saturated | Канал радиомодуля точки доступа уже тридцать минут занят более 80 % времени: Wi-Fi медленный у всех, кто на нём работает. Снимается ниже 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 мин | Advisory (`warning`) | 24 ч |
+| UniFi Wi-Fi clients with a weak signal | Более чем у 40 % клиентов Wi-Fi, при не менее чем пяти подключённых, сигнал слабее -75 дБм: точки доступа неудачно расположены или их слишком мало (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 ч | Info (`info`) | 7 дн |
+| UniFi port errors | Порт коммутатора зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель и разъёмы (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
 
 ### Home Assistant
 
@@ -464,6 +511,8 @@ DNS-фильтр ([монитор](../devices/adguard.md)). Показатели
 | vSphere datastore inaccessible | Хранилище данных vSphere недоступно: хранящиеся на нём ВМ не могут работать (`dumbmonit_vsphere_datastore_accessible`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
 | vSphere VM tools not running | VMware Tools установлены, но не запущены во включённой ВМ: гость, возможно, завис (`dumbmonit_vsphere_vm_tools_status == 2`). ВМ без Tools не вызывают срабатывания. | > 0 | 30 мин | Info (`info`) | 24 ч |
 | vSphere red alarm | vSphere поднял красную тревогу, которую никто не подтвердил (`dumbmonit_vsphere_alarm{status="red"}`, один ряд на тревогу, названный по тревоге и объекту). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| vSphere VM snapshot too old | Самому старому снимку ВМ больше трёх дней: снимки растут, замедляют ВМ и могут заполнить datastore. VMware рекомендует не хранить ни одного дольше 72 часов (`dumbmonit_vsphere_vm_snapshot_oldest_age_seconds`). | > 3 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| vSphere VM disks need consolidation | vSphere сообщает, что диски ВМ требуют консолидации: после удаления снимка остались delta-файлы, и они продолжают расти (`dumbmonit_vsphere_vm_consolidation_needed`). | > 0 | 1 ч | Advisory (`warning`) | 24 ч |
 
 ### Базы данных, брокер сообщений и движок безопасности {#databases-message-broker-and-security-engine}
 
@@ -577,6 +626,13 @@ Traefik, Caddy, Nginx Proxy Manager и регистрации доменов ([T
 | pfSense interface without link | У включённого интерфейса pfSense нет линка: кабель, порт коммутатора или сетевая карта (`dumbmonit_pfsense_interface_down`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
 | pfSense service stopped | Включённая служба pfSense не запущена: DNS-резолвер, VPN, NTP… (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
 | pfSense disk nearly full | Диск pfSense заполнен более чем на 90 %: логи, отчёты и обновления пакетов перестают записываться (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
+| pfSense state table nearly full | pf отслеживает более 80 % разрешённых ему соединений: за пределом межсетевой экран отбрасывает новые соединения без каких-либо других симптомов. Снимается ниже 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense network buffers nearly exhausted | Занято более 90 % сетевых буферов: межсетевой экран, у которого они закончились, перестаёт пересылать трафик, хотя его процессор простаивает. Снимается ниже 80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense temperature high | Температура, которую считывает pfSense, десять минут держалась выше 85 °C: устройство вот-вот начнёт само себя замедлять. Снимается при 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense CPU high | Процессор пятнадцать минут держался выше 90 %. Снимается ниже 80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| pfSense swap in use | pfSense уже час использует больше половины своего swap: ему не хватает памяти (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 ч | Advisory (`warning`) | 24 ч |
+| pfSense interface errors | Интерфейс зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель, SFP-модуль и настройку дуплекса (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
+| pfSense CARP maintenance mode left on | CARP уже час оставлен в постоянном режиме обслуживания: этот межсетевой экран передал свои виртуальные адреса напарнику и сам их не вернёт (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 ч | Info (`info`) | 24 ч |
 
 ### Unraid
 
@@ -592,6 +648,13 @@ Traefik, Caddy, Nginx Proxy Manager и регистрации доменов ([T
 | Unraid parity check overdue | Последней проверке чётности Unraid более 40 дней: ежемесячная проверка пропущена (`dumbmonit_unraid_parity_check_age_seconds`). | > 40 дн | 1 ч | Advisory (`warning`) | 1 дн |
 | Unraid cache nearly full | Кэш-пул Unraid заполнен более чем на 90 %: запись откатывается на медленный массив или завершается ошибкой (`dumbmonit_unraid_disk_used_percent{role="cache"}`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
 | Unraid container stopped | Контейнер Docker, настроенный на запуск вместе с массивом, не запущен (`dumbmonit_unraid_container_autostart_stopped`). | > 0 | 10 мин | Advisory (`warning`) | 6 ч |
+| Unraid VM crashed | Unraid сообщает, что виртуальная машина аварийно завершилась (crashed) (`dumbmonit_unraid_vm_crashed`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| Unraid alert unread | Unraid выдал уведомление высшей важности (alert), которое никто не прочитал: отказавший диск, перегрев, ошибка массива… (`dumbmonit_unraid_notifications_unread{importance="alert"}`). | > 0 | 10 мин | Advisory (`warning`) | 24 ч |
+| Unraid array nearly full | Массив заполнен более чем на 95 %: запись на общие ресурсы скоро начнёт завершаться ошибкой. Снимается ниже 93 % (`dumbmonit_unraid_array_used_percent`). | > 95 % | 1 ч | Advisory (`warning`) | 24 ч |
+| Unraid memory nearly exhausted | Уже пятнадцать минут занято более 95 % памяти: Unraid работает из памяти, и когда она заканчивается, контейнеры или ВМ принудительно завершаются. Снимается ниже 90 % (`dumbmonit_unraid_memory_used_percent`). | > 95 % | 15 мин | Advisory (`warning`) | 6 ч |
+| Unraid license problem | Unraid сообщает о проблеме с лицензией (истёкший пробный период, ключ не соответствует флеш-накопителю, отсутствует файл ключа…): массив может отказаться запускаться после следующей остановки (`dumbmonit_unraid_registration_ok`). | < 1 | 30 мин | Advisory (`warning`) | 24 ч |
+| Unraid trial ending | Пробная лицензия заканчивается менее чем через три дня: после этого массив больше не запускается (`dumbmonit_unraid_trial_expiry_seconds`). | < 3 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Unraid OS updates eligibility ending | Право лицензии на обновления Unraid OS заканчивается менее чем через 30 дней. Сервер продолжает работать; он лишь перестаёт получать новые версии (`dumbmonit_unraid_os_updates_expiry_seconds`). | < 30 дн | 1 ч | Info (`info`) | 7 дн |
 
 ### Veeam Backup & Replication
 
@@ -601,212 +664,14 @@ Traefik, Caddy, Nginx Proxy Manager и регистрации доменов ([T
 |---|---|---|---|---|---|
 | Veeam job failed | Последний запуск включённого задания Veeam завершился неудачей: у защищаемых им данных нет новой точки восстановления (`dumbmonit_veeam_job_failed`). | > 0 | 5 мин | Warning (`critical`) | 1 дн |
 | Veeam job ended with a warning | Последний запуск включённого задания Veeam завершился с предупреждением: некоторые объекты могут быть не защищены (`dumbmonit_veeam_job_warning`). | > 0 | 5 мин | Advisory (`warning`) | 1 дн |
-|
- 
-V
-e
-e
-a
-m
- 
-b
-a
-c
-k
-u
-p
- 
-t
-o
-o
- 
-o
-l
-d
- 
-|
- 
-Б
-о
-л
-ь
-ш
-е
- 
-д
-в
-у
-х
- 
-д
-н
-е
-й
- 
-н
-е
-т
- 
-у
-с
-п
-е
-ш
-н
-о
-г
-о
- 
-з
-а
-п
-у
-с
-к
-а
- 
-з
-а
-д
-а
-н
-и
-я
-,
- 
-з
-а
-п
-л
-а
-н
-и
-р
-о
-в
-а
-н
-н
-о
-г
-о
- 
-х
-о
-т
-я
- 
-б
-ы
- 
-е
-ж
-е
-д
-н
-е
-в
-н
-о
- 
-(
-`
-d
-u
-m
-b
-m
-o
-n
-i
-t
-_
-v
-e
-e
-a
-m
-_
-j
-o
-b
-_
-l
-a
-s
-t
-_
-s
-u
-c
-c
-e
-s
-s
-_
-a
-g
-e
-_
-s
-e
-c
-o
-n
-d
-s
-`
-)
-.
- 
-|
- 
->
- 
-2
- 
-д
-н
- 
-|
- 
-1
- 
-ч
- 
-|
- 
-A
-d
-v
-i
-s
-o
-r
-y
- 
-(
-`
-w
-a
-r
-n
-i
-n
-g
-`
-)
- 
-|
- 
-1
- 
-д
-н
- 
-|
+| Veeam backup too old | Больше двух дней нет успешного запуска задания, запланированного хотя бы ежедневно (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 дн | 1 ч | Advisory (`warning`) | 1 дн |
 | Veeam repository nearly full | Репозиторий резервных копий Veeam заполнен более чем на 90 %: следующие задания завершатся неудачей из-за нехватки места (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
 | Veeam license expiring | Лицензия Veeam истекает менее чем через 30 дней: задания остановятся по окончании льготного периода (`dumbmonit_veeam_license_expiry_seconds`). | < 30 дн | 1 ч | Advisory (`warning`) | 1 дн |
+| Veeam support expiring | Контракт на поддержку Veeam истекает менее чем через 30 дней: после этой даты сервер не получает ни обновлений, ни поддержки производителя (`dumbmonit_veeam_support_expiry_seconds`). | < 30 дн | 1 ч | Info (`info`) | 24 ч |
+| Veeam repository offline | Репозиторий резервных копий не в сети: задания, которые в него пишут, завершаются ошибкой, а его точки восстановления нельзя прочитать. Требуется ревизия API `1.2-rev0` или новее (`dumbmonit_veeam_repository_online`). | < 1 | 10 мин | Warning (`critical`) | 6 ч |
+| Veeam license expired or invalid | Лицензия Veeam больше не действительна: задания останавливаются по окончании льготного периода. Только когда учётная запись может читать лицензию (`dumbmonit_veeam_license_valid`). | < 1 | 30 мин | Warning (`critical`) | 24 ч |
+| Veeam configuration backup disabled | Резервное копирование собственной конфигурации Veeam отключено: без него потерянный сервер резервного копирования придётся восстанавливать вручную (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 ч | Info (`info`) | 7 дн |
+| Veeam configuration backup too old | Резервное копирование конфигурации включено, но не завершалось успешно более семи дней (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 дн | 1 ч | Advisory (`warning`) | 24 ч |
 
 ### Tailscale
 

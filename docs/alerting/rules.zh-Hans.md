@@ -165,6 +165,13 @@
 | Proxmox 安全更新待处理 | 至少一个待处理更新来自安全档案(`dumbmonit_proxmox_node_updates_security_pending`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
 | Proxmox 包已更改 | Proxmox 包的已安装版本在两个探针之间更改 — 有人运行了`apt upgrade`(`dumbmonit_proxmox_node_packages_changed`,发布一小时以其变化细节在其`changes`标签:`pve1 · pve-manager 8.2.4→8.2.7`)。一小时后自行解决。 | > 0 | 1 分钟 | 信息 (`info`) | 24 小时 |
 | 节点证书即将过期 | Proxmox 节点证书在少于 14 天内过期(`dumbmonit_proxmox_node_certificate_expiry_days`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Proxmox 存储未激活 | 某个已启用的存储在某个节点上未激活（共享不可达、磁盘未挂载、备份服务器宕机）：向它做的备份和它上面的磁盘都会出错(`dumbmonit_proxmox_storage_active`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| Proxmox 节点需要重启 | 某个节点上安装了较新的内核已有三天却未重启：节点仍在运行旧内核(`dumbmonit_proxmox_node_reboot_required`)。 | > 0 | 3 天 | 信息 (`info`) | 7 天 |
+| Proxmox 订阅已过期 | 某个节点的订阅已过期、无效或被暂停：enterprise 仓库不再提供更新(`dumbmonit_proxmox_node_subscription_info`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
+| Proxmox 复制滞后 | 某个存储复制作业落后其计划超过六小时：另一节点上的副本越来越旧(`dumbmonit_proxmox_replication_job_next_sync_seconds`)。 | > 6 小时 | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| Proxmox 备份作业已停止运行 | 某个已启用的备份作业已超过八天没有运行(`dumbmonit_proxmox_backup_job_last_run_age_seconds`)。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Proxmox 客户机不在任何备份作业中 | 某个虚拟机或容器已有一天不在任何备份作业中(`dumbmonit_proxmox_backup_covered`)。 | < 1 | 24 小时 | 信息 (`info`) | 7 天 |
+| Proxmox 任务失败 | 过去六小时内某个节点上有任务失败（客户机启动、迁移、恢复……）。备份有自己的规则(`dumbmonit_proxmox_node_tasks_failed`)。 | > 0 | 5 分钟 | 信息 (`info`) | 24 小时 |
 
 ### Proxmox 备份服务器 {#proxmox-backup-server}
 
@@ -191,6 +198,11 @@
 | PBS 证书即将过期 | 备份服务器提供的证书在少于 3 周内过期(`dumbmonit_pbs_node_certificate_expires_seconds`)。需要`certificates`选项。 | < 21 天 | 1 小时 | 通知 (`warning`) | 48 小时 |
 | PBS 升级后重启待处理 | 包已升级但运行守护进程仍是旧的(`dumbmonit_pbs_node_running_version_stale`)。 | > 0 | 6 小时 | 信息 (`info`) | 7 天 |
 | PBS 更新待处理 | 超过 20 个包更新在备份服务器上待处理(`dumbmonit_pbs_node_updates_pending`)。 | > 20 | 1 小时 | 信息 (`info`) | 7 天 |
+| PBS 数据存储不可用 | 某个数据存储无法打开：向它备份和从它恢复都会失败。仅仅是被卸载的可移动数据存储不会触发(`dumbmonit_pbs_datastore_available`)。 | < 1 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| PBS 数据存储一直处于维护模式 | 某个数据存储处于维护模式（只读或离线）已超过一天：可能是被误留在该模式(`dumbmonit_pbs_datastore_maintenance`)。 | > 0 | 24 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 根文件系统几乎已满 | 备份服务器的根文件系统使用率超过 90 %：一旦写满，任务就无法启动，无论数据存储还剩多少空间。低于 85 % 时解除(`dumbmonit_pbs_node_rootfs_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| PBS 计划作业已停止运行 | 某个已启用且设有计划的同步或 prune 作业已超过八天没有运行。停止运行的作业不会失败，因此其他规则都发现不了它(`dumbmonit_pbs_job_last_run_age_seconds`)。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 订阅已过期 | 备份服务器的订阅已过期、无效或被暂停：enterprise 仓库不再提供更新(`dumbmonit_pbs_node_subscription_info`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
 
 ### Proxmox 数据中心管理器 {#proxmox-datacenter-manager}
 
@@ -246,6 +258,14 @@
 | 防火墙留在 CARP 维护模式 | CARP 已留在持久维护模式(`dumbmonit_opnsense_carp_maintenance_mode`):此防火墙将其虚拟地址移交给其合作伙伴不会独自取回。 | > 0 | 1 小时 | 信息 (`info`) | 24 小时 |
 | 防火墙重启待处理 | 更新已安装但需要重启才能生效(`dumbmonit_opnsense_firmware_reboot_required`)。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
 | 防火墙更新待处理 | 防火墙有包等待更新(`dumbmonit_opnsense_firmware_updates_pending`)。它是网络上最暴露的机器。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
+| OPNsense 证书即将到期 | 防火墙使用的某个证书（Web 界面、强制门户、VPN）将在 14 天内到期(`dumbmonit_opnsense_certificate_expiry_seconds`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| OPNsense 证书已过期 | 防火墙使用的某个证书已过期：客户端现在会拒绝它(`dumbmonit_opnsense_certificate_expiry_seconds`)。 | < 0 | 10 分钟 | 警告 (`critical`) | 12 小时 |
+| OPNsense 磁盘几乎已满 | 防火墙的磁盘使用率超过 90 %：日志、抓包和更新都将失败。低于 85 % 时解除(`dumbmonit_opnsense_disk_used_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| OPNsense CPU 高 | 防火墙的处理器连续十五分钟高于 90 %。低于 80 % 时解除(`dumbmonit_opnsense_cpu_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| OPNsense 交换空间被使用 | 防火墙使用超过一半的交换空间已达一小时：内存不足(`dumbmonit_opnsense_swap_used_percent`)。 | > 50 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| OPNsense 包过滤器已禁用 | 包过滤器（pf）已禁用：防火墙不再过滤，也不再做地址转换(`dumbmonit_opnsense_pf_enabled`)。 | < 1 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| OPNsense 接口错误 | 某个接口在十五分钟内记录了超过 100 个接收或发送错误：请检查网线、SFP 模块和双工设置(`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`)。 | > 100 | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| OPNsense 更新镜像不可达 | 防火墙已有十二小时无法连接其更新镜像：它将无法得知安全更新(`dumbmonit_opnsense_firmware_connection_ok`)。 | < 1 | 12 小时 | 信息 (`info`) | 7 天 |
 
 ### TrueNAS {#truenas}
 
@@ -264,6 +284,13 @@
 | NAS 快照陈旧 | 启用的定期快照任务已 8 天未运行(`dumbmonit_truenas_snapshot_task_last_run_age_seconds`):停止运行的任务不失败,它变安静。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
 | TrueNAS 告警提升 | TrueNAS 本身已提升错误或以上级别的告警(`dumbmonit_truenas_alerts`)。其自己的句子在监控项页面。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
 | NAS 服务停止 | 设置为与 NAS 一起启动的服务已停止(`dumbmonit_truenas_service_running`)。故意关闭的服务没有系列。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| NAS 证书即将到期 | 为 TrueNAS Web 界面提供服务的证书将在 14 天内到期：浏览器、应用和复制对端都会拒绝它(`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| NAS 证书已过期 | 为 TrueNAS Web 界面提供服务的证书将在 2 天内到期，或已经过期(`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`)。 | < 2 天 | 15 分钟 | 警告 (`critical`) | 12 小时 |
+| NAS 启动池降级 | 启动池不再健康：NAS 仍能从剩下的设备启动，直到那块设备也发生故障(`dumbmonit_truenas_boot_pool_healthy`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 启动池几乎已满 | 启动池使用率超过 85 %：旧的启动环境随每次更新不断累积，并会阻止下一次更新。低于 80 % 时解除(`dumbmonit_truenas_boot_pool_used_percent`)。 | > 85 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| NAS 异地备份任务失败 | 某个云同步、rsync 或云备份任务的最近一次运行失败：远端副本越来越旧(`dumbmonit_truenas_backup_task_failed`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| NAS 应用已崩溃 | 某个应用处于崩溃（crashed）状态(`dumbmonit_truenas_app_crashed`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| NAS 虚拟机已停止 | 某台设置为随 NAS 启动的虚拟机没有在运行(`dumbmonit_truenas_vm_running`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
 
 ### Synology DSM {#synology-dsm}
 
@@ -286,6 +313,20 @@
 | Active Backup 任务禁用 | 任务没有计划,或其连续备份已暂停(`dumbmonit_abb_task_enabled == bool 0`):它不会备份任何东西直到有人运行它。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
 | Active Backup 监控项逾期 | 监控项已超过其自己节奏允许的更长时间没有成功的 Active Backup for Business 运行,不计闲日(`dumbmonit_abb_device_overdue`,见[Synology](../devices/synology.md#how-overdue-is-judged))。 | > 0 | 30 分钟 | 通知 (`warning`) | 24 小时 |
 | Active Backup 监控项失败 | 监控项的最后两次或更多尝试失败(`dumbmonit_abb_device_consecutive_failures`);取消的运行既不计数。 | ≥ 2 | 10 分钟 | 警告 (`critical`) | 24 小时 |
+| Synology 系统分区已崩溃 | DSM 报告其系统分区已崩溃：NAS 可能撑不过一次重启。请检查“存储管理器”(`dumbmonit_synology_system_crashed`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| Synology 系统分区需要修复 | DSM 表示其系统分区需要修复；“存储管理器”会提供修复操作(`dumbmonit_synology_system_need_repair`)。 | > 0 | 30 分钟 | 通知 (`warning`) | 12 小时 |
+| Synology CPU 持续偏高 | NAS 的处理器连续十五分钟高于 90 %；数据清理或索引通常远在此之前就结束。低于 85 % 时解除(`dumbmonit_synology_cpu_usage_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| Synology 交换空间使用率高 | 超过 60 % 的交换空间被占用已达一小时：NAS 内存不足(`dumbmonit_synology_swap_usage_percent`)。 | > 60 % | 1 小时 | 信息 (`info`) | 24 小时 |
+| Synology DSM 有可用更新 | 有可用的 DSM 更新(`dumbmonit_synology_update_available`)。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
+| Synology Hyper Backup 失败 | 某个 Hyper Backup 任务的最近一次运行失败（目的地不可达、校验和错误……）。正在进行的运行、被取消的运行或从未运行过的任务不会触发(`dumbmonit_synology_backup_last_result`)。 | ≥ 2 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| Synology Hyper Backup 上次成功时间过久 | 某个 Hyper Backup 任务已超过八天没有成功运行：它被禁用、被挂起，或者始终没能运行。按月运行的任务需要更长的期限(`dumbmonit_synology_backup_last_success_age_seconds`)。 | > 8 天 | 1 小时 | 信息 (`info`) | 7 天 |
+| Synology 卷只读 | 某个卷为只读：无法向其写入任何内容（文件系统错误或卷已降级）。请检查“存储管理器”(`dumbmonit_synology_volume_read_only`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| Synology 卷已锁定 | 某个加密卷被锁定：在输入密钥或挂载密钥保管库之前，其共享文件夹不可用(`dumbmonit_synology_volume_locked`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| Synology 卷 inode 耗尽 | 某个卷已没有空闲 inode：即使还有可用空间，也无法创建任何文件(`dumbmonit_synology_volume_inode_full`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 12 小时 |
+| Synology 数据清理逾期 | 某个存储池的上一次数据清理结束于 200 多天前：请在“存储管理器”中安排定期清理(`dumbmonit_synology_pool_scrub_age_seconds`)。 | > 200 天 | 1 小时 | 信息 (`info`) | 30 天 |
+| Synology 证书即将到期 | 某个 DSM 证书将在 14 天内到期：它的自动续期很可能正在失败(`dumbmonit_synology_certificate_expires_in_seconds`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Synology 证书马上到期 | 某个 DSM 证书将在 3 天内到期，或已经过期(`dumbmonit_synology_certificate_expires_in_seconds`)。 | < 3 天 | 10 分钟 | 警告 (`critical`) | 6 小时 |
+| Synology 证书损坏 | DSM 将某个证书标记为损坏：无法读取其密钥或证书链(`dumbmonit_synology_certificate_broken`)。 | > 0 | 1 小时 | 通知 (`warning`) | 24 小时 |
 
 ### 日志和度量服务器 {#log-and-metrics-servers}
 
@@ -427,6 +468,12 @@ UPS 从[NUT 服务器](../devices/nut.md)读取。每个系列携带`ups`
 | UniFi 监控项等待采纳 | 监控项出现在网络并等待在 UniFi 中采纳(`dumbmonit_unifi_devices{state="pending"}`)。 | > 0 | 30 分钟 | 信息 (`info`) | 24 小时 |
 | UniFi 固件更新可用 | 固件更新对 UniFi 监控项可用(`dumbmonit_unifi_devices_upgradable`)。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
 | UniFi 告警 | UniFi 在最后 24 小时内记录了关键事件或提升告警(`dumbmonit_unifi_alarms`)。仅用视图唯一账户读取。 | > 0 | 5 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi 子系统出错 | 某个 UniFi 子系统（Wi-Fi、LAN 或 VPN）在控制器的健康视图中报告错误。互联网和 WAN 链路有各自的规则(`dumbmonit_unifi_subsystem_status`: 2)。 | ≥ 2 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi 设备过热 | 某台 UniFi 设备报告自己过热(`dumbmonit_unifi_device_overheating`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi PoE 预算几乎用尽 | 某台交换机消耗了超过 90 % 的 PoE 预算：下一台接入的设备可能得不到供电。低于 80 % 时解除(`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi Wi-Fi 信道拥塞 | 某个接入点射频的信道在三十分钟内有超过 80 % 的时间处于繁忙：该信道上所有人的 Wi-Fi 都很慢。低于 65 % 时解除(`dumbmonit_unifi_radio_channel_utilization_percent`)。 | > 80 % | 30 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi Wi-Fi 客户端信号弱 | 在至少有五个客户端连接时，超过 40 % 的 Wi-Fi 客户端信号弱于 -75 dBm：接入点位置不佳或数量太少(`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`)。 | > 40 % | 1 小时 | 信息 (`info`) | 7 天 |
+| UniFi 端口错误 | 某个交换机端口在十五分钟内记录了超过 100 个接收或发送错误：请检查网线和接头(`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`)。 | > 100 | 15 分钟 | 通知 (`warning`) | 24 小时 |
 
 ### Home Assistant {#home-assistant}
 
@@ -455,6 +502,8 @@ UPS 从[NUT 服务器](../devices/nut.md)读取。每个系列携带`ups`
 | vSphere 数据存储不可访问 | vSphere 数据存储不可访问:存放其上的虚拟机无法运行(`dumbmonit_vsphere_datastore_accessible`)。 | < 1 | 5 分钟 | 警告 (`critical`) | 1 小时 |
 | vSphere 虚拟机工具未运行 | 已开机的虚拟机中安装了 VMware Tools 但未运行:客户机可能已挂起(`dumbmonit_vsphere_vm_tools_status == 2`)。没有 Tools 的虚拟机不触发。 | > 0 | 30 分钟 | 信息 (`info`) | 24 小时 |
 | vSphere 红色告警 | vSphere 发出了无人确认的红色告警(`dumbmonit_vsphere_alarm{status="red"}`,每个告警一个系列,以告警和对象命名)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| vSphere 虚拟机快照过旧 | 某台虚拟机最旧的快照已超过三天：快照会不断增大、拖慢虚拟机，并可能占满数据存储。VMware 建议任何快照都不要保留超过 72 小时(`dumbmonit_vsphere_vm_snapshot_oldest_age_seconds`)。 | > 3 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| vSphere 虚拟机磁盘需要整合 | vSphere 报告某台虚拟机的磁盘需要整合：删除快照后留下了增量文件，而且它们还在继续增大(`dumbmonit_vsphere_vm_consolidation_needed`)。 | > 0 | 1 小时 | 通知 (`warning`) | 24 小时 |
 
 ### 数据库、消息代理和安全引擎 {#databases-message-broker-and-security-engine}
 
@@ -564,6 +613,13 @@ Traefik、Caddy、Nginx Proxy Manager 和域名注册([Traefik](../devices/traef
 | pfSense 接口无链路 | 已启用的 pfSense 接口没有链路:网线、交换机端口或网卡(`dumbmonit_pfsense_interface_down`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
 | pfSense 服务已停止 | 已启用的 pfSense 服务未运行:DNS 解析器、VPN、NTP…(`dumbmonit_pfsense_service_stopped`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
 | pfSense 磁盘几乎已满 | pfSense 磁盘已满超过 90 %:日志、报告和软件包更新将无法写入(`dumbmonit_pfsense_disk_used_percent`)。 | > 90 % | 30 分钟 | 通知 (`warning`) | 1 天 |
+| pfSense 状态表几乎已满 | pf 跟踪的连接数超过其上限的 80 %：超过上限后，防火墙会丢弃新连接，且没有任何其他症状。低于 70 % 时解除(`dumbmonit_pfsense_states_used_percent`)。 | > 80 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| pfSense 网络缓冲区几乎耗尽 | 超过 90 % 的网络缓冲区已被占用：缓冲区耗尽的防火墙会停止转发，而此时处理器仍然空闲。低于 80 % 时解除(`dumbmonit_pfsense_mbuf_used_percent`)。 | > 90 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| pfSense 温度高 | pfSense 读到的温度连续十分钟高于 85 °C：设备即将自行降速。降到 78 °C 时解除(`dumbmonit_pfsense_temperature_celsius`)。 | > 85 °C | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| pfSense CPU 高 | 处理器连续十五分钟高于 90 %。低于 80 % 时解除(`dumbmonit_pfsense_cpu_usage_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| pfSense 交换空间被使用 | pfSense 使用超过一半的交换空间已达一小时：内存不足(`dumbmonit_pfsense_swap_used_percent`)。 | > 50 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| pfSense 接口错误 | 某个接口在十五分钟内记录了超过 100 个接收或发送错误：请检查网线、SFP 模块和双工设置(`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`)。 | > 100 | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| pfSense CARP 维护模式一直开启 | CARP 处于持久维护模式已达一小时：这台防火墙已把虚拟地址交给对端，不会自行收回(`dumbmonit_pfsense_carp_maintenance_mode`)。 | > 0 | 1 小时 | 信息 (`info`) | 24 小时 |
 
 ### Unraid {#unraid}
 
@@ -579,6 +635,13 @@ Traefik、Caddy、Nginx Proxy Manager 和域名注册([Traefik](../devices/traef
 | Unraid 校验检查逾期 | 上一次 Unraid 校验检查已超过 40 天:错过了每月检查(`dumbmonit_unraid_parity_check_age_seconds`)。 | > 40 d | 1 小时 | 通知 (`warning`) | 1 天 |
 | Unraid 缓存几乎已满 | Unraid 缓存池已满超过 90 %:写入回落到较慢的阵列,或失败(`dumbmonit_unraid_disk_used_percent{role="cache"}`)。 | > 90 % | 30 分钟 | 通知 (`warning`) | 1 天 |
 | Unraid 容器已停止 | 设置为随阵列启动的 Docker 容器未运行(`dumbmonit_unraid_container_autostart_stopped`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| Unraid 虚拟机已崩溃 | Unraid 报告某台虚拟机已崩溃(`dumbmonit_unraid_vm_crashed`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| Unraid 警报未读 | Unraid 发出了一条最高级别（alert）的通知，却没有人读过：磁盘故障、过热、阵列错误……(`dumbmonit_unraid_notifications_unread{importance="alert"}`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 24 小时 |
+| Unraid 阵列几乎已满 | 阵列使用率超过 95 %：向共享写入很快就会失败。低于 93 % 时解除(`dumbmonit_unraid_array_used_percent`)。 | > 95 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Unraid 内存几乎耗尽 | 超过 95 % 的内存被占用已达十五分钟：Unraid 在内存中运行，内存耗尽时容器或虚拟机会被终止。低于 90 % 时解除(`dumbmonit_unraid_memory_used_percent`)。 | > 95 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| Unraid 许可证问题 | Unraid 报告许可证问题（试用过期、密钥与 U 盘不匹配、密钥文件缺失……）：下次停止之后，阵列可能拒绝启动(`dumbmonit_unraid_registration_ok`)。 | < 1 | 30 分钟 | 通知 (`warning`) | 24 小时 |
+| Unraid 试用即将结束 | 试用许可证将在三天内结束：之后阵列将无法启动(`dumbmonit_unraid_trial_expiry_seconds`)。 | < 3 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Unraid OS 更新资格即将结束 | 许可证将在 30 天内失去获取 Unraid OS 更新的资格。服务器会继续工作，只是不再收到新版本(`dumbmonit_unraid_os_updates_expiry_seconds`)。 | < 30 天 | 1 小时 | 信息 (`info`) | 7 天 |
 
 ### Veeam Backup & Replication {#veeam-backup--replication}
 
@@ -588,133 +651,14 @@ Traefik、Caddy、Nginx Proxy Manager 和域名注册([Traefik](../devices/traef
 |---|---|---|---|---|---|
 | Veeam 作业失败 | 已启用的 Veeam 作业上一次运行失败:它保护的对象没有新的还原点(`dumbmonit_veeam_job_failed`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 天 |
 | Veeam 作业以警告结束 | 已启用的 Veeam 作业上一次运行以警告结束:部分对象可能未受保护(`dumbmonit_veeam_job_warning`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 1 天 |
-|
- 
-V
-e
-e
-a
-m
- 
-备
-份
-过
-旧
- 
-|
- 
-至
-少
-每
-天
-计
-划
-运
-行
-的
-作
-业
-超
-过
-两
-天
-没
-有
-成
-功
-运
-行
-（
-`
-d
-u
-m
-b
-m
-o
-n
-i
-t
-_
-v
-e
-e
-a
-m
-_
-j
-o
-b
-_
-l
-a
-s
-t
-_
-s
-u
-c
-c
-e
-s
-s
-_
-a
-g
-e
-_
-s
-e
-c
-o
-n
-d
-s
-`
-）
-。
- 
-|
- 
->
- 
-2
- 
-天
- 
-|
- 
-1
- 
-小
-时
- 
-|
- 
-通
-知
- 
-(
-`
-w
-a
-r
-n
-i
-n
-g
-`
-)
- 
-|
- 
-1
- 
-天
- 
-|
+| Veeam 备份过旧 | 至少每天计划运行的作业超过两天没有成功运行（`dumbmonit_veeam_job_last_success_age_seconds`）。 | > 2 天 | 1 小时 | 通知 (`warning`) | 1 天 |
 | Veeam 存储库几乎已满 | Veeam 备份存储库已满超过 90 %:接下来的作业将因空间不足而失败(`dumbmonit_veeam_repository_used_percent`)。 | > 90 % | 30 分钟 | 通知 (`warning`) | 1 天 |
 | Veeam 许可证即将到期 | Veeam 许可证将在 30 天内到期:宽限期结束后作业将停止(`dumbmonit_veeam_license_expiry_seconds`)。 | < 30 d | 1 小时 | 通知 (`warning`) | 1 天 |
+| Veeam 支持即将到期 | Veeam 支持合同将在 30 天内到期：到期之后，服务器不再获得更新，也得不到厂商支持(`dumbmonit_veeam_support_expiry_seconds`)。 | < 30 天 | 1 小时 | 信息 (`info`) | 24 小时 |
+| Veeam 存储库离线 | 某个备份存储库离线：写入它的作业会失败，它的还原点也无法读取。需要 API 修订版 `1.2-rev0` 或更高(`dumbmonit_veeam_repository_online`)。 | < 1 | 10 分钟 | 警告 (`critical`) | 6 小时 |
+| Veeam 许可证已过期或无效 | Veeam 许可证已不再有效：宽限期结束后作业就会停止。仅当账户可以读取许可证时(`dumbmonit_veeam_license_valid`)。 | < 1 | 30 分钟 | 警告 (`critical`) | 24 小时 |
+| Veeam 配置备份已禁用 | Veeam 自身配置的备份已禁用：没有它，丢失的备份服务器只能手工重建(`dumbmonit_veeam_config_backup_enabled`)。 | < 1 | 24 小时 | 信息 (`info`) | 7 天 |
+| Veeam 配置备份过旧 | 配置备份已启用，但已超过七天没有成功(`dumbmonit_veeam_config_backup_last_success_age_seconds`)。 | > 7 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
 
 ### Tailscale {#tailscale}
 

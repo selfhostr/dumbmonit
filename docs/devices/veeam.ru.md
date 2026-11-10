@@ -44,24 +44,31 @@ Viewer (OAuth2 password grant на `/api/oauth2/token`, порт 9419), и хр�
 | `jobs`, `jobs_failed`, `jobs_warning`, `jobs_running`, `jobs_disabled` | | Счётчики; по одному описывается не более 200 заданий. |
 | `sessions_24h`, `sessions_failed_24h`, `sessions_warning_24h` | | Сессии, созданные за последние 24 часа, по результату. |
 | `repository_capacity_bytes`, `repository_free_bytes`, `repository_used_bytes`, `repository_used_percent` | `repository`, `type` | По каждому репозиторию. У репозитория объектного хранилища нет ёмкости: публикуется только занятое место. |
+| `repository_online` | `repository`, `type` | 1, когда репозиторий в сети, 0, когда Veeam не может до него достучаться. Только начиная с ревизии API `1.2-rev0`: см. опцию версии API. |
 | `license_valid` | | 1, когда статус лицензии `Valid`. |
 | `license_info` | `status`, `type`, `edition` | Значение 1. |
 | `license_expiry_seconds`, `support_expiry_seconds` | | До истечения лицензии и договора поддержки; отсутствует для бессрочной лицензии. |
 | `license_instances_licensed`, `license_instances_used` | | Использование лицензии на экземпляры. |
-| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points` | 1, когда учётная запись может это читать, 0, когда Veeam отказал. |
+| `config_backup_enabled`, `config_backup_encrypted` | | 1, когда резервное копирование собственной конфигурации Veeam включено; 1, когда оно зашифровано. Только с ролью Backup Administrator. |
+| `config_backup_last_success_age_seconds` | | С момента последнего успешного резервного копирования конфигурации. Только с ролью Backup Administrator. |
+| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points`, `config_backup` | 1, когда учётная запись может это читать, 0, когда Veeam отказал. |
+
+Два запроса зависят от сервера и от учётной записи. Состояние «в сети» у репозитория существует только начиная с ревизии API `1.2-rev0`: установите опцию версии API на эту ревизию или на более новую, которую перечисляет ваш сервер; иначе ряд отсутствует и правило «Veeam repository offline» сработать не может. Резервное копирование конфигурации, как и лицензия, доступно только роли Backup Administrator: с ролью Viewer оно отображается как «не читается», и два его правила молчат.
 
 Применяемые [встроенные правила](../alerting/rules.md#veeam-backup--replication):
 
-- **Veeam job failed**: последний запуск включённого задания завершился сбоем
-  (Warning, напоминание ежедневно).
-- **Veeam job ended with a warning** (Advisory, напоминание ежедневно).
-- **Veeam repository nearly full**: более 90 % в течение тридцати минут
-  (Advisory).
-- **Veeam license expiring**: осталось менее 30 дней (Advisory, напоминание
-  ежедневно). Только когда учётная запись может читать лицензию.
-- **Client device stale**: защищаемый компьютер или ВМ превысил
-  `device_stale_days` без успешной резервной копии (Advisory, напоминание
-  ежедневно); см. [Устройства](#devices) ниже.
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| Veeam job failed | Последний запуск включённого задания Veeam завершился неудачей: у защищаемых им данных нет новой точки восстановления (`dumbmonit_veeam_job_failed`). | > 0 | 5 мин | Warning (`critical`) | 1 дн |
+| Veeam job ended with a warning | Последний запуск включённого задания Veeam завершился с предупреждением: некоторые объекты могут быть не защищены (`dumbmonit_veeam_job_warning`). | > 0 | 5 мин | Advisory (`warning`) | 1 дн |
+| Veeam backup too old | Больше двух дней нет успешного запуска задания, запланированного хотя бы ежедневно (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 дн | 1 ч | Advisory (`warning`) | 1 дн |
+| Veeam repository nearly full | Репозиторий резервных копий Veeam заполнен более чем на 90 %: следующие задания завершатся неудачей из-за нехватки места (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
+| Veeam license expiring | Лицензия Veeam истекает менее чем через 30 дней: задания остановятся по окончании льготного периода (`dumbmonit_veeam_license_expiry_seconds`). | < 30 дн | 1 ч | Advisory (`warning`) | 1 дн |
+| Veeam support expiring | Контракт на поддержку Veeam истекает менее чем через 30 дней: после этой даты сервер не получает ни обновлений, ни поддержки производителя (`dumbmonit_veeam_support_expiry_seconds`). | < 30 дн | 1 ч | Info (`info`) | 24 ч |
+| Veeam repository offline | Репозиторий резервных копий не в сети: задания, которые в него пишут, завершаются ошибкой, а его точки восстановления нельзя прочитать. Требуется ревизия API `1.2-rev0` или новее (`dumbmonit_veeam_repository_online`). | < 1 | 10 мин | Warning (`critical`) | 6 ч |
+| Veeam license expired or invalid | Лицензия Veeam больше не действительна: задания останавливаются по окончании льготного периода. Только когда учётная запись может читать лицензию (`dumbmonit_veeam_license_valid`). | < 1 | 30 мин | Warning (`critical`) | 24 ч |
+| Veeam configuration backup disabled | Резервное копирование собственной конфигурации Veeam отключено: без него потерянный сервер резервного копирования придётся восстанавливать вручную (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 ч | Info (`info`) | 7 дн |
+| Veeam configuration backup too old | Резервное копирование конфигурации включено, но не завершалось успешно более семи дней (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 дн | 1 ч | Advisory (`warning`) | 24 ч |
 
 ## Устройства {#devices}
 
@@ -129,6 +136,14 @@ Veeam (`VSphere`, `WindowsPhysical`, `HyperV`…), показываемое ка
 - **Тайм-аут на запрос** (15 с).
 - **Устаревание устройства** (`device_stale_days`, по умолчанию 3 дня): см.
   [Устройства](#devices) выше.
+
+## Известные ограничения
+
+- С ролью Viewer лицензия и резервное копирование конфигурации не читаются. Их правилам нужна учётная запись с ролью Backup Administrator, которая может и вносить изменения на сервере: выбирайте осознанно.
+- Состоянию «в сети» у репозиториев нужна ревизия API `1.2-rev0` или новее.
+- События обнаружения вредоносного ПО не читаются.
+- Не более 200 заданий описываются по одному; сверх этого остаются только итоги.
+- Репозиторий объектного хранилища не сообщает ёмкость, поэтому «Veeam repository nearly full» для него сработать не может.
 
 ## Устранение неполадок
 

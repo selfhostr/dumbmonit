@@ -5,8 +5,33 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+### Added
+
+- **Unraid goes deeper.** New readings: licence state and type, trial and OS-update expiry dates,
+  uptime, CPU, memory and swap use. New built-in rules: a crashed VM, unread Unraid alerts, an array
+  almost full (95 %), memory above 95 %, a licence problem, a trial ending within 3 days and OS
+  updates ending within 30 days.
+- **pfSense goes deeper.** New readings: firewall state table (entries, limit, percent used) and
+  CARP status with its maintenance mode. New built-in rules: state table above 80 %, mbuf clusters
+  above 90 %, temperature above 85 °C, CPU above 90 %, swap above 50 %, interface errors and CARP
+  left in maintenance mode. The two new readings need two optional privileges on the API user
+  (`/api/v2/firewall/states/size` and `/api/v2/status/carp`); without them everything else keeps
+  working.
+- **Veeam goes deeper.** New readings: whether each repository is online (API revision `1.2-rev0`
+  and later) and the state of the configuration backup (enabled, encrypted, age of the last
+  success). New built-in rules: repository offline, invalid licence, configuration backup disabled
+  and configuration backup older than 7 days.
+- **vSphere goes deeper.** New readings per VM: number of snapshots, age of the oldest one and
+  whether disks need consolidation. New built-in rules: a snapshot older than 3 days and a VM
+  waiting for consolidation.
+
 ### Changed
 
+- **Docs: every built-in rule of ten integrations is now listed, in nine languages.** The pages for
+  Proxmox VE, Proxmox Backup Server, TrueNAS, Synology, Unraid, UniFi Network, pfSense, OPNsense,
+  Veeam and vSphere each carry the full table of their rules (threshold, delay, severity, reminder)
+  and a "Known limits" section; the rules reference gains 68 rows that were missing, and a few
+  broken or incomplete tables in the translations are repaired.
 - **One typeface family everywhere: Inter and JetBrains Mono.** The console, the status pages, the
   topology exports and the documentation now use Inter (headings in semibold) and JetBrains Mono
   for code and figures, replacing Geist and Bricolage Grotesque. Both are open source (SIL OFL 1.1)

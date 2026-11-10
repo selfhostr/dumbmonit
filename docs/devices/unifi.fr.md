@@ -80,11 +80,23 @@ pas), `mac`, `model` et `type` (`gateway`, `switch`, `access_point`,
 | `port_rx_bytes_total`, `port_tx_bytes_total`, `port_rx_errors_total`, `port_tx_errors_total` | compteurs par port, tracés par le panneau de commutateur | idem |
 | `port_neighbor_info` | valeur 1, voisin LLDP du port (`lldp_table`) | idem, `remote_chassis`, `remote_port` |
 
-Les [règles intégrées](../alerting/rules.md#unifi-network) qui
-s'appliquent : appareil UniFi hors ligne, Internet UniFi en panne, lien WAN
-UniFi en panne, CPU de passerelle UniFi élevé, appareil UniFi en attente
-d'adoption, mise à jour de firmware UniFi disponible, alarmes UniFi, plus
-Surveillance inaccessible.
+Les [règles intégrées](../alerting/rules.md#unifi-network) qui s'appliquent :
+
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Appareil UniFi hors ligne | Un appareil UniFi adopté par le contrôleur est hors ligne, isolé ou l'adoption a échoué (`dumbmonit_unifi_device_up`). | < 1 | 5 min | Avis (`warning`), escalade après 1 h | 6 h |
+| Internet UniFi en panne | La passerelle UniFi rapporte aucune connexion Internet (`dumbmonit_unifi_internet_up`). Sans passerelle UniFi, la série n'existe pas et la règle reste silencieuse. | < 1 | 3 min | Avertissement (`critical`) | 1 h |
+| Lien WAN UniFi en panne | Un lien WAN de la passerelle UniFi est en panne (`dumbmonit_unifi_wan_link_up`) : avec deux liens, la redondance est perdue tandis que rien ne semble cassé. Un port désactivé n'a aucune série. | < 1 | 5 min | Avis (`warning`) | 6 h |
+| CPU de passerelle UniFi élevé | Le processeur de la passerelle UniFi est au-dessus de 90 % depuis quinze minutes (`dumbmonit_unifi_device_cpu_percent{type="gateway"}`) ; se résout sous 80 %. | > 90 % | 15 min | Avis (`warning`) | 6 h |
+| Appareil UniFi en attente d'adoption | Un appareil est apparu sur le réseau et attend d'être adopté dans UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 min | Info (`info`) | 24 h |
+| Mise à jour de firmware UniFi disponible | Une mise à jour de firmware est disponible pour des appareils UniFi (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 h | Info (`info`) | 7 j |
+| Alarmes UniFi | UniFi a journalisé des événements critiques ou levé des alarmes dans les dernières 24 heures (`dumbmonit_unifi_alarms`). Lu seulement avec un compte View Only. | > 0 | 5 min | Avis (`warning`) | 24 h |
+| Sous-système UniFi en erreur | Un sous-système UniFi (Wi-Fi, LAN ou VPN) signale une erreur dans la vue de santé du contrôleur. Internet et les liens WAN ont leurs propres règles (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 min | Avis (`warning`) | 6 h |
+| Appareil UniFi en surchauffe | Un appareil UniFi signale qu'il surchauffe (`dumbmonit_unifi_device_overheating`). | > 0 | 5 min | Avis (`warning`) | 6 h |
+| Budget PoE UniFi presque épuisé | Un commutateur consomme plus de 90 % de son budget PoE : le prochain appareil branché risque de ne pas être alimenté. Se lève sous 80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 min | Avis (`warning`) | 24 h |
+| Canal Wi-Fi UniFi saturé | Le canal d'une radio de point d'accès est occupé plus de 80 % du temps depuis trente minutes : le Wi-Fi est lent pour tous ceux qui l'utilisent. Se lève sous 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 min | Avis (`warning`) | 24 h |
+| Clients Wi-Fi UniFi à signal faible | Plus de 40 % des clients Wi-Fi, avec au moins cinq clients connectés, ont un signal plus faible que -75 dBm : les points d'accès sont mal placés ou trop peu nombreux (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 h | Info (`info`) | 7 j |
+| Erreurs de port UniFi | Un port de commutateur a enregistré plus de 100 erreurs de réception ou d'émission en quinze minutes : vérifiez le câble et les connecteurs (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 min | Avis (`warning`) | 24 h |
 
 ## Appareils
 
@@ -120,22 +132,6 @@ En plus de l'état des équipements, du WAN et des clients ci-dessus, DumbMonit 
 - **Test de débit de la passerelle** : débit descendant, montant et latence du dernier test.
 
 Rien n'envoie de commande ; si l'API classique refuse un appel, les séries correspondantes manquent simplement et la surveillance n'est pas en erreur.
-
-## Alertes par défaut
-
-| Alerte | Se déclenche quand |
-|---|---|
-| UniFi device offline | Un équipement adopté est hors ligne, isolé ou en échec d'adoption depuis 5 minutes |
-| UniFi Internet down / WAN link down | La passerelle n'a plus Internet, ou un lien WAN est tombé |
-| UniFi subsystem in error | Le Wi-Fi, le LAN ou le VPN signale une erreur depuis 10 minutes |
-| UniFi device overheating | Un équipement signale une surchauffe depuis 5 minutes |
-| UniFi PoE budget nearly used | Un commutateur consomme plus de 90 % de son budget PoE depuis 15 minutes |
-| UniFi Wi-Fi channel saturated | Le canal d'une radio est occupé plus de 80 % du temps depuis 30 minutes |
-| UniFi Wi-Fi clients with a weak signal | Plus de 40 % d'au moins cinq clients Wi-Fi sont sous -75 dBm depuis une heure (information) |
-| UniFi port errors | Un port journalise plus de 100 erreurs en 15 minutes |
-| Mise à jour, équipement à adopter, alarmes, CPU de la passerelle | Comme avant |
-
-Toutes les règles se modifient ou se désactivent dans Alertes.
 
 ## La page de la surveillance
 
@@ -204,3 +200,10 @@ acceptée. Options : site (`default`), port (443), vérification du
 certificat, délai de requête (15 s), clients à surveiller en plus des
 marqués (vide, ou `all`), et péremption d'appareil (`device_stale_days`,
 3 jours par défaut).
+
+## Limites connues
+
+- L'état d'Internet et du WAN, les alarmes, le PoE et le détail du Wi-Fi n'existent que dans l'API classique. Certains contrôleurs la refusent à une clé d'API : ces séries sont alors absentes, sans erreur. Un compte View Only lit tout.
+- Les alarmes sont les entrées critiques du journal système sur les dernières 24 heures à partir de UniFi Network 8, les alarmes non archivées avant.
+- Seuls les clients que vous avez marqués dans UniFi (nommés, à IP fixe ou annotés) sont suivis un par un, sauf si l'option `watched_clients` en décide autrement.
+- Aucune commande n'est jamais envoyée : ni redémarrage, ni adoption, ni mise à jour de firmware.

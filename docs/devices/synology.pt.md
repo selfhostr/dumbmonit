@@ -117,6 +117,20 @@ NAS.
 | Synology volume almost full | advisory | Um volume está 90% cheio ou mais, durante 15 minutos. |
 | Synology temperature high | advisory | Um disco está acima de 55 °C, ou o DSM levantou o seu aviso de temperatura, durante 15 minutos. |
 | Synology memory high | advisory | Uso de memória acima de 95% durante 15 minutos. |
+| Synology system partition crashed | warning | O DSM indica a sua partição de sistema como falhada (crashed): o NAS pode não sobreviver a um reinício. Verifique o Gestor de armazenamento. |
+| Synology system partition needs repair | advisory | O DSM diz que a sua partição de sistema precisa de reparação; o Gestor de armazenamento propõe repará-la. |
+| Synology CPU sustained high | advisory | O processador do NAS manteve-se acima de 90 % durante quinze minutos; uma limpeza de dados ou uma indexação costumam terminar muito antes. Resolve abaixo de 85 %. |
+| Synology swap heavily used | info | Mais de 60 % do swap está em uso há uma hora: o NAS tem falta de memória. |
+| Synology DSM update available | info | Está disponível uma atualização do DSM. |
+| Synology Hyper Backup failed | advisory | A última execução de uma tarefa do Hyper Backup falhou (destino inacessível, erro de soma de verificação…). Uma execução em curso, uma execução cancelada ou uma tarefa que nunca correu não disparam a regra. |
+| Synology Hyper Backup success too old | info | Nenhuma execução bem-sucedida de uma tarefa do Hyper Backup há mais de oito dias: está desativada, suspensa ou nunca chega a correr. Uma tarefa mensal precisa de um limite mais longo. |
+| Synology volume read-only | warning | Um volume está só de leitura: nada pode escrever nele (erros do sistema de ficheiros ou volume degradado). Verifique o Gestor de armazenamento. |
+| Synology volume locked | advisory | Um volume encriptado está bloqueado: as suas pastas partilhadas ficam indisponíveis até a chave ser introduzida ou o cofre de chaves ser montado. |
+| Synology volume out of inodes | advisory | Um volume já não tem nenhum inode livre: não é possível criar nenhum ficheiro, mesmo com espaço livre. |
+| Synology data scrubbing overdue | info | A última limpeza de dados de um conjunto de armazenamento terminou há mais de 200 dias: agende uma regular no Gestor de armazenamento. |
+| Synology certificate expiring | advisory | Um certificado do DSM expira em menos de 14 dias: a sua renovação automática está provavelmente a falhar. |
+| Synology certificate about to expire | warning | Um certificado do DSM expira em menos de 3 dias, ou já expirou. |
+| Synology certificate broken | advisory | O DSM marca um certificado como danificado: a sua chave ou a sua cadeia não pode ser lida. |
 
 ## Active Backup for Business {#active-backup-for-business}
 
@@ -375,6 +389,13 @@ Endereço: `192.168.1.30`, `nas.lan` ou `nas.lan:5001`. Sem porta, 5001
 | `abb` | Watch Active Backup for Business | `true` | Lê as tarefas Active Backup for Business. Precisa do pacote instalado e de uma conta autorizada a usá-lo; um NAS sem o pacote é simplesmente ignorado. |
 | `drive` | Watch Synology Drive | `true` | Lê se o serviço Synology Drive responde, as suas pastas de equipa e a sua contagem de ligações ativas. Um NAS sem o pacote é simplesmente ignorado. |
 | `photos` | Watch Synology Photos | `true` | Mostra se o pacote Synology Photos está instalado, sem nenhum pedido extra ao NAS. O Synology não expõe uma lista de dispositivos de cópia de segurança móvel através de nenhuma API. |
+
+## Limites conhecidos
+
+- A conta tem de estar no grupo de administradores: a API de armazenamento do DSM não responde a nenhuma outra conta. Retire-lhe as pastas partilhadas e as aplicações, como descrito acima.
+- A verificação em dois passos tem de ficar desligada para esta conta.
+- Os certificados, os pacotes e as ligações atuais vêm de API do DSM que a Synology não documenta. São lidos como opcionais e ainda não foram verificados num NAS real.
+- Uma tarefa do Hyper Backup que corre mensalmente dispara a regra dos oito dias: suba o limiar para essa tarefa, ou silencie-a.
 
 ## Erros comuns {#common-errors}
 

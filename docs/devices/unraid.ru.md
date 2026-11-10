@@ -48,22 +48,36 @@ Unraid начиная с 7.2; на версиях 6.12–7.1 он идёт с п
 | `vms`, `vms_running` | | ВМ. |
 | `vm_state_info`, `vm_crashed` | `vm` (и `state`) | На ВМ. |
 | `notifications_unread` | `importance`: `alert`, `warning`, `info` | Непрочитанные уведомления. |
+| `registration_ok` | | 1, когда Unraid не сообщает о проблемах с лицензией, 0, когда состояние лицензии является ошибкой (истёкший пробный период, ключ не соответствует флеш-накопителю, отсутствует файл ключа…). |
+| `registration_info` | `state`, `type` | Значение 1: состояние лицензии, как его сообщает Unraid (`trial`, `pro`, `eexpired`, `eguid`…), и тип лицензии. |
+| `trial_expiry_seconds` | | До окончания пробной лицензии; только во время пробного периода. |
+| `os_updates_expiry_seconds` | | До окончания права лицензии на обновления Unraid OS; отсутствует, когда у лицензии нет такой даты. |
+| `uptime_seconds` | | С момента запуска сервера. |
+| `cpu_usage_percent` | | Загрузка процессора, все ядра вместе. |
+| `memory_total_bytes`, `memory_available_bytes`, `memory_used_percent` | | Память. Занятой считается та, что недоступна: кэш, который Unraid может вернуть, не учитывается. |
+| `swap_used_percent` | | Только когда у сервера есть swap. |
+
+Лицензия и нагрузка на систему (время работы, процессор, память) берутся из двух дополнительных необязательных запросов. Более старая версия API, которая их не знает, просто оставляет эти строки пустыми: остальная часть монитора не затрагивается.
 
 Применяемые [встроенные правила](../alerting/rules.md#unraid):
 
-- **Массив Unraid остановлен**: массив не запущен уже десять минут (Warning).
-- **Диск Unraid отключён или отсутствует**: статус диска не `DISK_OK` уже
-  пять минут (Warning). Массив работает в деградировавшем режиме.
-- **Ошибки чтения диска Unraid**: диск сообщает об ошибках чтения (Advisory).
-- **Диск Unraid перегрет**: диск данных или паритета выше 55 °C в течение
-  пятнадцати минут (Advisory). Диски кэша, часто NVMe, не учитываются.
-- **Проверка паритета Unraid нашла ошибки** (Advisory).
-- **Проверка паритета Unraid просрочена**: последняя проверка старше 40 дней
-  (Advisory).
-- **Кэш Unraid почти заполнен**: диск кэша заполнен более чем на 90 % в
-  течение тридцати минут (Advisory).
-- **Контейнер Unraid остановлен**: контейнер, настроенный на запуск с
-  массивом, не работает уже десять минут (Advisory).
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| Unraid array stopped | Массив Unraid не запущен: шары, контейнеры и ВМ, расположенные на нём, недоступны (`dumbmonit_unraid_array_started`). | < 1 | 10 мин | Warning (`critical`) | 6 ч |
+| Unraid disk disabled or missing | Диск Unraid отключён, отсутствует или недействителен: массив работает в деградированном режиме, и ещё один отказ приведёт к потере данных (`dumbmonit_unraid_disk_ok`). | < 1 | 5 мин | Warning (`critical`) | 6 ч |
+| Unraid disk read errors | Диск Unraid сообщал об ошибках чтения с момента запуска массива: при следующей он может быть отключён (`dumbmonit_unraid_disk_errors`). | > 0 | 5 мин | Advisory (`warning`) | 1 дн |
+| Unraid disk too hot | Диск массива или чётности Unraid остаётся выше 55 °C пятнадцать минут (`dumbmonit_unraid_disk_temperature_celsius{role=~"data\|parity"}`). | > 55 °C | 15 мин | Advisory (`warning`) | 6 ч |
+| Unraid parity check found errors | Последняя проверка чётности Unraid не удалась или нашла ошибки синхронизации: чётность больше не соответствует данным (`dumbmonit_unraid_parity_check_ok`). | < 1 | 5 мин | Advisory (`warning`) | 1 дн |
+| Unraid parity check overdue | Последней проверке чётности Unraid более 40 дней: ежемесячная проверка пропущена (`dumbmonit_unraid_parity_check_age_seconds`). | > 40 дн | 1 ч | Advisory (`warning`) | 1 дн |
+| Unraid cache nearly full | Кэш-пул Unraid заполнен более чем на 90 %: запись откатывается на медленный массив или завершается ошибкой (`dumbmonit_unraid_disk_used_percent{role="cache"}`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
+| Unraid container stopped | Контейнер Docker, настроенный на запуск вместе с массивом, не запущен (`dumbmonit_unraid_container_autostart_stopped`). | > 0 | 10 мин | Advisory (`warning`) | 6 ч |
+| Unraid VM crashed | Unraid сообщает, что виртуальная машина аварийно завершилась (crashed) (`dumbmonit_unraid_vm_crashed`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| Unraid alert unread | Unraid выдал уведомление высшей важности (alert), которое никто не прочитал: отказавший диск, перегрев, ошибка массива… (`dumbmonit_unraid_notifications_unread{importance="alert"}`). | > 0 | 10 мин | Advisory (`warning`) | 24 ч |
+| Unraid array nearly full | Массив заполнен более чем на 95 %: запись на общие ресурсы скоро начнёт завершаться ошибкой. Снимается ниже 93 % (`dumbmonit_unraid_array_used_percent`). | > 95 % | 1 ч | Advisory (`warning`) | 24 ч |
+| Unraid memory nearly exhausted | Уже пятнадцать минут занято более 95 % памяти: Unraid работает из памяти, и когда она заканчивается, контейнеры или ВМ принудительно завершаются. Снимается ниже 90 % (`dumbmonit_unraid_memory_used_percent`). | > 95 % | 15 мин | Advisory (`warning`) | 6 ч |
+| Unraid license problem | Unraid сообщает о проблеме с лицензией (истёкший пробный период, ключ не соответствует флеш-накопителю, отсутствует файл ключа…): массив может отказаться запускаться после следующей остановки (`dumbmonit_unraid_registration_ok`). | < 1 | 30 мин | Advisory (`warning`) | 24 ч |
+| Unraid trial ending | Пробная лицензия заканчивается менее чем через три дня: после этого массив больше не запускается (`dumbmonit_unraid_trial_expiry_seconds`). | < 3 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Unraid OS updates eligibility ending | Право лицензии на обновления Unraid OS заканчивается менее чем через 30 дней. Сервер продолжает работать; он лишь перестаёт получать новые версии (`dumbmonit_unraid_os_updates_expiry_seconds`). | < 30 дн | 1 ч | Info (`info`) | 7 дн |
 
 ## Страница монитора
 
@@ -101,6 +115,13 @@ Unraid начиная с 7.2; на версиях 6.12–7.1 он идёт с п
   `https`, и адрес `myunraid.net`, если сертификат именно такой.
 - **Accept an unverifiable certificate**: для самоподписанного сертификата.
 - **Timeout per request** (15 с).
+
+## Известные ограничения
+
+- ИБП не читается: подключите его через [NUT](nut.md).
+- Без подробностей SMART: DumbMonit читает состояние, ошибки и температуру, которые Unraid сообщает для каждого диска, но не атрибуты SMART.
+- Не читается, ожидает ли контейнер обновления образа.
+- Значениям лицензии, процессора и памяти нужна свежая версия API Unraid. На версии, в которой их нет, эти строки и их правила просто отсутствуют.
 
 ## Диагностика
 

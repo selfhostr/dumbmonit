@@ -47,25 +47,31 @@ Todas las métricas tienen el prefijo `dumbmonit_veeam_`.
 | `jobs`, `jobs_failed`, `jobs_warning`, `jobs_running`, `jobs_disabled` | | Recuentos; como máximo se describen 200 jobs uno por uno. |
 | `sessions_24h`, `sessions_failed_24h`, `sessions_warning_24h` | | Sesiones creadas en las últimas 24 horas, por resultado. |
 | `repository_capacity_bytes`, `repository_free_bytes`, `repository_used_bytes`, `repository_used_percent` | `repository`, `type` | Por repositorio. Un repositorio de almacenamiento de objetos no tiene capacidad: solo se publica su espacio usado. |
+| `repository_online` | `repository`, `type` | 1 cuando el repositorio está en línea, 0 cuando Veeam no puede alcanzarlo. Solo a partir de la revisión de API `1.2-rev0`: véase la opción de versión de API. |
 | `license_valid` | | 1 cuando el estado de la licencia es `Valid`. |
 | `license_info` | `status`, `type`, `edition` | Valor 1. |
 | `license_expiry_seconds`, `support_expiry_seconds` | | Hasta que caducan la licencia y el contrato de soporte; ausente para una licencia perpetua. |
 | `license_instances_licensed`, `license_instances_used` | | Uso de licencia por instancia. |
-| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points` | 1 cuando la cuenta puede leerlo, 0 cuando Veeam lo rechazó. |
+| `config_backup_enabled`, `config_backup_encrypted` | | 1 cuando la copia de seguridad de la configuración del propio Veeam está activada; 1 cuando está cifrada. Solo con el rol Backup Administrator. |
+| `config_backup_last_success_age_seconds` | | Desde la última copia de seguridad de la configuración correcta. Solo con el rol Backup Administrator. |
+| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points`, `config_backup` | 1 cuando la cuenta puede leerlo, 0 cuando Veeam lo rechazó. |
 
-Las [reglas integradas](../alerting/rules.md#veeam-backup--replication)
-que se aplican:
+Dos lecturas dependen del servidor y de la cuenta. El estado en línea de un repositorio solo existe a partir de la revisión de API `1.2-rev0`: ajuste la opción de versión de API a esa revisión, o a una posterior que su servidor anuncie; de lo contrario la serie falta y «Veeam repository offline» no puede dispararse. La copia de seguridad de la configuración, como la licencia, está reservada al rol Backup Administrator: con el rol Viewer aparece como «no legible» y sus dos reglas permanecen calladas.
 
-- **Veeam job failed**: la última ejecución de un job activado falló
-  (Warning, recordado diariamente).
-- **Veeam job ended with a warning** (Advisory, recordado diariamente).
-- **Veeam repository nearly full**: más del 90 % durante treinta minutos
-  (Advisory).
-- **Veeam license expiring**: menos de 30 días restantes (Advisory,
-  recordado diariamente). Solo cuando la cuenta puede leer la licencia.
-- **Client device stale**: un equipo o VM protegidos ha superado
-  `device_stale_days` sin una copia de seguridad exitosa (Advisory,
-  recordado diariamente); consulta [Dispositivos](#devices) abajo.
+Las [reglas integradas](../alerting/rules.md#veeam-backup--replication) que se aplican:
+
+| Regla | Qué | Umbral por defecto | Espera | Severidad | Recordatorio |
+|---|---|---|---|---|---|
+| Veeam job failed | La última ejecución de un job Veeam activado falló: lo que protege no tiene ningún punto de restauración nuevo (`dumbmonit_veeam_job_failed`). | > 0 | 5 min | Warning (`critical`) | 1 d |
+| Veeam job ended with a warning | La última ejecución de un job Veeam activado terminó con un aviso: algunos objetos pueden no estar protegidos (`dumbmonit_veeam_job_warning`). | > 0 | 5 min | Advisory (`warning`) | 1 d |
+| Veeam backup too old | Ninguna ejecución correcta de un job programado al menos a diario desde hace más de dos días (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 d | 1 h | Advisory (`warning`) | 1 d |
+| Veeam repository nearly full | Un repositorio de copia Veeam está más del 90 % lleno: los próximos jobs fallarán por falta de espacio (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 min | Advisory (`warning`) | 1 d |
+| Veeam license expiring | La licencia Veeam caduca en menos de 30 días: los jobs se detienen al final del período de gracia (`dumbmonit_veeam_license_expiry_seconds`). | < 30 d | 1 h | Advisory (`warning`) | 1 d |
+| Veeam support expiring | El contrato de soporte de Veeam caduca en menos de 30 días: después de esa fecha el servidor ya no recibe actualizaciones ni asistencia del fabricante (`dumbmonit_veeam_support_expiry_seconds`). | < 30 d | 1 h | Info (`info`) | 24 h |
+| Veeam repository offline | Un repositorio de copias de seguridad está fuera de línea: los trabajos que escriben en él fallan, y sus puntos de restauración no se pueden leer. Necesita la revisión de API `1.2-rev0` o posterior (`dumbmonit_veeam_repository_online`). | < 1 | 10 min | Warning (`critical`) | 6 h |
+| Veeam license expired or invalid | La licencia de Veeam ya no es válida: los trabajos se detienen cuando termina el periodo de gracia. Solo cuando la cuenta puede leer la licencia (`dumbmonit_veeam_license_valid`). | < 1 | 30 min | Warning (`critical`) | 24 h |
+| Veeam configuration backup disabled | La copia de seguridad de la configuración del propio Veeam está desactivada: sin ella, un servidor de copias de seguridad perdido hay que reconstruirlo a mano (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 h | Info (`info`) | 7 d |
+| Veeam configuration backup too old | La copia de seguridad de la configuración está activada, pero lleva más de siete días sin completarse correctamente (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 d | 1 h | Advisory (`warning`) | 24 h |
 
 ## Dispositivos {#devices}
 
@@ -150,6 +156,14 @@ Dirección: el nombre de host o IP del servidor de copias de seguridad,
 - **Timeout per request** (15 s).
 - **Device staleness** (`device_stale_days`, 3 días por defecto):
   consulta [Dispositivos](#devices) arriba.
+
+## Límites conocidos
+
+- Con el rol Viewer, la licencia y la copia de seguridad de la configuración no son legibles. Sus reglas necesitan una cuenta con el rol Backup Administrator, que también puede cambiar cosas en el servidor: elija con conocimiento de causa.
+- El estado en línea de los repositorios necesita la revisión de API `1.2-rev0` o posterior.
+- Los eventos de detección de malware no se leen.
+- Como máximo 200 trabajos se describen uno a uno; más allá, solo quedan los totales.
+- Un repositorio de almacenamiento de objetos no indica ninguna capacidad, así que «Veeam repository nearly full» no puede dispararse para él.
 
 ## Solución de problemas {#troubleshooting}
 

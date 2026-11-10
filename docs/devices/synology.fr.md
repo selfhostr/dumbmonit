@@ -141,20 +141,20 @@ jamais le NAS.
 | Volume Synology presque plein | avis | Un volume est plein à 90 % ou plus, depuis 15 minutes. |
 | Température Synology élevée | avis | Un disque est au-dessus de 55 °C, ou DSM a levé son avertissement de température, depuis 15 minutes. |
 | Mémoire Synology élevée | avis | Usage mémoire au-dessus de 95 % pendant 15 minutes. |
-| Partition système Synology crashée | critique | DSM rapporte `system_crashed`, depuis 5 minutes. |
-| Partition système Synology à réparer | avertissement | DSM rapporte `system_need_repair`, depuis 30 minutes. |
-| Processeur Synology durablement élevé | avertissement | Processeur au-dessus de 90 % pendant 15 minutes. |
-| Swap Synology très utilisé | avis | Plus de 60 % du swap utilisé pendant une heure. |
-| Mise à jour DSM Synology disponible | avis | `update_available` vaut 1 pendant une heure. |
-| Hyper Backup Synology en échec | avertissement | La dernière exécution d'une tâche a échoué (destination injoignable, erreur de somme de contrôle…), depuis 10 minutes. Une exécution en cours, une tâche annulée ou jamais lancée ne la déclenchent pas. |
-| Réussite Hyper Backup Synology trop ancienne | avis | Aucune exécution réussie d'une tâche depuis plus de 8 jours. Une tâche mensuelle demande une limite plus longue : modifiez la règle ou réduisez-la au silence pour cette tâche. |
-| Volume Synology en lecture seule | critique | Un volume est en lecture seule, depuis 5 minutes. |
-| Volume Synology verrouillé | avertissement | Un volume chiffré est verrouillé, depuis 10 minutes : ses partages sont indisponibles. |
-| Volume Synology sans inodes | avertissement | Un volume n'a plus d'inode libre, depuis 10 minutes. |
-| Vérification des données Synology en retard | avis | La dernière vérification des données d'un groupe date de plus de 200 jours. |
-| Certificat Synology bientôt expiré | avertissement | Un certificat DSM expire dans moins de 14 jours (un renouvellement Let's Encrypt automatique se fait normalement à 30). |
-| Certificat Synology sur le point d'expirer | critique | Un certificat DSM expire dans moins de 3 jours, ou a déjà expiré. |
-| Certificat Synology défectueux | avertissement | DSM marque un certificat comme défectueux, depuis une heure. |
+| Partition système Synology crashée | avertissement | DSM rapporte `system_crashed`, depuis 5 minutes. |
+| Partition système Synology à réparer | avis | DSM rapporte `system_need_repair`, depuis 30 minutes. |
+| Processeur Synology durablement élevé | avis | Processeur au-dessus de 90 % pendant 15 minutes. |
+| Swap Synology très utilisé | info | Plus de 60 % du swap utilisé pendant une heure. |
+| Mise à jour DSM Synology disponible | info | `update_available` vaut 1 pendant une heure. |
+| Hyper Backup Synology en échec | avis | La dernière exécution d'une tâche a échoué (destination injoignable, erreur de somme de contrôle…), depuis 10 minutes. Une exécution en cours, une tâche annulée ou jamais lancée ne la déclenchent pas. |
+| Réussite Hyper Backup Synology trop ancienne | info | Aucune exécution réussie d'une tâche depuis plus de 8 jours. Une tâche mensuelle demande une limite plus longue : modifiez la règle ou réduisez-la au silence pour cette tâche. |
+| Volume Synology en lecture seule | avertissement | Un volume est en lecture seule, depuis 5 minutes. |
+| Volume Synology verrouillé | avis | Un volume chiffré est verrouillé, depuis 10 minutes : ses partages sont indisponibles. |
+| Volume Synology sans inodes | avis | Un volume n'a plus d'inode libre, depuis 10 minutes. |
+| Vérification des données Synology en retard | info | La dernière vérification des données d'un groupe date de plus de 200 jours. |
+| Certificat Synology bientôt expiré | avis | Un certificat DSM expire dans moins de 14 jours (un renouvellement Let's Encrypt automatique se fait normalement à 30). |
+| Certificat Synology sur le point d'expirer | avertissement | Un certificat DSM expire dans moins de 3 jours, ou a déjà expiré. |
+| Certificat Synology défectueux | avis | DSM marque un certificat comme défectueux, depuis une heure. |
 
 !!! note "Certificats, paquets et connexions"
     Ils viennent de trois API de DSM que Synology ne documente pas
@@ -454,6 +454,13 @@ est utilisé en HTTPS et 5000 en HTTP.
 | `abb` | Surveiller Active Backup for Business | `true` | Lit les tâches Active Backup for Business. A besoin du paquet installé et d'un compte autorisé à l'utiliser ; un NAS sans le paquet est simplement ignoré. |
 | `drive` | Surveiller Synology Drive | `true` | Lit si le service Synology Drive répond, ses dossiers d'équipe et son compteur de connexions actives. Un NAS sans le paquet est simplement ignoré. |
 | `photos` | Surveiller Synology Photos | `true` | Montre si le paquet Synology Photos est installé, sans requête supplémentaire au NAS. Synology n'expose aucune liste d'appareils de sauvegarde mobile via une API. |
+
+## Limites connues
+
+- Le compte doit être dans le groupe des administrateurs : l'API de stockage de DSM ne répond à aucun autre compte. Retirez-lui ses dossiers partagés et ses applications, comme décrit plus haut.
+- La vérification en deux étapes doit rester désactivée pour ce compte.
+- Les certificats, les paquets et les connexions en cours viennent d'API de DSM que Synology ne documente pas. Ils sont lus comme facultatifs et n'ont pas encore été vérifiés sur un vrai NAS.
+- Une tâche Hyper Backup mensuelle déclenche la règle des huit jours : relevez le seuil pour cette tâche, ou mettez-la en silence.
 
 ## Erreurs courantes
 

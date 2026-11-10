@@ -531,6 +531,60 @@ sont ajoutés s'ils manquent.
 | `packages` | Détecter les changements de paquet | `true` | `apt/versions` comparé à la sonde précédente ; un changement est rapporté pendant une heure dans `node_packages_changed`. |
 | `subscription` | Surveiller l'abonnement et les dépôts | `true` | `subscription` et `apt/repositories` : statut, avertissements, dépôts standards activés. |
 
+## Règles d'alerte intégrées
+
+Ces règles sont livrées avec DumbMonit et actives dès le départ. Chacune se modifie ou se désactive dans Alertes ; la [référence des règles intégrées](../alerting/rules.md#proxmox-ve) liste toutes les règles de toutes les intégrations.
+
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Sauvegarde trop ancienne | Aucune sauvegarde Proxmox VE réussie depuis plus de sept jours (`dumbmonit_proxmox_backup_last_age_seconds`). | > 7 j | 1 h | Avis (`warning`) | 24 h |
+| VM ou conteneur arrêté | L'invité tournait dans les deux dernières heures et est arrêté depuis cinq minutes (`1 - dumbmonit_proxmox_guest_running`, et avec `max_over_time(…[2h]) == 1`). | > 0 | 5 min | Avis (`warning`) | 6 h |
+| VM ou conteneur CPU élevé | Un invité a utilisé plus de 90 % de ses cœurs alloués pendant quinze minutes (`dumbmonit_proxmox_guest_cpu_percent`). La notification nomme l'invité, `nextcloud (202)`. | > 90 % | 15 min | Avis (`warning`) | 6 h |
+| VM ou conteneur mémoire élevée | Un invité a utilisé plus de 95 % de sa mémoire pendant dix minutes (`dumbmonit_proxmox_guest_memory_percent`). | > 95 % | 10 min | Avis (`warning`) | 6 h |
+| VM ou conteneur disque presque plein | Le disque racine d'un invité est plein à plus de 90 % (`dumbmonit_proxmox_guest_disk_used_percent`) : conteneurs toujours, VMs seulement quand l'agent invité QEMU rapporte l'usage. | > 90 % | 15 min | Avis (`warning`) | 24 h |
+| Invité verrouillé | Une VM ou un conteneur est verrouillé depuis six heures (`dumbmonit_proxmox_guest_locked`, label `lock`) : une sauvegarde ou migration interrompue a laissé le verrou et aucune opération ne peut tourner sur l'invité, pas même la prochaine sauvegarde. | > 0 | 6 h | Avis (`warning`) | 24 h |
+| Vieux snapshot | Le plus vieux snapshot d'un invité a plus de trente jours (`dumbmonit_proxmox_guest_snapshot_oldest_age_seconds`). | > 30 j | 1 h | Info (`info`) | 7 j |
+| Ressource HA en erreur | Une ressource HA Proxmox est en erreur ou isolée (`dumbmonit_proxmox_ha_resource_error`). | > 0 | 2 min | Avertissement (`critical`) | 1 h |
+| Gestionnaire HA ne rapporte pas | Le gestionnaire de ressources local HA d'un nœud a arrêté d'écrire son état (`dumbmonit_proxmox_ha_lrm_stale`) : les invités HA de ce nœud ne seront ni redémarrés ni déplacés. | > 0 | 5 min | Avertissement (`critical`) | 1 h |
+| Cluster a perdu le quorum | Le cluster Proxmox n'a pas le quorum (`1 - dumbmonit_proxmox_cluster_quorate`) : les invités ne peuvent plus être démarrés. | > 0 | 1 min | Avertissement (`critical`) | 30 min |
+| Nœud Proxmox hors ligne | Un nœud de cluster est rapporté hors ligne (`1 - dumbmonit_proxmox_node_up`). | > 0 | 2 min | Avertissement (`critical`) | 30 min |
+| Service Proxmox arrêté | Un démon Proxmox principal ne tourne pas sur un nœud (`dumbmonit_proxmox_node_core_services_down` : `pve-cluster`, `pvedaemon`, `pveproxy`, `pvestatd`, `pve-firewall`, `corosync`, `watchdog-mux`, chacun compté seulement là où le nœud l'active). | > 0 | 5 min | Avertissement (`critical`) | 1 h |
+| Interface réseau de nœud en panne | Une interface réglée pour démarrer au boot n'est pas active sur un nœud (`dumbmonit_proxmox_node_interface_offline`). Une interface amenée à la demande n'est jamais rapportée. | > 0 | 5 min | Avis (`warning`) | 6 h |
+| Stockage Proxmox presque plein | Un stockage Proxmox est plein à plus de 85 % (`dumbmonit_proxmox_storage_used_percent`) ; « Disque presque plein » prend le relais à 90 %. | > 85 % | 15 min | Avis (`warning`) | 24 h |
+| Pool thin presque plein | Un pool thin LVM est plein à plus de 90 % : chaque invité stocké sur lui passe en lecture seule quand il se remplit (`dumbmonit_proxmox_node_thinpool_used_percent`) ; se résout sous 88 %. | > 90 % | 15 min | Avertissement (`critical`) | 6 h |
+| Métadonnées de pool thin presque pleines | Le volume de métadonnées d'un pool thin LVM est plein à plus de 80 % (`dumbmonit_proxmox_node_thinpool_metadata_used_percent`). Il est bien plus petit que le volume de données et sature souvent d'abord, avec la même conséquence. | > 80 % | 15 min | Avertissement (`critical`) | 6 h |
+| Disque Proxmox qui s'use | Un SSD ou NVMe d'un nœud a utilisé plus de 90 % de sa vie nominale (`dumbmonit_proxmox_node_disk_wearout_percent`). La notification lit `pve1 · /dev/nvme0n1`. | > 90 % | 1 h | Avis (`warning`) | 7 j |
+| Échec SMART de disque Proxmox | Un disque d'un nœud rapporte une santé SMART `FAILED` (`dumbmonit_proxmox_node_disk_smart_failed`). | > 0 | 5 min | Avertissement (`critical`) | 24 h |
+| Pool ZFS Proxmox dégradé | Un pool ZFS d'un nœud n'est pas `ONLINE` (`dumbmonit_proxmox_node_zfs_pool_degraded`). La notification lit `pve2 · tank`. | > 0 | 5 min | Avertissement (`critical`) | 6 h |
+| Job de sauvegarde échoué | Le dernier job vzdump sur un nœud, ou un job de sauvegarde planifié, a échoué (`1 - dumbmonit_proxmox_backup_job_last_ok`). | > 0 | 10 min | Avertissement (`critical`) | 24 h |
+| Job de sauvegarde exclut un disque | Un job de sauvegarde planifié saute un disque d'un des invités qu'il couvre (`dumbmonit_proxmox_backup_job_guest_excluded_volumes`) : le job réussit chaque nuit avec cette donnée manquante. Les lecteurs CD-ROM et images cloudinit sont exclus par conception et jamais comptés. | > 0 | 1 h | Avis (`warning`) | 7 j |
+| Réplication échouée | Un job de réplication rapporte une erreur ou un compteur d'échec non nul (`dumbmonit_proxmox_replication_job_error`) : la copie de secours est périmée. | > 0 | 10 min | Avertissement (`critical`) | 6 h |
+| Erreur de santé Ceph | Ceph rapporte `HEALTH_ERR` (`dumbmonit_proxmox_ceph_health`, 0 OK, 1 WARN, 2 ERR). | ≥ 2 | 2 min | Avertissement (`critical`) | 30 min |
+| Avertissement de santé Ceph | Ceph rapporte `HEALTH_WARN` depuis plus de quinze minutes (`dumbmonit_proxmox_ceph_health == 1`). | > 0 | 15 min | Avis (`warning`) | 6 h |
+| OSD Ceph en panne | Un OSD Ceph est en panne depuis cinq minutes (`1 - dumbmonit_proxmox_ceph_osd_up`). La notification nomme l'OSD et son hôte. | > 0 | 5 min | Avertissement (`critical`) | 1 h |
+| OSD Ceph presque plein | Un seul OSD Ceph est plein à plus de 85 % (`dumbmonit_proxmox_ceph_osd_used_percent`) : les écritures s'arrêtent quand il atteint sa limite, quoi que dise la moyenne du cluster ; se résout sous 82 %. | > 85 % | 15 min | Avis (`warning`) | 24 h |
+| Pool Ceph presque plein | Un pool Ceph est plein à plus de 85 % (`dumbmonit_proxmox_ceph_pool_used_percent`) ; se résout sous 82 %. | > 85 % | 15 min | Avis (`warning`) | 24 h |
+| Drapeau noout Ceph laissé actif | Le drapeau `noout` de Ceph est réglé depuis deux heures (`dumbmonit_proxmox_ceph_flag{flag="noout"}`) : le rééquilibrage est désactivé, et le cluster se lit sain tandis que sa redondance se réduit. | > 0 | 2 h | Info (`info`) | 24 h |
+| Mises à jour Proxmox en attente | Plus de vingt mises à jour de paquet sont en attente sur un nœud (`dumbmonit_proxmox_node_updates_pending`). | > 20 | 1 h | Info (`info`) | 7 j |
+| Mises à jour de sécurité Proxmox en attente | Au moins une mise à jour en attente vient d'une archive de sécurité (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 h | Avis (`warning`) | 7 j |
+| Paquets Proxmox changés | La version installée d'un paquet Proxmox a changé entre deux sondes — quelqu'un a lancé `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, publié pendant une heure avec le détail dans son label `changes` : `pve1 · pve-manager 8.2.4→8.2.7`). Se résout d'elle-même une heure plus tard. | > 0 | 1 min | Info (`info`) | 24 h |
+| Certificat de nœud arrivant à expiration | Un certificat de nœud Proxmox expire dans moins de quatorze jours (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 j | 1 h | Avis (`warning`) | 24 h |
+| Stockage Proxmox inactif | Un stockage activé n'est pas actif sur un nœud (partage injoignable, disque non monté, serveur de sauvegarde arrêté) : les sauvegardes vers lui et les disques qu'il porte sont en échec (`dumbmonit_proxmox_storage_active`). | < 1 | 10 min | Avis (`warning`) | 6 h |
+| Nœud Proxmox à redémarrer | Un noyau plus récent est installé sur un nœud depuis trois jours sans redémarrage : le nœud tourne toujours sur l'ancien (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 j | Info (`info`) | 7 j |
+| Abonnement Proxmox expiré | L'abonnement d'un nœud est expiré, invalide ou suspendu : le dépôt enterprise ne sert plus de mises à jour (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 h | Avis (`warning`) | 7 j |
+| Réplication Proxmox en retard | Un job de réplication de stockage a plus de six heures de retard sur sa planification : la copie sur l'autre nœud vieillit (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 h | 15 min | Avis (`warning`) | 12 h |
+| Job de sauvegarde Proxmox à l'arrêt | Un job de sauvegarde activé n'a pas tourné depuis plus de huit jours (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 j | 1 h | Avis (`warning`) | 24 h |
+| Invité Proxmox hors de tout job de sauvegarde | Une VM ou un conteneur n'est dans aucun job de sauvegarde depuis un jour (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 h | Info (`info`) | 7 j |
+| Tâches Proxmox en échec | Des tâches ont échoué sur un nœud dans les six dernières heures (démarrage d'invité, migration, restauration…). Les sauvegardes ont leur propre règle (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 min | Info (`info`) | 24 h |
+
+## Limites connues
+
+- Les températures de la carte mère ne sont pas disponibles : l'API de Proxmox VE ne donne que la température SMART des disques. Installez l'agent DumbMonit sur le nœud pour les autres capteurs.
+- L'occupation du disque à l'intérieur d'une VM demande l'agent invité QEMU. Sans lui, la VM a une taille et pas d'occupation.
+- Le système d'exploitation et les adresses d'un invité sont demandés au plus une fois par heure.
+- Les snapshots sont inventoriés pour 200 invités au plus par sonde (option `max_snapshot_guests`) ; les autres sont comptés comme ignorés.
+- Un privilège manquant, un Proxmox VE plus ancien ou une fonction non installée ne lève jamais d'erreur : les séries correspondantes sont absentes, et la page de la surveillance nomme le privilège manquant.
+
 ## Erreurs courantes
 
 | Symptôme | Cause probable |

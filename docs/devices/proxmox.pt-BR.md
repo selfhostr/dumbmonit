@@ -470,6 +470,60 @@ URL completa `https://pve.example.net`. O esquema `https` e a porta
 | `packages` | Detectar mudanças de pacote | `true` | `apt/versions` comparado com a sondagem anterior; uma mudança é reportada por uma hora em `node_packages_changed`. |
 | `subscription` | Observar assinatura e repositórios | `true` | `subscription` e `apt/repositories`: status, avisos, repositórios padrão ativados. |
 
+## Regras de alerta integradas
+
+Estas regras vêm com o DumbMonit e ficam ativas desde o início. Cada uma pode ser editada ou desativada em Alertas; a [referência das regras integradas](../alerting/rules.md#proxmox-ve) lista todas as regras de todas as integrações.
+
+| Regra | O que é | Limite padrão | Retenção | Severidade | Lembrete |
+|---|---|---|---|---|---|
+| Backup too old | Nenhum backup Proxmox VE bem sucedido por mais de sete dias (`dumbmonit_proxmox_backup_last_age_seconds`). | > 7 d | 1 h | Aviso (`warning`) | 24 h |
+| VM or container stopped | O guest estava rodando nas últimas duas horas e está parado há cinco minutos (`1 - dumbmonit_proxmox_guest_running`, combinado com `max_over_time(…[2h]) == 1`). | > 0 | 5 min | Aviso (`warning`) | 6 h |
+| VM or container CPU high | Um guest usou mais de 90% de seus núcleos alocados por quinze minutos (`dumbmonit_proxmox_guest_cpu_percent`). A notificação nomeia o guest, `nextcloud (202)`. | > 90 % | 15 min | Aviso (`warning`) | 6 h |
+| VM or container memory high | Um guest usou mais de 95% de sua memória por dez minutos (`dumbmonit_proxmox_guest_memory_percent`). | > 95 % | 10 min | Aviso (`warning`) | 6 h |
+| VM or container disk almost full | O disco raiz de um guest está mais de 90% cheio (`dumbmonit_proxmox_guest_disk_used_percent`): contêineres sempre, VMs só quando o agente QEMU guest reporta uso. | > 90 % | 15 min | Aviso (`warning`) | 24 h |
+| Guest locked | Uma VM ou contêiner está bloqueado há seis horas (`dumbmonit_proxmox_guest_locked`, rótulo `lock`): um backup ou migração interrompido deixou o bloqueio e nenhuma operação pode rodar no guest, nem mesmo o próximo backup. | > 0 | 6 h | Aviso (`warning`) | 24 h |
+| Old snapshot | O snapshot mais antigo de um guest tem mais de trinta dias (`dumbmonit_proxmox_guest_snapshot_oldest_age_seconds`). | > 30 d | 1 h | Info (`info`) | 7 d |
+| HA resource in error | Um recurso HA do Proxmox está em erro ou fenced (`dumbmonit_proxmox_ha_resource_error`). | > 0 | 2 min | Alerta (`critical`) | 1 h |
+| HA manager not reporting | O gerenciador de recursos local HA de um nó parou de escrever seu estado (`dumbmonit_proxmox_ha_lrm_stale`): os guests HA daquele nó não serão reiniciados nem realocados. | > 0 | 5 min | Alerta (`critical`) | 1 h |
+| Cluster lost quorum | O cluster Proxmox não tem quórum (`1 - dumbmonit_proxmox_cluster_quorate`): guests não podem mais ser iniciados. | > 0 | 1 min | Alerta (`critical`) | 30 min |
+| Proxmox node offline | Um nó do cluster é reportado offline (`1 - dumbmonit_proxmox_node_up`). | > 0 | 2 min | Alerta (`critical`) | 30 min |
+| Proxmox service down | Um daemon central do Proxmox não está rodando em um nó (`dumbmonit_proxmox_node_core_services_down`: `pve-cluster`, `pvedaemon`, `pveproxy`, `pvestatd`, `pve-firewall`, `corosync`, `watchdog-mux`, cada um contado só onde o nó o ativa). | > 0 | 5 min | Alerta (`critical`) | 1 h |
+| Node network interface down | Uma interface configurada para iniciar no boot não está ativa em um nó (`dumbmonit_proxmox_node_interface_offline`). Uma interface ativada sob demanda nunca é reportada. | > 0 | 5 min | Aviso (`warning`) | 6 h |
+| Proxmox storage almost full | Um storage Proxmox está mais de 85% cheio (`dumbmonit_proxmox_storage_used_percent`); "Disk almost full" assume em 90%. | > 85 % | 15 min | Aviso (`warning`) | 24 h |
+| Thin pool almost full | Um pool thin LVM está mais de 90% cheio: todo guest armazenado nele fica somente leitura quando se enche (`dumbmonit_proxmox_node_thinpool_used_percent`); limpa abaixo de 88%. | > 90 % | 15 min | Alerta (`critical`) | 6 h |
+| Thin pool metadata almost full | O volume de metadados de um pool thin LVM está mais de 80% cheio (`dumbmonit_proxmox_node_thinpool_metadata_used_percent`). É muito menor que o volume de dados e frequentemente satura primeiro, com a mesma consequência. | > 80 % | 15 min | Alerta (`critical`) | 6 h |
+| Proxmox disk wearing out | Um SSD ou NVMe de um nó usou mais de 90% de sua vida nominal (`dumbmonit_proxmox_node_disk_wearout_percent`). A notificação lê `pve1 · /dev/nvme0n1`. | > 90 % | 1 h | Aviso (`warning`) | 7 d |
+| Proxmox disk SMART failure | Um disco de um nó reporta saúde SMART `FAILED` (`dumbmonit_proxmox_node_disk_smart_failed`). | > 0 | 5 min | Alerta (`critical`) | 24 h |
+| Proxmox ZFS pool degraded | Um pool ZFS de um nó não está `ONLINE` (`dumbmonit_proxmox_node_zfs_pool_degraded`). A notificação lê `pve2 · tank`. | > 0 | 5 min | Alerta (`critical`) | 6 h |
+| Backup job failed | O último job vzdump em um nó, ou um job de backup agendado, falhou (`1 - dumbmonit_proxmox_backup_job_last_ok`). | > 0 | 10 min | Alerta (`critical`) | 24 h |
+| Backup job excludes a disk | Um job de backup agendado pula um disco de um dos guests que cobre (`dumbmonit_proxmox_backup_job_guest_excluded_volumes`): o job tem sucesso toda noite com esses dados faltando. Drives de CD-ROM e imagens cloudinit são excluídas por design e nunca contadas. | > 0 | 1 h | Aviso (`warning`) | 7 d |
+| Replication failed | Um job de replicação reporta um erro ou uma contagem de falha diferente de zero (`dumbmonit_proxmox_replication_job_error`): a cópia em standby está desatualizada. | > 0 | 10 min | Alerta (`critical`) | 6 h |
+| Ceph health error | O Ceph reporta `HEALTH_ERR` (`dumbmonit_proxmox_ceph_health`, 0 OK, 1 WARN, 2 ERR). | ≥ 2 | 2 min | Alerta (`critical`) | 30 min |
+| Ceph health warning | O Ceph reporta `HEALTH_WARN` por mais de quinze minutos (`dumbmonit_proxmox_ceph_health == 1`). | > 0 | 15 min | Aviso (`warning`) | 6 h |
+| Ceph OSD down | Um OSD Ceph está fora do ar há cinco minutos (`1 - dumbmonit_proxmox_ceph_osd_up`). A notificação nomeia o OSD e seu host. | > 0 | 5 min | Alerta (`critical`) | 1 h |
+| Ceph OSD nearly full | Um único OSD Ceph está mais de 85% cheio (`dumbmonit_proxmox_ceph_osd_used_percent`): escritas param quando alcança seu limite, qualquer que seja a média do cluster; limpa abaixo de 82%. | > 85 % | 15 min | Aviso (`warning`) | 24 h |
+| Ceph pool almost full | Um pool Ceph está mais de 85% cheio (`dumbmonit_proxmox_ceph_pool_used_percent`); limpa abaixo de 82%. | > 85 % | 15 min | Aviso (`warning`) | 24 h |
+| Ceph noout flag left on | A flag `noout` do Ceph está definida há duas horas (`dumbmonit_proxmox_ceph_flag{flag="noout"}`): o rebalanceamento está desativado, e o cluster lê saudável enquanto sua redundância diminui. | > 0 | 2 h | Info (`info`) | 24 h |
+| Proxmox updates pending | Mais de vinte atualizações de pacote estão pendentes em um nó (`dumbmonit_proxmox_node_updates_pending`). | > 20 | 1 h | Info (`info`) | 7 d |
+| Proxmox security updates pending | Ao menos uma atualização pendente vem de um arquivo de segurança (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 h | Aviso (`warning`) | 7 d |
+| Proxmox packages changed | A versão instalada de um pacote Proxmox mudou entre duas sondagens — alguém executou `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, publicado por uma hora com o detalhe em seu rótulo `changes`: `pve1 · pve-manager 8.2.4→8.2.7`). Resolve por conta própria uma hora depois. | > 0 | 1 min | Info (`info`) | 24 h |
+| Node certificate expiring | Um certificado de nó Proxmox expira em menos de quatorze dias (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 d | 1 h | Aviso (`warning`) | 24 h |
+| Proxmox storage inactive | Um armazenamento ativado não está ativo em um nó (compartilhamento inacessível, disco não montado, servidor de backup fora do ar): os backups para ele e os discos que ele hospeda falham (`dumbmonit_proxmox_storage_active`). | < 1 | 10 min | Aviso (`warning`) | 6 h |
+| Proxmox node needs a reboot | Um kernel mais recente está instalado em um nó há três dias sem reinicialização: o nó continua rodando o antigo (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 d | Info (`info`) | 7 d |
+| Proxmox subscription expired | A assinatura de um nó está expirada, inválida ou suspensa: o repositório enterprise para de servir atualizações (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 h | Aviso (`warning`) | 7 d |
+| Proxmox replication overdue | Um job de replicação de armazenamento está mais de seis horas atrasado em relação ao seu agendamento: a cópia no outro nó está envelhecendo (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 h | 15 min | Aviso (`warning`) | 12 h |
+| Proxmox backup job not running | Um job de backup ativado não roda há mais de oito dias (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 d | 1 h | Aviso (`warning`) | 24 h |
+| Proxmox guest not in any backup job | Uma VM ou um contêiner não está em nenhum job de backup há um dia (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 h | Info (`info`) | 7 d |
+| Proxmox tasks failed | Tarefas falharam em um nó nas últimas seis horas (inicialização de convidado, migração, restauração…). Os backups têm sua própria regra (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 min | Info (`info`) | 24 h |
+
+## Limites conhecidos
+
+- As temperaturas da placa-mãe não estão disponíveis: a API do Proxmox VE só dá a temperatura SMART dos discos. Instale o agente DumbMonit no nó para os outros sensores.
+- O uso de disco dentro de uma VM precisa do agente convidado do QEMU. Sem ele, a VM tem um tamanho e nenhum uso.
+- O sistema operacional e os endereços de um convidado são solicitados no máximo uma vez por hora.
+- Os snapshots são inventariados para no máximo 200 convidados por sondagem (opção `max_snapshot_guests`); os demais são contados como ignorados.
+- Um privilégio ausente, um Proxmox VE mais antigo ou um recurso não instalado nunca gera um erro: as séries correspondentes ficam ausentes, e a página do monitor nomeia o privilégio ausente.
+
 ## Erros comuns {#common-errors}
 
 | Sintoma | Causa provável |

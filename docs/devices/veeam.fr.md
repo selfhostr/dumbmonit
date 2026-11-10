@@ -56,26 +56,31 @@ Toutes les métriques sont préfixées `dumbmonit_veeam_`.
 | `jobs`, `jobs_failed`, `jobs_warning`, `jobs_running`, `jobs_disabled` | | Compteurs ; 200 jobs au plus sont décrits un par un. |
 | `sessions_24h`, `sessions_failed_24h`, `sessions_warning_24h` | | Sessions créées dans les dernières 24 heures, par résultat. |
 | `repository_capacity_bytes`, `repository_free_bytes`, `repository_used_bytes`, `repository_used_percent` | `repository`, `type` | Par dépôt. Un dépôt de stockage objet n'a pas de capacité : seul son espace utilisé est publié. |
+| `repository_online` | `repository`, `type` | 1 quand le dépôt est en ligne, 0 quand Veeam ne peut pas le joindre. Seulement à partir de la révision d'API `1.2-rev0` : voir l'option de version d'API. |
 | `license_valid` | | 1 quand le statut de licence est `Valid`. |
 | `license_info` | `status`, `type`, `edition` | Valeur 1. |
 | `license_expiry_seconds`, `support_expiry_seconds` | | Jusqu'à l'expiration de la licence et du contrat de support ; absent pour une licence perpétuelle. |
 | `license_instances_licensed`, `license_instances_used` | | Usage de licence par instance. |
-| `section_readable` | `section` : `sessions`, `repositories`, `license`, `restore_points` | 1 quand le compte peut la lire, 0 quand Veeam a refusé. |
+| `config_backup_enabled`, `config_backup_encrypted` | | 1 quand la sauvegarde de la configuration de Veeam lui-même est activée ; 1 quand elle est chiffrée. Rôle Backup Administrator seulement. |
+| `config_backup_last_success_age_seconds` | | Depuis la dernière sauvegarde de configuration réussie. Rôle Backup Administrator seulement. |
+| `section_readable` | `section` : `sessions`, `repositories`, `license`, `restore_points`, `config_backup` | 1 quand le compte peut la lire, 0 quand Veeam a refusé. |
 
-Les [règles intégrées](../alerting/rules.md#veeam-backup-replication) qui
-s'appliquent :
+Deux lectures dépendent du serveur et du compte. L'état en ligne d'un dépôt n'existe qu'à partir de la révision d'API `1.2-rev0` : réglez l'option de version d'API sur cette révision, ou sur une plus récente que votre serveur annonce ; sinon la série est absente et « Dépôt Veeam hors ligne » ne peut pas se déclencher. La sauvegarde de configuration, comme la licence, est réservée au rôle Backup Administrator : avec le rôle Viewer, elle apparaît comme « non lisible » et ses deux règles restent muettes.
 
-- **Job Veeam en échec** : la dernière exécution d'un job activé a échoué
-  (Avertissement, rappelé chaque jour).
-- **Job Veeam terminé avec un avertissement** (Avis, rappelé chaque jour).
-- **Dépôt Veeam presque plein** : plus de 90 % pendant trente minutes
-  (Avis).
-- **Licence Veeam arrivant à expiration** : moins de 30 jours restants
-  (Avis, rappelé chaque jour). Seulement quand le compte peut lire la
-  licence.
-- **Appareil client périmé** : un ordinateur ou une VM protégé a dépassé
-  `device_stale_days` sans sauvegarde réussie (Avis, rappelé chaque jour) ;
-  voir [Appareils](#devices) ci-dessous.
+Les [règles intégrées](../alerting/rules.md#veeam-backup-replication) qui s'appliquent :
+
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Job Veeam en échec | La dernière exécution d'un job Veeam activé a échoué : ce qu'il protège n'a pas de nouveau point de restauration (`dumbmonit_veeam_job_failed`). | > 0 | 5 min | Avertissement (`critical`) | 1 j |
+| Job Veeam terminé avec un avertissement | La dernière exécution d'un job Veeam activé s'est terminée avec un avertissement : certains objets ne sont peut-être pas protégés (`dumbmonit_veeam_job_warning`). | > 0 | 5 min | Avis (`warning`) | 1 j |
+| Sauvegarde Veeam trop ancienne | Aucune exécution réussie d'un job planifié au moins chaque jour depuis plus de deux jours (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 j | 1 h | Avis (`warning`) | 1 j |
+| Dépôt Veeam presque plein | Un dépôt de sauvegarde Veeam est plein à plus de 90 % : les prochains jobs échoueront par manque d'espace (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 min | Avis (`warning`) | 1 j |
+| Licence Veeam arrivant à expiration | La licence Veeam expire dans moins de 30 jours : les jobs s'arrêtent à la fin de la période de grâce (`dumbmonit_veeam_license_expiry_seconds`). | < 30 j | 1 h | Avis (`warning`) | 1 j |
+| Support Veeam arrivant à expiration | Le contrat de support Veeam expire dans moins de 30 jours : après cette date, le serveur ne reçoit plus ni mises à jour ni assistance de l'éditeur (`dumbmonit_veeam_support_expiry_seconds`). | < 30 j | 1 h | Info (`info`) | 24 h |
+| Dépôt Veeam hors ligne | Un dépôt de sauvegarde est hors ligne : les jobs qui y écrivent échouent, et ses points de restauration ne peuvent pas être lus. Demande la révision d'API `1.2-rev0` ou une plus récente (`dumbmonit_veeam_repository_online`). | < 1 | 10 min | Avertissement (`critical`) | 6 h |
+| Licence Veeam expirée ou invalide | La licence Veeam n'est plus valide : les jobs s'arrêtent une fois la période de grâce terminée. Seulement quand le compte peut lire la licence (`dumbmonit_veeam_license_valid`). | < 1 | 30 min | Avertissement (`critical`) | 24 h |
+| Sauvegarde de configuration Veeam désactivée | La sauvegarde de la configuration de Veeam lui-même est désactivée : sans elle, un serveur de sauvegarde perdu doit être reconstruit à la main (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 h | Info (`info`) | 7 j |
+| Sauvegarde de configuration Veeam trop ancienne | La sauvegarde de configuration est activée mais n'a pas réussi depuis plus de sept jours (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 j | 1 h | Avis (`warning`) | 24 h |
 
 ## Appareils {#devices}
 
@@ -158,6 +163,14 @@ une URL. Options :
 - **Délai par requête** (15 s).
 - **Péremption d'appareil** (`device_stale_days`, 3 jours par défaut) :
   voir [Appareils](#devices) ci-dessus.
+
+## Limites connues
+
+- Avec le rôle Viewer, la licence et la sauvegarde de configuration ne sont pas lisibles. Leurs règles demandent un compte au rôle Backup Administrator, qui peut aussi modifier le serveur : choisissez en connaissance de cause.
+- L'état en ligne des dépôts demande la révision d'API `1.2-rev0` ou une plus récente.
+- Les événements de détection de logiciels malveillants ne sont pas lus.
+- Au plus 200 jobs sont décrits un par un ; au-delà, seuls les totaux restent.
+- Un dépôt de stockage objet n'annonce aucune capacité : « Dépôt Veeam presque plein » ne peut donc pas se déclencher pour lui.
 
 ## Dépannage
 

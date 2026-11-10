@@ -225,6 +225,41 @@ então o mesmo grupo funciona em qualquer lado da renomeação.
 | `firmware` | Observar atualizações | `true` | Lê o resultado da última verificação de atualização do firewall e se um reinício está pendente. |
 | `temperature` | Ler os sensores de temperatura | `true` | Lê os sensores de CPU e placa que o firewall expõe. |
 
+## Regras de alerta integradas
+
+Estas regras vêm com o DumbMonit e ficam ativas desde o início. Cada uma pode ser editada ou desativada em Alertas; a [referência das regras integradas](../alerting/rules.md#opnsense) lista todas as regras de todas as integrações.
+
+| Regra | O que é | Limite padrão | Retenção | Severidade | Lembrete |
+|---|---|---|---|---|---|
+| Internet gateway down | O dpinger não obtém mais resposta de um gateway (`dumbmonit_opnsense_gateway_up`). Em um firewall multi-WAN o tráfego já se moveu para outro link, silenciosamente. `loss` e `delay` são avisos, não falhas, e não disparam esta regra. | < 1 | 5 min | Alerta (`critical`) | 6 h |
+| Gateway losing packets | Um gateway está perdendo mais de um quinto dos pacotes enviados a ele (`dumbmonit_opnsense_gateway_loss_percent`): o link responde, mal. Limpa abaixo de 10%. | > 20 % | 10 min | Aviso (`warning`) | 6 h |
+| Gateway slow | O tempo de ida e volta de um gateway permaneceu acima de 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Trezentos milissegundos deixa um link de backup móvel em paz. | > 300 ms | 15 min | Info (`info`) | 12 h |
+| Firewall state table filling up | O pf está rastreando mais de 80% das conexões que é permitido rastrear (`dumbmonit_opnsense_pf_states_used_percent`). Além do limite o firewall descarta novas conexões sem outro sintoma. | > 80 % | 10 min | Aviso (`warning`) | 6 h |
+| Firewall network buffers exhausted | Mais de 90% dos buffers de rede do FreeBSD estão em uso (`dumbmonit_opnsense_mbuf_used_percent`). Um firewall que esgota para de encaminhar com a CPU ainda ociosa. | > 90 % | 10 min | Aviso (`warning`) | 6 h |
+| VPN tunnel down | Um túnel VPN configurado não teve sessão por dez minutos (`dumbmonit_opnsense_vpn_tunnel_up`). Um plugin não instalado, ou uma conexão desativada, não tem série e não pode disparar. | < 1 | 10 min | Aviso (`warning`) | 6 h |
+| Firewall resolver stopped | O Unbound parou de responder (`dumbmonit_opnsense_unbound_running`). O firewall ainda roteia; as máquinas detrás dele não resolvem mais. Desligue esta regra se seu firewall resolve com outra coisa. | < 1 | 5 min | Aviso (`warning`) | 6 h |
+| Firewall core service stopped | O dpinger, que observa os gateways, ou o configd, que roda tudo mais, está parado (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Só esses dois, porque um serviço desligado de propósito não é uma falha. | < 1 | 5 min | Alerta (`critical`) | 6 h |
+| Firewall too hot | Um sensor lê acima de 85 °C (`dumbmonit_opnsense_temperature_celsius`): a caixa sem ventoinha no armário está prestes a começar a reduzir desempenho. Limpa a 78 °C. | > 85 °C | 10 min | Aviso (`warning`) | 6 h |
+| Firewall left in CARP maintenance mode | O CARP ficou em modo de manutenção persistente (`dumbmonit_opnsense_carp_maintenance_mode`): este firewall entregou seus endereços virtuais ao seu parceiro e não os retomará por conta própria. | > 0 | 1 h | Info (`info`) | 24 h |
+| Firewall reboot pending | Uma atualização está instalada mas precisa de um reinício para ter efeito (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Info (`info`) | 7 d |
+| Firewall updates pending | O firewall tem pacotes esperando para serem atualizados (`dumbmonit_opnsense_firmware_updates_pending`). É a máquina mais exposta na rede. | > 0 | 1 h | Info (`info`) | 7 d |
+| OPNsense certificate expiring | Um certificado que o firewall usa (interface web, portal cativo, VPN) expira em menos de 14 dias (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 d | 1 h | Aviso (`warning`) | 24 h |
+| OPNsense certificate expired | Um certificado que o firewall usa expirou: os clientes agora o recusam (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Alerta (`critical`) | 12 h |
+| OPNsense disk almost full | O disco do firewall está mais de 90 % cheio: os logs, as capturas e as atualizações vão falhar. Resolve abaixo de 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Aviso (`warning`) | 12 h |
+| OPNsense CPU high | O processador do firewall ficou acima de 90 % por quinze minutos. Resolve abaixo de 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Aviso (`warning`) | 6 h |
+| OPNsense swap in use | O firewall usa mais da metade do seu swap há uma hora: está com pouca memória (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Aviso (`warning`) | 24 h |
+| OPNsense packet filter disabled | O filtro de pacotes (pf) está desativado: o firewall não filtra nem traduz mais nada (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Alerta (`critical`) | 1 h |
+| OPNsense interface errors | Uma interface registrou mais de 100 erros de recepção ou de transmissão em quinze minutos: verifique o cabo, o módulo SFP e a configuração de duplex (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Aviso (`warning`) | 24 h |
+| OPNsense update mirror unreachable | O firewall não consegue alcançar seu espelho de atualizações há doze horas: ele não vai ficar sabendo das atualizações de segurança (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Info (`info`) | 7 d |
+
+## Limites conhecidos
+
+- A verificação de atualizações nunca é disparada: o DumbMonit lê o resultado da última verificação feita pelo próprio firewall. Um firewall que nunca verificou não diz nada sobre atualizações.
+- No máximo 64 séries por família: gateways, interfaces, serviços, túneis, partições, sensores.
+- Um plugin que não está instalado (WireGuard, OpenVPN, IPsec, Unbound, Kea) não faz barulho: nem série, nem regra, nem erro.
+- As sessões VPN e as concessões DHCP são contadas, nunca listadas: nenhum endereço de cliente nem nome de host é lido.
+- Os certificados que o OPNsense marca como não usados são ignorados.
+
 ## Erros comuns {#common-errors}
 
 | Sintoma | Causa provável |

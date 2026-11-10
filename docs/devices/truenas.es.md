@@ -191,6 +191,41 @@ versión hasta la 25.10.
 | `tasks` | Watch replication and snapshot tasks | `true` | Estado, última ejecución y último snapshot de cada tarea. |
 | `services` | Watch the services | `true` | Servicios configurados para iniciarse con el NAS, y si se ejecutan. |
 
+## Reglas de alerta integradas
+
+Estas reglas vienen con DumbMonit y están activas desde el principio. Cada una se puede editar o desactivar en Alertas; la [referencia de reglas integradas](../alerting/rules.md#truenas) enumera todas las reglas de todas las integraciones.
+
+| Regla | Qué | Umbral por defecto | Espera | Severidad | Recordatorio |
+|---|---|---|---|---|---|
+| NAS pool degraded | ZFS ya no considera un pool sano (`dumbmonit_truenas_pool_healthy`). Un pool degradado sigue sirviendo sus datos, que es exactamente por qué nadie se da cuenta hasta que falla el siguiente disco. La página del monitor nombra el disco. | < 1 | 5 min | Warning (`critical`) | 6 h |
+| NAS disk errors | Discos de un pool han reportado errores de lectura, escritura o checksum desde el último `zpool clear` (`dumbmonit_truenas_pool_device_errors`, una serie por tipo). | > 0 | 15 min | Advisory (`warning`) | 24 h |
+| NAS pool almost full | Un pool está más del 85 % lleno (`dumbmonit_truenas_pool_used_percent`). ZFS se ralentiza bien antes de llenarse. Se limpia al 80 %. | > 85 % | 30 min | Advisory (`warning`), escala tras 7 d | 24 h |
+| NAS scrub found errors | El último scrub de un pool encontró datos dañados (`dumbmonit_truenas_pool_last_scrub_errors`). | > 0 | 5 min | Warning (`critical`) | 24 h |
+| NAS scrub overdue | Un pool no ha completado un scrub en más de 45 días (`dumbmonit_truenas_pool_last_scrub_age_seconds`). Ausente tras un resilver, que borra el registro del último scrub. | > 45 d | 1 h | Info (`info`) | 7 d |
+| NAS disk failed its SMART test | Una autoprueba SMART en el registro de un disco falló (`dumbmonit_truenas_disk_smart_failed`). Un disco nunca probado no tiene serie. | > 0 | 5 min | Warning (`critical`) | 24 h |
+| NAS disk too hot | Un disco está por encima de 55 °C (`dumbmonit_truenas_disk_temperature_celsius`, leído de la caché de TrueNAS). Se limpia a 50 °C. | > 55 °C | 15 min | Advisory (`warning`) | 6 h |
+| NAS dataset near its quota | Un dataset ha usado más del 90 % de su cuota (`dumbmonit_truenas_dataset_quota_used_percent`): al 100 % sus escrituras fallan mientras el pool todavía tiene espacio. Sin cuota, sin serie. | > 90 % | 30 min | Advisory (`warning`) | 24 h |
+| NAS replication failed | Una tarea de replicación activada está en error (`dumbmonit_truenas_replication_error`): la copia del otro lado se está volviendo más vieja. | > 0 | 10 min | Advisory (`warning`) | 12 h |
+| NAS snapshot task failed | Una tarea de snapshot periódico activada está en error (`dumbmonit_truenas_snapshot_task_error`). | > 0 | 10 min | Advisory (`warning`) | 12 h |
+| NAS snapshots stale | Una tarea de snapshot periódico activada no se ha ejecutado en más de ocho días (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): una tarea que deja de ejecutarse no falla, se queda en silencio. | > 8 d | 1 h | Advisory (`warning`) | 24 h |
+| TrueNAS alert raised | El propio TrueNAS ha lanzado una alerta de nivel ERROR o superior (`dumbmonit_truenas_alerts`). Su propia frase está en la página del monitor. | > 0 | 10 min | Advisory (`warning`) | 12 h |
+| NAS service stopped | Un servicio configurado para iniciarse con el NAS está detenido (`dumbmonit_truenas_service_running`). Un servicio apagado a propósito no tiene serie. | < 1 | 10 min | Advisory (`warning`) | 6 h |
+| NAS certificate expiring | El certificado que sirve la interfaz web de TrueNAS caduca en menos de 14 días: los navegadores, las aplicaciones y los pares de replicación lo rechazarán (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 d | 1 h | Advisory (`warning`) | 24 h |
+| NAS certificate expired | El certificado que sirve la interfaz web de TrueNAS caduca en menos de 2 días, o ya ha caducado (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 d | 15 min | Warning (`critical`) | 12 h |
+| NAS boot pool degraded | El pool de arranque ya no está sano: el NAS sigue arrancando desde el dispositivo restante, hasta que ese también falle (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 min | Advisory (`warning`) | 12 h |
+| NAS boot pool almost full | El pool de arranque está lleno en más de un 85 %: los entornos de arranque antiguos se acumulan con cada actualización y bloquean la siguiente. Se resuelve por debajo del 80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 h | Advisory (`warning`) | 24 h |
+| NAS remote backup task failed | La última ejecución de una tarea de sincronización en la nube, de rsync o de copia de seguridad en la nube ha fallado: la copia remota se va quedando antigua (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 min | Advisory (`warning`) | 12 h |
+| NAS app crashed | Una aplicación está en el estado de fallo (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 min | Advisory (`warning`) | 6 h |
+| NAS virtual machine stopped | Una máquina virtual configurada para arrancar con el NAS no está en ejecución (`dumbmonit_truenas_vm_running`). | < 1 | 10 min | Advisory (`warning`) | 6 h |
+
+## Límites conocidos
+
+- Por la API REST que usa DumbMonit, TrueNAS no tiene clave de solo lectura: la clave pertenece a un administrador completo. DumbMonit solo lee, y nunca inicia un scrub, una prueba SMART ni una replicación.
+- La antigüedad del snapshot más reciente de un dataset es la última ejecución de la tarea de snapshots que lo cubre. Un dataset que ninguna tarea cubre no tiene antigüedad.
+- Las temperaturas proceden de la caché de TrueNAS, que se refresca aproximadamente cada cinco minutos. Un disco en reposo nunca se despierta.
+- Los resultados de las pruebas SMART salieron de la API en TrueNAS 25.10 y se omiten a partir de esa versión.
+- Las reglas de certificado solo vigilan el certificado que sirve la interfaz web.
+
 ## Errores comunes {#common-errors}
 
 | Síntoma | Causa probable |

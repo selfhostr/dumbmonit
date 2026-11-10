@@ -347,6 +347,46 @@ hinzugefügt, falls fehlend.
 | `tape` | Watch tape backups | `false` | Liest die Tape-Stufe. Standardmäßig aus, da die meisten Installationen keine Tape-Hardware haben. Braucht `Tape.Audit` auf `/tape`. |
 | `device_stale_days` | Device staleness (days) | `3` | Eine gesicherte Maschine ohne neuen Snapshot länger als dies wird als veraltet gemeldet. Von 1 bis 90. |
 
+## Integrierte Alarmregeln
+
+Diese Regeln werden mit DumbMonit ausgeliefert und sind von Anfang an aktiv. Jede lässt sich unter Warnungen bearbeiten oder abschalten; die [Referenz der integrierten Regeln](../alerting/rules.md#proxmox-backup-server) führt alle Regeln aller Integrationen auf.
+
+| Regel | Was | Standardschwelle | Haltezeit | Schweregrad | Erinnerung |
+|---|---|---|---|---|---|
+| PBS-Datastore fast voll | PBS-Datastore zu mehr als 90 % voll. | > 90 % | 15 Min. | Hinweis (`warning`), eskaliert nach 24 h | 6 h |
+| PBS-Datastore füllt sich | Bei der aktuellen Rate schätzt PBS den Datastore innerhalb von sieben Tagen voll. | < 7 T. | 1 h | Hinweis (`warning`) | 24 h |
+| PBS-Datastore nicht eingehängt | Ein Wechsel-Datastore ist nicht eingehängt (`dumbmonit_pbs_datastore_removable_unmounted`): Es kann nichts darauf geschrieben werden. | > 0 | 6 h | Hinweis (`warning`) | 24 h |
+| PBS-Backup zu alt | Seit mehr als zwei Tagen kein neuer Snapshot für diese Backup-Gruppe (eine pro Maschine) (`dumbmonit_pbs_backup_last_age_seconds`). Passen Sie die Schwelle für wöchentlich gesicherte Maschinen an; die Benachrichtigung nennt Gruppe und Datastore. | > 2 T. | 1 h | Hinweis (`warning`) | 24 h |
+| PBS-Backup-Verifizierung fehlgeschlagen | Die Verifizierung des neuesten Snapshots dieser Maschine ist fehlgeschlagen (`dumbmonit_pbs_backup_last_verified < 1`). | < 1 | 30 Min. | Warnung (`critical`) | 24 h |
+| PBS-Task fehlgeschlagen | Mindestens ein PBS-Task ist im Prüffenster fehlgeschlagen (`dumbmonit_pbs_tasks_failed`). | > 0 | 10 Min. | Hinweis (`warning`) | 24 h |
+| PBS-Garbage-Collection zu alt | Seit mehr als acht Tagen keine erfolgreiche Garbage Collection auf diesem Datastore (`dumbmonit_pbs_gc_last_success_age_seconds`). | > 8 T. | 1 h | Hinweis (`warning`) | 24 h |
+| PBS-Garbage-Collection fehlgeschlagen | Die letzte Garbage Collection auf einem Datastore ist fehlgeschlagen (`dumbmonit_pbs_gc_last_run_ok < 1`; aus `/gc` bei PBS 3.3+, davor aus dem letzten GC-Task). | < 1 | 10 Min. | Hinweis (`warning`) | 24 h |
+| PBS-Chunks beschädigt gefunden | Die Garbage Collection hat auf einem Datastore unlesbare Chunks gefunden (`dumbmonit_pbs_gc_bad_chunks`): Manche Backups lassen sich nicht mehr wiederherstellen. | > 0 | 10 Min. | Warnung (`critical`) | 24 h |
+| PBS-Prune-Job fehlgeschlagen | Der letzte Lauf eines PBS-Prune-Jobs ist fehlgeschlagen: Es wird nichts bereinigt, und der Datastore füllt sich weiter (`dumbmonit_pbs_job_last_ok{kind="prune"} < 1`). Die Benachrichtigung nennt Job und Datastore. | < 1 | 10 Min. | Hinweis (`warning`) | 24 h |
+| PBS-Verifizierungsjob fehlgeschlagen | Der letzte Lauf eines PBS-Verifizierungsjobs ist fehlgeschlagen (`dumbmonit_pbs_job_last_ok{kind="verify"} < 1`). | < 1 | 10 Min. | Hinweis (`warning`) | 24 h |
+| PBS-Sync-Job fehlgeschlagen | Der letzte Lauf eines PBS-Sync-Jobs ist fehlgeschlagen (`dumbmonit_pbs_sync_job_last_ok < 1`). | < 1 | 10 Min. | Warnung (`critical`) | 24 h |
+| PBS-Tape-Backup fehlgeschlagen | Der letzte Tape-Backup-Lauf ist fehlgeschlagen (`dumbmonit_pbs_tape_backup_job_last_ok < 1`): Die Offline-Kopie wird nicht angefertigt. | < 1 | 10 Min. | Warnung (`critical`) | 24 h |
+| PBS-Job nie gelaufen | Ein Job ist aktiviert und geplant, aber nie gelaufen (`dumbmonit_pbs_job_never_run`). | > 0 | 2 T. | Hinweis (`warning`) | 7 T. |
+| PBS-Dienst ausgefallen | Ein vom Proxmox Backup Server benötigter Dienst läuft nicht (`dumbmonit_pbs_node_service_active{expected="1"} < 1`); solange er ausgefallen ist, kann kein Backup aufgenommen werden. | < 1 | 5 Min. | Warnung (`critical`) | 6 h |
+| PBS-Platte SMART-Fehler | Eine Platte des Backup-Servers meldet den SMART-Zustand `FAILED` (`dumbmonit_pbs_node_disk_smart_failed`). Die Benachrichtigung lautet `/dev/sdb`. | > 0 | 5 Min. | Warnung (`critical`) | 24 h |
+| PBS-SSD verschlissen | Eine SSD des Backup-Servers hat mehr als 90 % ihrer Nennlebensdauer verbraucht (`dumbmonit_pbs_node_disk_wearout_percent`). | > 90 % | 1 h | Hinweis (`warning`) | 7 T. |
+| PBS-ZFS-Pool degradiert | Ein ZFS-Pool des Backup-Servers ist nicht `ONLINE` (`dumbmonit_pbs_node_zfs_pool_degraded`). | > 0 | 5 Min. | Warnung (`critical`) | 6 h |
+| PBS-Zertifikat läuft ab | Das vom Backup-Server ausgelieferte Zertifikat läuft in weniger als drei Wochen ab (`dumbmonit_pbs_node_certificate_expires_seconds`). Braucht die Option `certificates`. | < 21 T. | 1 h | Hinweis (`warning`) | 48 h |
+| PBS-Neustart nach Upgrade ausstehend | Das Paket wurde aktualisiert, aber der laufende Daemon ist noch der alte (`dumbmonit_pbs_node_running_version_stale`). | > 0 | 6 h | Info (`info`) | 7 T. |
+| PBS-Updates ausstehend | Auf dem Backup-Server stehen mehr als zwanzig Paket-Updates aus (`dumbmonit_pbs_node_updates_pending`). | > 20 | 1 h | Info (`info`) | 7 T. |
+| PBS-Datastore nicht verfügbar | Ein Datastore lässt sich nicht öffnen: Sicherungen dorthin und Wiederherstellungen von dort scheitern. Ein lediglich ausgehängter Wechsel-Datastore löst nichts aus (`dumbmonit_pbs_datastore_available`). | < 1 | 5 Min. | Warnung (`critical`) | 1 h |
+| PBS-Datastore im Wartungsmodus belassen | Ein Datastore ist seit mehr als einem Tag im Wartungsmodus (schreibgeschützt oder offline): Er wurde vielleicht versehentlich darin belassen (`dumbmonit_pbs_datastore_maintenance`). | > 0 | 24 h | Hinweis (`warning`) | 24 h |
+| PBS-Root-Dateisystem fast voll | Das Root-Dateisystem des Backup-Servers ist zu mehr als 90 % voll: Ist es voll, starten keine Tasks mehr, gleich wie viel Platz die Datastores noch haben. Endet unter 85 % (`dumbmonit_pbs_node_rootfs_percent`). | > 90 % | 15 Min. | Hinweis (`warning`) | 12 h |
+| Geplanter PBS-Job läuft nicht mehr | Ein aktivierter Sync- oder Prune-Job mit Zeitplan ist seit mehr als acht Tagen nicht gelaufen. Ein Job, der nicht mehr läuft, schlägt nicht fehl: Keine andere Regel bemerkt ihn (`dumbmonit_pbs_job_last_run_age_seconds`). | > 8 T. | 1 h | Hinweis (`warning`) | 24 h |
+| PBS-Subskription abgelaufen | Die Subskription des Backup-Servers ist abgelaufen, ungültig oder ausgesetzt: Das Enterprise-Repository liefert keine Updates mehr (`dumbmonit_pbs_node_subscription_info`). | > 0 | 1 h | Hinweis (`warning`) | 7 T. |
+
+## Bekannte Grenzen
+
+- PBS zeichnet Sicherungen auf, keine Verbindungen: Eine geschützte Maschine hat das Datum ihrer letzten Sicherung und kein „zuletzt gesehen“.
+- Höchstens 500 Backup-Gruppen erzeugen Reihen (Option `max_groups`).
+- Die integrierte Rolle Audit deckt weder Remotes noch Band ab: Ohne `Remote.Audit` fehlen die Sync-Jobs, die von einem Remote ziehen, in der Liste; ohne `Tape.Audit` wird das Band übersprungen. Keines von beiden löst einen Fehler aus.
+- Band wird nur gelesen, wenn die Option `tape` eingeschaltet ist; standardmäßig ist sie aus.
+
 ## Häufige Fehler
 
 | Symptom | Wahrscheinliche Ursache |

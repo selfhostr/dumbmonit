@@ -301,6 +301,46 @@ API принимает токен в двух частях (`token_id` + `secret
 | `tape` | Следить за ленточным копированием | `false` | Читает ленточный уровень. Выключено по умолчанию, так как у большинства установок нет ленточного оборудования. Требует `Tape.Audit` на `/tape`. |
 | `device_stale_days` | Устаревание устройства (дни) | `3` | Машина с копиями, не имеющая нового снимка дольше этого срока, считается устаревшей. От 1 до 90. |
 
+## Встроенные правила оповещений
+
+Эти правила поставляются вместе с DumbMonit и включены с самого начала. Каждое можно изменить или отключить в разделе «Оповещения»; [справочник встроенных правил](../alerting/rules.md#proxmox-backup-server) перечисляет все правила всех интеграций.
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| PBS datastore almost full | Datastore PBS заполнен более чем на 90%. | > 90 % | 15 мин | Advisory (`warning`), эскалируется через 24 ч | 6 ч |
+| PBS datastore filling up | При текущей скорости PBS оценивает, что datastore заполнится в течение семи дней. | < 7 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| PBS datastore not mounted | Съёмный datastore не смонтирован (`dumbmonit_pbs_datastore_removable_unmounted`): в него ничего нельзя записать. | > 0 | 6 ч | Advisory (`warning`) | 24 ч |
+| PBS backup too old | Нет нового снимка для этой группы резервного копирования (по одной на машину) более двух дней (`dumbmonit_pbs_backup_last_age_seconds`). Измените порог для машин, копируемых еженедельно; уведомление называет группу и datastore. | > 2 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| PBS backup verification failed | Проверка последнего снимка для этой машины завершилась неудачей (`dumbmonit_pbs_backup_last_verified < 1`). | < 1 | 30 мин | Warning (`critical`) | 24 ч |
+| PBS task failed | Хотя бы одна задача PBS завершилась неудачей в окне просмотра (`dumbmonit_pbs_tasks_failed`). | > 0 | 10 мин | Advisory (`warning`) | 24 ч |
+| PBS garbage collection too old | Нет успешной сборки мусора на этом datastore более восьми дней (`dumbmonit_pbs_gc_last_success_age_seconds`). | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| PBS garbage collection failed | Последняя сборка мусора на datastore завершилась неудачей (`dumbmonit_pbs_gc_last_run_ok < 1`; из `/gc` на PBS 3.3+, из последней задачи GC раньше). | < 1 | 10 мин | Advisory (`warning`) | 24 ч |
+| PBS corrupt chunks found | Сборка мусора нашла нечитаемые чанки на datastore (`dumbmonit_pbs_gc_bad_chunks`): некоторые резервные копии больше нельзя восстановить. | > 0 | 10 мин | Warning (`critical`) | 24 ч |
+| PBS prune job failed | Последний запуск задания prune PBS завершился неудачей: ничего не очищается, и datastore продолжает заполняться (`dumbmonit_pbs_job_last_ok{kind="prune"} < 1`). Уведомление называет задание и datastore. | < 1 | 10 мин | Advisory (`warning`) | 24 ч |
+| PBS verification job failed | Последний запуск задания проверки PBS завершился неудачей (`dumbmonit_pbs_job_last_ok{kind="verify"} < 1`). | < 1 | 10 мин | Advisory (`warning`) | 24 ч |
+| PBS sync job failed | Последний запуск задания синхронизации PBS завершился неудачей (`dumbmonit_pbs_sync_job_last_ok < 1`). | < 1 | 10 мин | Warning (`critical`) | 24 ч |
+| PBS tape backup failed | Последний запуск резервного копирования на ленту завершился неудачей (`dumbmonit_pbs_tape_backup_job_last_ok < 1`): офлайн-копия не создаётся. | < 1 | 10 мин | Warning (`critical`) | 24 ч |
+| PBS job never ran | Задание включено и запланировано, но ни разу не запускалось (`dumbmonit_pbs_job_never_run`). | > 0 | 2 дн | Advisory (`warning`) | 7 дн |
+| PBS service down | Служба, необходимая Proxmox Backup Server, не запущена (`dumbmonit_pbs_node_service_active{expected="1"} < 1`); пока она не работает, резервное копирование невозможно. | < 1 | 5 мин | Warning (`critical`) | 6 ч |
+| PBS disk SMART failure | Диск сервера резервного копирования сообщает состояние SMART `FAILED` (`dumbmonit_pbs_node_disk_smart_failed`). Уведомление выглядит как `/dev/sdb`. | > 0 | 5 мин | Warning (`critical`) | 24 ч |
+| PBS SSD worn out | SSD сервера резервного копирования израсходовал более 90 % своего номинального ресурса (`dumbmonit_pbs_node_disk_wearout_percent`). | > 90 % | 1 ч | Advisory (`warning`) | 7 дн |
+| PBS ZFS pool degraded | Пул ZFS сервера резервного копирования не в состоянии `ONLINE` (`dumbmonit_pbs_node_zfs_pool_degraded`). | > 0 | 5 мин | Warning (`critical`) | 6 ч |
+| PBS certificate expiring | Сертификат, который отдаёт сервер резервного копирования, истекает менее чем через три недели (`dumbmonit_pbs_node_certificate_expires_seconds`). Требуется параметр `certificates`. | < 21 дн | 1 ч | Advisory (`warning`) | 48 ч |
+| PBS restart pending after upgrade | Пакет обновлён, но работающий демон всё ещё старый (`dumbmonit_pbs_node_running_version_stale`). | > 0 | 6 ч | Info (`info`) | 7 дн |
+| PBS updates pending | На сервере резервного копирования ожидает более двадцати обновлений пакетов (`dumbmonit_pbs_node_updates_pending`). | > 20 | 1 ч | Info (`info`) | 7 дн |
+| PBS datastore unavailable | Datastore не удаётся открыть: резервное копирование в него и восстановление из него завершаются ошибкой. Съёмный datastore, который просто размонтирован, правило не вызывает (`dumbmonit_pbs_datastore_available`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
+| PBS datastore left in maintenance mode | Datastore находится в режиме обслуживания (только чтение или офлайн) больше суток: возможно, его оставили так по ошибке (`dumbmonit_pbs_datastore_maintenance`). | > 0 | 24 ч | Advisory (`warning`) | 24 ч |
+| PBS root file system almost full | Корневая файловая система сервера резервного копирования заполнена более чем на 90 %: когда она заполняется, задачи перестают запускаться, сколько бы места ни оставалось в datastore. Снимается ниже 85 % (`dumbmonit_pbs_node_rootfs_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 12 ч |
+| PBS scheduled job not running | Включённое задание синхронизации или prune с расписанием не запускалось более восьми дней. Задание, которое перестало запускаться, не завершается ошибкой, поэтому ни одно другое правило его не видит (`dumbmonit_pbs_job_last_run_age_seconds`). | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| PBS subscription expired | Подписка сервера резервного копирования истекла, недействительна или приостановлена: репозиторий enterprise перестаёт отдавать обновления (`dumbmonit_pbs_node_subscription_info`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
+
+## Известные ограничения
+
+- PBS записывает резервные копии, а не подключения: у защищаемой машины есть дата последней резервной копии и нет «последнего появления».
+- Не более 500 групп резервных копий дают ряды (опция `max_groups`).
+- Встроенная роль Audit не охватывает ни remote, ни ленту: без `Remote.Audit` задания синхронизации, которые тянут данные с remote, отсутствуют в списке; без `Tape.Audit` лента пропускается. Ни то, ни другое не вызывает ошибку.
+- Лента читается только при включённой опции `tape`; по умолчанию она выключена.
+
 ## Частые ошибки
 
 | Симптом | Вероятная причина |

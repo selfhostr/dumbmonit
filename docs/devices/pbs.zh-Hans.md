@@ -165,6 +165,46 @@ API 接受令牌在两件（`token_id` + `secret`）或如较旧的版本所做�
 | `tape` | 观看磁带备份 | `false` | 读取磁带层。默认关闭，因为大多数安装没有磁带硬件。需要 `/tape` 上的 `Tape.Audit`。 |
 | `device_stale_days` | 设备陈旧（天） | `3` | 一台没有新快照超过这个时间的备份机器被报告陈旧。从 1 到 90。 |
 
+## 内置告警规则
+
+这些规则随 DumbMonit 提供，从一开始就已启用。每条规则都可以在“告警”中修改或关闭；[内置规则参考](../alerting/rules.md#proxmox-backup-server)列出了所有集成的全部规则。
+
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| PBS 数据存储几乎满 | PBS 数据存储超过 90% 满。 | > 90 % | 15 分钟 | 通知 (`warning`),24 小时后升级 | 6 小时 |
+| PBS 数据存储填满中 | 按当前速率,PBS 估计数据存储在 7 天内满。 | < 7 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 数据存储未挂载 | 可移动数据存储未挂载(`dumbmonit_pbs_datastore_removable_unmounted`):没什么可写入它。 | > 0 | 6 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 备份太旧 | 此备份组(每台机器一个)没有新快照超过 2 天(`dumbmonit_pbs_backup_last_age_seconds`)。编辑每周备份机器的阈值;通知命名组和数据存储。 | > 2 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 备份验证失败 | 此机器最新快照的验证失败(`dumbmonit_pbs_backup_last_verified < 1`)。 | < 1 | 30 分钟 | 警告 (`critical`) | 24 小时 |
+| PBS 任务失败 | 至少一个 PBS 任务在审查窗口内失败(`dumbmonit_pbs_tasks_failed`)。 | > 0 | 10 分钟 | 通知 (`warning`) | 24 小时 |
+| PBS 垃圾回收太旧 | 此数据存储上没有成功的垃圾回收超过 8 天(`dumbmonit_pbs_gc_last_success_age_seconds`)。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 垃圾回收失败 | 数据存储上最后的垃圾回收失败(`dumbmonit_pbs_gc_last_run_ok < 1`;从 PBS 3.3+ 上的`/gc`,从之前最后的 GC 任务)。 | < 1 | 10 分钟 | 通知 (`warning`) | 24 小时 |
+| PBS 发现损坏块 | 垃圾回收在数据存储上发现了不可读的块(`dumbmonit_pbs_gc_bad_chunks`):某些备份无法再恢复。 | > 0 | 10 分钟 | 警告 (`critical`) | 24 小时 |
+| PBS 修剪工作失败 | PBS 修剪工作最后一次运行失败:什么都不修剪数据存储继续填满(`dumbmonit_pbs_job_last_ok{kind="prune"} < 1`)。通知命名工作和数据存储。 | < 1 | 10 分钟 | 通知 (`warning`) | 24 小时 |
+| PBS 验证工作失败 | PBS 验证工作最后一次运行失败(`dumbmonit_pbs_job_last_ok{kind="verify"} < 1`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 24 小时 |
+| PBS 同步工作失败 | PBS 同步工作最后一次运行失败(`dumbmonit_pbs_sync_job_last_ok < 1`)。 | < 1 | 10 分钟 | 警告 (`critical`) | 24 小时 |
+| PBS 磁带备份失败 | 最后一次磁带备份运行失败(`dumbmonit_pbs_tape_backup_job_last_ok < 1`):不正在制作离线副本。 | < 1 | 10 分钟 | 警告 (`critical`) | 24 小时 |
+| PBS 工作永不运行 | 工作被启用并计划但永不运行(`dumbmonit_pbs_job_never_run`)。 | > 0 | 2 天 | 通知 (`warning`) | 7 天 |
+| PBS 服务关闭 | Proxmox 备份服务器需要的服务未运行(`dumbmonit_pbs_node_service_active{expected="1"} < 1`);当它关闭时无法备份。 | < 1 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| PBS 磁盘 SMART 故障 | 备份服务器的磁盘报告 SMART 健康`FAILED`(`dumbmonit_pbs_node_disk_smart_failed`)。通知读`/dev/sdb`。 | > 0 | 5 分钟 | 警告 (`critical`) | 24 小时 |
+| PBS SSD 磨损 | 备份服务器的 SSD 已使用超过 90% 其额定耐久性(`dumbmonit_pbs_node_disk_wearout_percent`)。 | > 90 % | 1 小时 | 通知 (`warning`) | 7 天 |
+| PBS ZFS 池降级 | 备份服务器的 ZFS 池不是`ONLINE`(`dumbmonit_pbs_node_zfs_pool_degraded`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| PBS 证书即将过期 | 备份服务器提供的证书在少于 3 周内过期(`dumbmonit_pbs_node_certificate_expires_seconds`)。需要`certificates`选项。 | < 21 天 | 1 小时 | 通知 (`warning`) | 48 小时 |
+| PBS 升级后重启待处理 | 包已升级但运行守护进程仍是旧的(`dumbmonit_pbs_node_running_version_stale`)。 | > 0 | 6 小时 | 信息 (`info`) | 7 天 |
+| PBS 更新待处理 | 超过 20 个包更新在备份服务器上待处理(`dumbmonit_pbs_node_updates_pending`)。 | > 20 | 1 小时 | 信息 (`info`) | 7 天 |
+| PBS 数据存储不可用 | 某个数据存储无法打开：向它备份和从它恢复都会失败。仅仅是被卸载的可移动数据存储不会触发(`dumbmonit_pbs_datastore_available`)。 | < 1 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| PBS 数据存储一直处于维护模式 | 某个数据存储处于维护模式（只读或离线）已超过一天：可能是被误留在该模式(`dumbmonit_pbs_datastore_maintenance`)。 | > 0 | 24 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 根文件系统几乎已满 | 备份服务器的根文件系统使用率超过 90 %：一旦写满，任务就无法启动，无论数据存储还剩多少空间。低于 85 % 时解除(`dumbmonit_pbs_node_rootfs_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| PBS 计划作业已停止运行 | 某个已启用且设有计划的同步或 prune 作业已超过八天没有运行。停止运行的作业不会失败，因此其他规则都发现不了它(`dumbmonit_pbs_job_last_run_age_seconds`)。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| PBS 订阅已过期 | 备份服务器的订阅已过期、无效或被暂停：enterprise 仓库不再提供更新(`dumbmonit_pbs_node_subscription_info`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
+
+## 已知限制
+
+- PBS 记录的是备份，而不是连接：受保护的机器有最近一次备份的日期，没有“最后出现时间”。
+- 最多 500 个备份组会产生序列（选项 `max_groups`）。
+- 内置的 Audit 角色不涵盖 remote 和磁带：没有 `Remote.Audit` 时，从 remote 拉取的同步作业不会出现在列表中；没有 `Tape.Audit` 时，磁带会被跳过。两者都不会引发错误。
+- 只有打开 `tape` 选项时才读取磁带；该选项默认关闭。
+
 ## 常见错误 {#common-errors}
 
 | 症状 | 可能原因 |

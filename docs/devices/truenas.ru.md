@@ -177,6 +177,41 @@ TrueNAS объявил, что REST API будет удалён в TrueNAS 26 в
 | `tasks` | Watch replication and snapshot tasks | `true` | Состояние, последний запуск и последний снапшот каждой задачи. |
 | `services` | Watch the services | `true` | Службы, запускаемые вместе с NAS, и работают ли они. |
 
+## Встроенные правила оповещений
+
+Эти правила поставляются вместе с DumbMonit и включены с самого начала. Каждое можно изменить или отключить в разделе «Оповещения»; [справочник встроенных правил](../alerting/rules.md#truenas) перечисляет все правила всех интеграций.
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| NAS pool degraded | ZFS больше не считает пул здоровым (`dumbmonit_truenas_pool_healthy`). Деградировавший пул всё ещё отдаёт свои данные, именно поэтому никто не замечает, пока не откажет следующий диск. Страница монитора называет диск. | < 1 | 5 мин | Warning (`critical`) | 6 ч |
+| NAS disk errors | Диски пула сообщили об ошибках чтения, записи или контрольной суммы с момента последнего `zpool clear` (`dumbmonit_truenas_pool_device_errors`, один ряд на вид). | > 0 | 15 мин | Advisory (`warning`) | 24 ч |
+| NAS pool almost full | Пул заполнен более чем на 85 % (`dumbmonit_truenas_pool_used_percent`). ZFS замедляется задолго до заполнения. Сбрасывается при 80 %. | > 85 % | 30 мин | Advisory (`warning`), эскалируется через 7 дн | 24 ч |
+| NAS scrub found errors | Последний scrub пула нашёл повреждённые данные (`dumbmonit_truenas_pool_last_scrub_errors`). | > 0 | 5 мин | Warning (`critical`) | 24 ч |
+| NAS scrub overdue | Пул не завершал scrub более 45 дней (`dumbmonit_truenas_pool_last_scrub_age_seconds`). Отсутствует после resilver, который стирает запись о последнем scrub. | > 45 дн | 1 ч | Info (`info`) | 7 дн |
+| NAS disk failed its SMART test | Самотест SMART в журнале диска завершился неудачей (`dumbmonit_truenas_disk_smart_failed`). У диска, который никогда не тестировался, ряда нет. | > 0 | 5 мин | Warning (`critical`) | 24 ч |
+| NAS disk too hot | Диск выше 55 °C (`dumbmonit_truenas_disk_temperature_celsius`, читается из кэша TrueNAS). Сбрасывается при 50 °C. | > 55 °C | 15 мин | Advisory (`warning`) | 6 ч |
+| NAS dataset near its quota | Датасет использовал более 90 % своей квоты (`dumbmonit_truenas_dataset_quota_used_percent`): при 100 % записи в него завершаются ошибкой, хотя в пуле ещё есть место. Нет квоты — нет ряда. | > 90 % | 30 мин | Advisory (`warning`) | 24 ч |
+| NAS replication failed | Включённая задача репликации в состоянии ошибки (`dumbmonit_truenas_replication_error`): копия на другой стороне стареет. | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS snapshot task failed | Включённая задача периодических снимков в состоянии ошибки (`dumbmonit_truenas_snapshot_task_error`). | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS snapshots stale | Включённая задача периодических снимков не запускалась более восьми дней (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): задача, которая перестаёт запускаться, не завершается ошибкой, она просто замолкает. | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| TrueNAS alert raised | Сам TrueNAS поднял оповещение уровня ERROR или выше (`dumbmonit_truenas_alerts`). Его собственная формулировка — на странице монитора. | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS service stopped | Служба, настроенная на запуск вместе с NAS, остановлена (`dumbmonit_truenas_service_running`). У намеренно выключенной службы ряда нет. | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+| NAS certificate expiring | Сертификат, с которым работает веб-интерфейс TrueNAS, истекает менее чем через 14 дней: браузеры, приложения и партнёры по репликации будут его отвергать (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| NAS certificate expired | Сертификат, с которым работает веб-интерфейс TrueNAS, истекает менее чем через 2 дня или уже истёк (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 дн | 15 мин | Warning (`critical`) | 12 ч |
+| NAS boot pool degraded | Загрузочный пул больше не исправен: NAS пока загружается с оставшегося устройства, пока не откажет и оно (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS boot pool almost full | Загрузочный пул заполнен более чем на 85 %: старые загрузочные окружения накапливаются с каждым обновлением и блокируют следующее. Снимается ниже 80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 ч | Advisory (`warning`) | 24 ч |
+| NAS remote backup task failed | Последний запуск задачи облачной синхронизации, rsync или облачного резервного копирования завершился ошибкой: удалённая копия устаревает (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 мин | Advisory (`warning`) | 12 ч |
+| NAS app crashed | Приложение находится в состоянии сбоя (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 мин | Advisory (`warning`) | 6 ч |
+| NAS virtual machine stopped | Виртуальная машина, настроенная на запуск вместе с NAS, не работает (`dumbmonit_truenas_vm_running`). | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+
+## Известные ограничения
+
+- Через REST API, который использует DumbMonit, у TrueNAS нет ключа только для чтения: ключ принадлежит полному администратору. DumbMonit только читает и никогда не запускает scrub, тест SMART или репликацию.
+- Возраст самого нового снимка dataset — это последний запуск задачи снимков, которая его охватывает. У dataset, который не охватывает ни одна задача, возраста нет.
+- Температуры берутся из кэша TrueNAS, который обновляется примерно каждые пять минут. Спящий диск никогда не пробуждается.
+- Результаты тестов SMART исчезли из API в TrueNAS 25.10 и начиная с этой версии пропускаются.
+- Правила о сертификатах следят только за сертификатом, с которым работает веб-интерфейс.
+
 ## Типичные ошибки
 
 | Симптом | Вероятная причина |

@@ -115,6 +115,20 @@ interroga mai il NAS.
 | Synology volume almost full | advisory | Un volume è pieno al 90% o più, per 15 minuti. |
 | Synology temperature high | advisory | Un disco è sopra i 55 °C, oppure DSM ha generato il suo avviso di temperatura, per 15 minuti. |
 | Synology memory high | advisory | Utilizzo di memoria sopra il 95% per 15 minuti. |
+| Synology system partition crashed | warning | DSM segnala la sua partizione di sistema come in crash: il NAS potrebbe non sopravvivere a un riavvio. Controlla Gestione archiviazione. |
+| Synology system partition needs repair | advisory | DSM dice che la sua partizione di sistema ha bisogno di una riparazione; Gestione archiviazione propone di eseguirla. |
+| Synology CPU sustained high | advisory | Il processore del NAS è rimasto sopra il 90 % per quindici minuti; una pulizia dei dati o un'indicizzazione di solito finiscono molto prima. Rientra sotto l'85 %. |
+| Synology swap heavily used | info | Più del 60 % dello swap è in uso da un'ora: il NAS è a corto di memoria. |
+| Synology DSM update available | info | È disponibile un aggiornamento di DSM. |
+| Synology Hyper Backup failed | advisory | L'ultima esecuzione di un'attività Hyper Backup è fallita (destinazione non raggiungibile, errore di checksum…). Un'esecuzione in corso, un'esecuzione annullata o un'attività mai eseguita non fanno scattare la regola. |
+| Synology Hyper Backup success too old | info | Nessuna esecuzione riuscita di un'attività Hyper Backup da più di otto giorni: è disattivata, sospesa o non riesce mai a partire. Un'attività mensile ha bisogno di un limite più lungo. |
+| Synology volume read-only | warning | Un volume è in sola lettura: nulla può scrivervi (errori del file system o volume degradato). Controlla Gestione archiviazione. |
+| Synology volume locked | advisory | Un volume cifrato è bloccato: le sue cartelle condivise non sono disponibili finché non si inserisce la chiave o non si monta il vault delle chiavi. |
+| Synology volume out of inodes | advisory | Un volume non ha più inode liberi: non si può creare nessun file, anche con spazio libero. |
+| Synology data scrubbing overdue | info | L'ultima pulizia dei dati di un pool di archiviazione è terminata più di 200 giorni fa: pianificane una regolare in Gestione archiviazione. |
+| Synology certificate expiring | advisory | Un certificato di DSM scade tra meno di 14 giorni: il suo rinnovo automatico probabilmente non funziona. |
+| Synology certificate about to expire | warning | Un certificato di DSM scade tra meno di 3 giorni, o è già scaduto. |
+| Synology certificate broken | advisory | DSM contrassegna un certificato come danneggiato: la sua chiave o la sua catena non può essere letta. |
 
 ## Active Backup for Business
 
@@ -369,6 +383,13 @@ porta, viene usata 5001 su HTTPS e 5000 su HTTP.
 | `abb` | Watch Active Backup for Business | `true` | Legge i task Active Backup for Business. Richiede il pacchetto installato e un account autorizzato a usarlo; un NAS senza il pacchetto viene semplicemente saltato. |
 | `drive` | Watch Synology Drive | `true` | Legge se il servizio Synology Drive risponde, le sue cartelle di team e il suo conteggio di connessioni attive. Un NAS senza il pacchetto viene semplicemente saltato. |
 | `photos` | Watch Synology Photos | `true` | Mostra se il pacchetto Synology Photos è installato, senza alcuna richiesta extra al NAS. Synology non espone un elenco di dispositivi di backup mobile tramite alcuna API. |
+
+## Limiti noti
+
+- L'account deve essere nel gruppo degli amministratori: l'API di archiviazione di DSM non risponde a nessun altro account. Togligli le cartelle condivise e le applicazioni, come descritto sopra.
+- La verifica in due passaggi deve restare disattivata per questo account.
+- I certificati, i pacchetti e le connessioni correnti arrivano da API di DSM che Synology non documenta. Vengono letti come facoltativi e non sono ancora stati verificati su un NAS reale.
+- Un'attività Hyper Backup eseguita ogni mese fa scattare la regola degli otto giorni: alza la soglia per quell'attività, o silenziala.
 
 ## Errori comuni
 

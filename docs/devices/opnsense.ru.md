@@ -211,6 +211,41 @@ OPNsense 25.7 переименовал пути API из `systemResources` в `s
 | `firmware` | Следить за обновлениями | `true` | Читает результат последней проверки обновлений межсетевого экрана и ожидается ли перезагрузка. |
 | `temperature` | Читать датчики температуры | `true` | Читает датчики процессора и платы, которые предоставляет межсетевой экран. |
 
+## Встроенные правила оповещений
+
+Эти правила поставляются вместе с DumbMonit и включены с самого начала. Каждое можно изменить или отключить в разделе «Оповещения»; [справочник встроенных правил](../alerting/rules.md#opnsense) перечисляет все правила всех интеграций.
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| Internet gateway down | dpinger больше не получает ответа от шлюза (`dumbmonit_opnsense_gateway_up`). На межсетевом экране с несколькими WAN трафик уже тихо ушёл на другой канал. `loss` и `delay` — предупреждения, а не сбои, и это правило не вызывают. | < 1 | 5 мин | Warning (`critical`) | 6 ч |
+| Gateway losing packets | Шлюз теряет более пятой части отправленных ему пакетов (`dumbmonit_opnsense_gateway_loss_percent`): канал отвечает, но плохо. Сбрасывается ниже 10 %. | > 20 % | 10 мин | Advisory (`warning`) | 6 ч |
+| Gateway slow | Время кругового обхода шлюза остаётся выше 300 мс (`dumbmonit_opnsense_gateway_delay_seconds`). Триста миллисекунд не трогают резервный мобильный канал. | > 300 мс | 15 мин | Info (`info`) | 12 ч |
+| Firewall state table filling up | pf отслеживает более 80 % разрешённых ему соединений (`dumbmonit_opnsense_pf_states_used_percent`). За пределом межсетевой экран отбрасывает новые соединения без каких-либо других симптомов. | > 80 % | 10 мин | Advisory (`warning`) | 6 ч |
+| Firewall network buffers exhausted | Используется более 90 % сетевых буферов FreeBSD (`dumbmonit_opnsense_mbuf_used_percent`). Межсетевой экран, у которого они закончились, перестаёт пересылать трафик при простаивающем CPU. | > 90 % | 10 мин | Advisory (`warning`) | 6 ч |
+| VPN tunnel down | У настроенного VPN-туннеля нет сеанса в течение десяти минут (`dumbmonit_opnsense_vpn_tunnel_up`). Не установленный плагин или отключённое соединение не имеют ряда и не могут сработать. | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+| Firewall resolver stopped | Unbound перестал отвечать (`dumbmonit_opnsense_unbound_running`). Межсетевой экран по-прежнему маршрутизирует; машины за ним больше не разрешают имена. Отключите это правило, если ваш межсетевой экран разрешает имена чем-то другим. | < 1 | 5 мин | Advisory (`warning`) | 6 ч |
+| Firewall core service stopped | dpinger, следящий за шлюзами, или configd, запускающий всё остальное, остановлен (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Только эти два, потому что намеренно выключенная служба — не сбой. | < 1 | 5 мин | Warning (`critical`) | 6 ч |
+| Firewall too hot | Датчик показывает более 85 °C (`dumbmonit_opnsense_temperature_celsius`): безвентиляторная коробка в шкафу вот-вот начнёт троттлить. Сбрасывается при 78 °C. | > 85 °C | 10 мин | Advisory (`warning`) | 6 ч |
+| Firewall left in CARP maintenance mode | CARP оставлен в постоянном режиме обслуживания (`dumbmonit_opnsense_carp_maintenance_mode`): этот межсетевой экран передал свои виртуальные адреса партнёру и сам их не заберёт обратно. | > 0 | 1 ч | Info (`info`) | 24 ч |
+| Firewall reboot pending | Обновление установлено, но для вступления в силу требуется перезагрузка (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 ч | Info (`info`) | 7 дн |
+| Firewall updates pending | У межсетевого экрана есть пакеты, ожидающие обновления (`dumbmonit_opnsense_firmware_updates_pending`). Это самая уязвимая машина в сети. | > 0 | 1 ч | Info (`info`) | 7 дн |
+| OPNsense certificate expiring | Сертификат, который использует межсетевой экран (веб-интерфейс, captive portal, VPN), истекает менее чем через 14 дней (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| OPNsense certificate expired | Сертификат, который использует межсетевой экран, истёк: клиенты теперь его отвергают (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 мин | Warning (`critical`) | 12 ч |
+| OPNsense disk almost full | Диск межсетевого экрана заполнен более чем на 90 %: журналы, захваты трафика и обновления перестанут работать. Снимается ниже 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 12 ч |
+| OPNsense CPU high | Процессор межсетевого экрана пятнадцать минут держался выше 90 %. Снимается ниже 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| OPNsense swap in use | Межсетевой экран уже час использует больше половины своего swap: ему не хватает памяти (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 ч | Advisory (`warning`) | 24 ч |
+| OPNsense packet filter disabled | Пакетный фильтр (pf) отключён: межсетевой экран больше ничего не фильтрует и не транслирует (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 мин | Warning (`critical`) | 1 ч |
+| OPNsense interface errors | Интерфейс зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель, SFP-модуль и настройку дуплекса (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
+| OPNsense update mirror unreachable | Межсетевой экран уже двенадцать часов не может связаться со своим зеркалом обновлений: он не узнает об обновлениях безопасности (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 ч | Info (`info`) | 7 дн |
+
+## Известные ограничения
+
+- Проверка обновлений никогда не запускается: DumbMonit читает результат последней проверки, выполненной самим межсетевым экраном. Межсетевой экран, который ни разу не проверял, ничего не сообщает об обновлениях.
+- Не более 64 рядов на семейство: шлюзы, интерфейсы, службы, туннели, разделы, датчики.
+- Неустановленный плагин (WireGuard, OpenVPN, IPsec, Unbound, Kea) не создаёт шума: ни рядов, ни правил, ни ошибок.
+- VPN-сессии и аренды DHCP считаются, но никогда не перечисляются: ни адреса клиентов, ни имена хостов не читаются.
+- Сертификаты, которые OPNsense помечает как неиспользуемые, игнорируются.
+
 ## Частые ошибки
 
 | Симптом | Вероятная причина |

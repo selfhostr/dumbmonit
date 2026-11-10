@@ -112,6 +112,20 @@ NAS.
 | Synology volume almost full | aviso | Um volume está 90% cheio ou mais, por 15 minutos. |
 | Synology temperature high | aviso | Um disco está acima de 55 °C, ou o DSM disparou seu aviso de temperatura, por 15 minutos. |
 | Synology memory high | aviso | Uso de memória acima de 95% por 15 minutos. |
+| Synology system partition crashed | alerta | O DSM informa sua partição de sistema como travada (crashed): o NAS pode não sobreviver a uma reinicialização. Verifique o Gerenciador de armazenamento. |
+| Synology system partition needs repair | aviso | O DSM diz que sua partição de sistema precisa de reparo; o Gerenciador de armazenamento oferece repará-la. |
+| Synology CPU sustained high | aviso | O processador do NAS ficou acima de 90 % por quinze minutos; uma limpeza de dados ou uma indexação costuma terminar bem antes. Resolve abaixo de 85 %. |
+| Synology swap heavily used | info | Mais de 60 % do swap está em uso há uma hora: o NAS está com pouca memória. |
+| Synology DSM update available | info | Uma atualização do DSM está disponível. |
+| Synology Hyper Backup failed | aviso | A última execução de uma tarefa do Hyper Backup falhou (destino inacessível, erro de soma de verificação…). Uma execução em andamento, uma execução cancelada ou uma tarefa que nunca rodou não disparam a regra. |
+| Synology Hyper Backup success too old | info | Nenhuma execução bem-sucedida de uma tarefa do Hyper Backup há mais de oito dias: ela está desativada, suspensa ou nunca chega a rodar. Uma tarefa mensal precisa de um limite mais longo. |
+| Synology volume read-only | alerta | Um volume está somente leitura: nada pode gravar nele (erros do sistema de arquivos ou volume degradado). Verifique o Gerenciador de armazenamento. |
+| Synology volume locked | aviso | Um volume criptografado está bloqueado: suas pastas compartilhadas ficam indisponíveis até que a chave seja informada ou o cofre de chaves seja montado. |
+| Synology volume out of inodes | aviso | Um volume não tem mais nenhum inode livre: nenhum arquivo pode ser criado, mesmo com espaço livre. |
+| Synology data scrubbing overdue | info | A última limpeza de dados de um pool de armazenamento terminou há mais de 200 dias: agende uma regular no Gerenciador de armazenamento. |
+| Synology certificate expiring | aviso | Um certificado do DSM expira em menos de 14 dias: sua renovação automática provavelmente está falhando. |
+| Synology certificate about to expire | alerta | Um certificado do DSM expira em menos de 3 dias, ou já expirou. |
+| Synology certificate broken | aviso | O DSM marca um certificado como defeituoso: sua chave ou sua cadeia não pode ser lida. |
 
 ## Active Backup for Business {#active-backup-for-business}
 
@@ -382,6 +396,13 @@ Endereço: `192.168.1.30`, `nas.lan` ou `nas.lan:5001`. Sem uma porta,
 | `abb` | Observar Active Backup for Business | `true` | Lê as tarefas do Active Backup for Business. Precisa do pacote instalado e uma conta autorizada a usá-lo; um NAS sem o pacote é simplesmente pulado. |
 | `drive` | Observar Synology Drive | `true` | Lê se o serviço Synology Drive responde, suas pastas de equipe e sua contagem de conexões ativas. Um NAS sem o pacote é simplesmente pulado. |
 | `photos` | Observar Synology Photos | `true` | Mostra se o pacote Synology Photos está instalado, sem nenhuma requisição extra ao NAS. A Synology não expõe uma lista de dispositivos de backup móvel através de nenhuma API. |
+
+## Limites conhecidos
+
+- A conta precisa estar no grupo de administradores: a API de armazenamento do DSM não responde a nenhuma outra conta. Retire dela as pastas compartilhadas e os aplicativos, como descrito acima.
+- A verificação em duas etapas precisa ficar desligada para esta conta.
+- Os certificados, os pacotes e as conexões atuais vêm de APIs do DSM que a Synology não documenta. Eles são lidos como opcionais e ainda não foram verificados em um NAS real.
+- Uma tarefa do Hyper Backup que roda mensalmente dispara a regra dos oito dias: aumente o limite para essa tarefa, ou silencie-a.
 
 ## Erros comuns {#common-errors}
 

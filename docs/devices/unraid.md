@@ -57,22 +57,36 @@ All metrics are prefixed `dumbmonit_unraid_`.
 | `vms`, `vms_running` | | VMs. |
 | `vm_state_info`, `vm_crashed` | `vm` (and `state`) | Per VM. |
 | `notifications_unread` | `importance`: `alert`, `warning`, `info` | Unread notifications. |
+| `registration_ok` | | 1 when Unraid reports no license problem, 0 when the license state is an error (expired trial, key that does not match the flash drive, missing key file…). |
+| `registration_info` | `state`, `type` | Value 1: the license state as Unraid reports it (`trial`, `pro`, `eexpired`, `eguid`…) and the license type. |
+| `trial_expiry_seconds` | | Until the trial license ends; only during a trial. |
+| `os_updates_expiry_seconds` | | Until the license stops being eligible for Unraid OS updates; absent when the license has no such date. |
+| `uptime_seconds` | | Since the server started. |
+| `cpu_usage_percent` | | Processor load, all cores together. |
+| `memory_total_bytes`, `memory_available_bytes`, `memory_used_percent` | | Memory. What counts as used is what is not available: the cache Unraid can give back is not counted. |
+| `swap_used_percent` | | Only when the server has swap. |
+
+The license and the system load (uptime, processor, memory) come from two more optional queries. An older API version that does not know them only leaves those rows out: the rest of the monitor is unaffected.
 
 The [built-in rules](../alerting/rules.md#unraid) that apply:
 
-- **Unraid array stopped**: the array is not started for ten minutes (Warning).
-- **Unraid disk disabled or missing**: a disk's status is not `DISK_OK` for
-  five minutes (Warning). The array runs degraded.
-- **Unraid disk read errors**: a disk reports read errors (Advisory).
-- **Unraid disk too hot**: a data or parity disk above 55 °C for fifteen
-  minutes (Advisory). Cache disks, often NVMe, are left out.
-- **Unraid parity check found errors** (Advisory).
-- **Unraid parity check overdue**: the last check is more than 40 days old
-  (Advisory).
-- **Unraid cache nearly full**: a cache disk more than 90 % full for thirty
-  minutes (Advisory).
-- **Unraid container stopped**: a container set to start with the array has
-  not been running for ten minutes (Advisory).
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Unraid array stopped | The Unraid array is not started: shares, containers and VMs that live on it are unavailable (`dumbmonit_unraid_array_started`). | < 1 | 10 min | Warning (`critical`) | 6 h |
+| Unraid disk disabled or missing | An Unraid disk is disabled, missing or invalid: the array runs degraded, and one more failure loses data (`dumbmonit_unraid_disk_ok`). | < 1 | 5 min | Warning (`critical`) | 6 h |
+| Unraid disk read errors | An Unraid disk has reported read errors since the array started: it may be disabled at the next one (`dumbmonit_unraid_disk_errors`). | > 0 | 5 min | Advisory (`warning`) | 1 d |
+| Unraid disk too hot | An Unraid array or parity disk has stayed above 55 °C for fifteen minutes (`dumbmonit_unraid_disk_temperature_celsius{role=~"data\|parity"}`). | > 55 °C | 15 min | Advisory (`warning`) | 6 h |
+| Unraid parity check found errors | The last Unraid parity check failed or found sync errors: parity no longer matches the data (`dumbmonit_unraid_parity_check_ok`). | < 1 | 5 min | Advisory (`warning`) | 1 d |
+| Unraid parity check overdue | The last Unraid parity check is more than 40 days old: a monthly check was missed (`dumbmonit_unraid_parity_check_age_seconds`). | > 40 d | 1 h | Advisory (`warning`) | 1 d |
+| Unraid cache nearly full | An Unraid cache pool is more than 90 % full: writes fall back to the slow array, or fail (`dumbmonit_unraid_disk_used_percent{role="cache"}`). | > 90 % | 30 min | Advisory (`warning`) | 1 d |
+| Unraid container stopped | A Docker container set to start with the array is not running (`dumbmonit_unraid_container_autostart_stopped`). | > 0 | 10 min | Advisory (`warning`) | 6 h |
+| Unraid VM crashed | Unraid reports a virtual machine as crashed (`dumbmonit_unraid_vm_crashed`). | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| Unraid alert unread | Unraid raised a notification of the highest importance (alert) that nobody has read: failed disk, overheating, array error… (`dumbmonit_unraid_notifications_unread{importance="alert"}`). | > 0 | 10 min | Advisory (`warning`) | 24 h |
+| Unraid array nearly full | The array is more than 95 % full: writes to the shares will soon fail. Clears below 93 % (`dumbmonit_unraid_array_used_percent`). | > 95 % | 1 h | Advisory (`warning`) | 24 h |
+| Unraid memory nearly exhausted | More than 95 % of the memory has been in use for fifteen minutes: Unraid runs from memory, and containers or VMs are killed when it runs out. Clears below 90 % (`dumbmonit_unraid_memory_used_percent`). | > 95 % | 15 min | Advisory (`warning`) | 6 h |
+| Unraid license problem | Unraid reports a license problem (expired trial, key that does not match the flash drive, missing key file…): the array may refuse to start after the next stop (`dumbmonit_unraid_registration_ok`). | < 1 | 30 min | Advisory (`warning`) | 24 h |
+| Unraid trial ending | The trial license ends in less than three days: after it, the array no longer starts (`dumbmonit_unraid_trial_expiry_seconds`). | < 3 d | 1 h | Advisory (`warning`) | 24 h |
+| Unraid OS updates eligibility ending | The license stops being eligible for Unraid OS updates in less than 30 days. The server keeps working; it only stops receiving new versions (`dumbmonit_unraid_os_updates_expiry_seconds`). | < 30 d | 1 h | Info (`info`) | 7 d |
 
 ## The monitor page
 
@@ -121,6 +135,13 @@ Options:
   `myunraid.net` address if the certificate is that one.
 - **Accept an unverifiable certificate**: for a self-signed certificate.
 - **Timeout per request** (15 s).
+
+## Known limits
+
+- The UPS is not read: connect it through [NUT](nut.md) instead.
+- No SMART detail: DumbMonit reads the status, the errors and the temperature Unraid gives for each disk, not the SMART attributes.
+- Whether a container has an image update waiting is not read.
+- The license, processor and memory figures need a recent version of the Unraid API. On a version that lacks them, those rows and their rules are simply absent.
 
 ## Troubleshooting
 

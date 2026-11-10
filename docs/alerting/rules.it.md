@@ -173,6 +173,13 @@ Segnalati dall'agent; vedi [Agent](../devices/agent.md).
 | Aggiornamenti di sicurezza Proxmox in sospeso | Almeno un aggiornamento in sospeso proviene da un archivio di sicurezza (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 h | Avviso (`warning`) | 7 d |
 | Pacchetti Proxmox modificati | La versione installata di un pacchetto Proxmox è cambiata tra due probe — qualcuno ha eseguito `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, pubblicata per un'ora con il dettaglio nell'etichetta `changes`: `pve1 · pve-manager 8.2.4→8.2.7`). Si risolve da sola un'ora dopo. | > 0 | 1 min | Informazioni (`info`) | 24 h |
 | Certificato del nodo in scadenza | Un certificato di un nodo Proxmox scade tra meno di quattordici giorni (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Storage Proxmox inattivo | Uno storage abilitato non è attivo su un nodo (condivisione non raggiungibile, disco non montato, server di backup spento): i backup verso di esso e i dischi che ospita sono in errore (`dumbmonit_proxmox_storage_active`). | < 1 | 10 min | Avviso (`warning`) | 6 h |
+| Nodo Proxmox da riavviare | Su un nodo è installato da tre giorni un kernel più recente senza riavvio: il nodo gira ancora con quello vecchio (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 d | Informazioni (`info`) | 7 d |
+| Sottoscrizione Proxmox scaduta | La sottoscrizione di un nodo è scaduta, non valida o sospesa: il repository enterprise smette di fornire aggiornamenti (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 h | Avviso (`warning`) | 7 d |
+| Replica Proxmox in ritardo | Un job di replica dello storage è in ritardo di più di sei ore sulla sua pianificazione: la copia sull'altro nodo sta invecchiando (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 h | 15 min | Avviso (`warning`) | 12 h |
+| Job di backup Proxmox fermo | Un job di backup abilitato non viene eseguito da più di otto giorni (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 d | 1 h | Avviso (`warning`) | 24 h |
+| Guest Proxmox fuori da ogni job di backup | Una VM o un container non è in nessun job di backup da un giorno (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 h | Informazioni (`info`) | 7 d |
+| Task Proxmox falliti | Dei task sono falliti su un nodo nelle ultime sei ore (avvio di un guest, migrazione, ripristino…). I backup hanno la loro regola (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 min | Informazioni (`info`) | 24 h |
 
 ### Proxmox Backup Server
 
@@ -199,6 +206,11 @@ Segnalati dall'agent; vedi [Agent](../devices/agent.md).
 | Certificato PBS in scadenza | Il certificato servito dal server di backup scade tra meno di tre settimane (`dumbmonit_pbs_node_certificate_expires_seconds`). Richiede l'opzione `certificates`. | < 21 d | 1 h | Avviso (`warning`) | 48 h |
 | Riavvio PBS in sospeso dopo l'aggiornamento | Il pacchetto è stato aggiornato ma il demone in esecuzione è ancora quello vecchio (`dumbmonit_pbs_node_running_version_stale`). | > 0 | 6 h | Informazioni (`info`) | 7 d |
 | Aggiornamenti PBS in sospeso | Più di venti aggiornamenti di pacchetti sono in sospeso sul server di backup (`dumbmonit_pbs_node_updates_pending`). | > 20 | 1 h | Informazioni (`info`) | 7 d |
+| Datastore PBS non disponibile | Un datastore non può essere aperto: i backup verso di esso e i ripristini da esso falliscono. Un datastore rimovibile semplicemente smontato non fa scattare la regola (`dumbmonit_pbs_datastore_available`). | < 1 | 5 min | Avvertenza (`critical`) | 1 h |
+| Datastore PBS lasciato in manutenzione | Un datastore è in modalità manutenzione (sola lettura o offline) da più di un giorno: forse è stato lasciato così per errore (`dumbmonit_pbs_datastore_maintenance`). | > 0 | 24 h | Avviso (`warning`) | 24 h |
+| File system radice PBS quasi pieno | Il file system radice del server di backup è pieno per più del 90 %: quando si riempie i task non partono più, qualunque sia lo spazio rimasto nei datastore. Rientra sotto l'85 % (`dumbmonit_pbs_node_rootfs_percent`). | > 90 % | 15 min | Avviso (`warning`) | 12 h |
+| Job pianificato PBS fermo | Un job di sincronizzazione o di prune attivo e con una pianificazione non viene eseguito da più di otto giorni. Un job che smette di girare non fallisce, quindi nessun'altra regola lo vede (`dumbmonit_pbs_job_last_run_age_seconds`). | > 8 d | 1 h | Avviso (`warning`) | 24 h |
+| Sottoscrizione PBS scaduta | La sottoscrizione del server di backup è scaduta, non valida o sospesa: il repository enterprise smette di fornire aggiornamenti (`dumbmonit_pbs_node_subscription_info`). | > 0 | 1 h | Avviso (`warning`) | 7 d |
 
 ### Proxmox Datacenter Manager
 
@@ -254,6 +266,14 @@ Segnalati dall'agent; vedi [Agent](../devices/agent.md).
 | Firewall lasciato in modalità manutenzione CARP | CARP è stato lasciato in modalità manutenzione persistente (`dumbmonit_opnsense_carp_maintenance_mode`): questo firewall ha ceduto i propri indirizzi virtuali al partner e non li riprenderà da solo. | > 0 | 1 h | Informazioni (`info`) | 24 h |
 | Riavvio del firewall in sospeso | Un aggiornamento è installato ma richiede un riavvio per avere effetto (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Informazioni (`info`) | 7 d |
 | Aggiornamenti del firewall in sospeso | Il firewall ha pacchetti in attesa di aggiornamento (`dumbmonit_opnsense_firmware_updates_pending`). È la macchina più esposta della rete. | > 0 | 1 h | Informazioni (`info`) | 7 d |
+| Certificato OPNsense in scadenza | Un certificato usato dal firewall (interfaccia web, captive portal, VPN) scade tra meno di 14 giorni (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Certificato OPNsense scaduto | Un certificato usato dal firewall è scaduto: i client ora lo rifiutano (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Avvertenza (`critical`) | 12 h |
+| Disco OPNsense quasi pieno | Il disco del firewall è pieno per più del 90 %: i log, le catture e gli aggiornamenti falliranno. Rientra sotto l'85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Avviso (`warning`) | 12 h |
+| CPU OPNsense elevata | Il processore del firewall è rimasto sopra il 90 % per quindici minuti. Rientra sotto l'80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Avviso (`warning`) | 6 h |
+| Swap OPNsense in uso | Il firewall usa più della metà del suo swap da un'ora: è a corto di memoria (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Avviso (`warning`) | 24 h |
+| Filtro di pacchetti OPNsense disattivato | Il filtro di pacchetti (pf) è disattivato: il firewall non filtra e non traduce più nulla (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Avvertenza (`critical`) | 1 h |
+| Errori di interfaccia OPNsense | Un'interfaccia ha registrato più di 100 errori di ricezione o di trasmissione in quindici minuti: controlla il cavo, il modulo SFP e l'impostazione duplex (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Avviso (`warning`) | 24 h |
+| Mirror degli aggiornamenti OPNsense non raggiungibile | Il firewall non riesce a raggiungere il suo mirror degli aggiornamenti da dodici ore: non verrà a sapere degli aggiornamenti di sicurezza (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Informazioni (`info`) | 7 d |
 
 ### TrueNAS
 
@@ -272,6 +292,13 @@ Segnalati dall'agent; vedi [Agent](../devices/agent.md).
 | Snapshot del NAS obsoleti | Un task di snapshot periodico abilitato non viene eseguito da più di otto giorni (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): un task che smette di girare non fallisce, tace. | > 8 d | 1 h | Avviso (`warning`) | 24 h |
 | Avviso sollevato da TrueNAS | TrueNAS stesso ha sollevato un avviso di livello ERROR o superiore (`dumbmonit_truenas_alerts`). La sua frase è sulla pagina del monitor. | > 0 | 10 min | Avviso (`warning`) | 12 h |
 | Servizio del NAS fermo | Un servizio impostato per avviarsi con il NAS è fermo (`dumbmonit_truenas_service_running`). Un servizio spento di proposito non ha serie. | < 1 | 10 min | Avviso (`warning`) | 6 h |
+| Certificato del NAS in scadenza a breve | Il certificato che serve l'interfaccia web di TrueNAS scade tra meno di 14 giorni: i browser, le app e i peer di replica lo rifiuteranno (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Certificato del NAS scaduto | Il certificato che serve l'interfaccia web di TrueNAS scade tra meno di 2 giorni, o è già scaduto (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 d | 15 min | Avvertenza (`critical`) | 12 h |
+| Pool di avvio del NAS degradato | Il pool di avvio non è più integro: il NAS si avvia ancora dal dispositivo rimasto, finché non cede anche quello (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 min | Avviso (`warning`) | 12 h |
+| Pool di avvio del NAS quasi pieno | Il pool di avvio è pieno per più dell'85 %: i vecchi ambienti di avvio si accumulano a ogni aggiornamento e bloccano il successivo. Rientra sotto l'80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 h | Avviso (`warning`) | 24 h |
+| Attività di backup remoto del NAS fallita | L'ultima esecuzione di un'attività di sincronizzazione cloud, rsync o backup cloud è fallita: la copia remota sta invecchiando (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Applicazione del NAS in crash | Un'applicazione è nello stato di crash (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 min | Avviso (`warning`) | 6 h |
+| Macchina virtuale del NAS ferma | Una macchina virtuale impostata per avviarsi con il NAS non è in esecuzione (`dumbmonit_truenas_vm_running`). | < 1 | 10 min | Avviso (`warning`) | 6 h |
 
 ### Synology DSM
 
@@ -294,6 +321,20 @@ Segnalati dall'agent; vedi [Agent](../devices/agent.md).
 | Task Active Backup disabilitato | Il task non ha pianificazione, oppure il suo backup continuo è in pausa (`dumbmonit_abb_task_enabled == bool 0`): non salverà nulla finché qualcuno non lo esegue. | > 0 | 1 h | Informazioni (`info`) | 7 d |
 | Dispositivo Active Backup in ritardo | Un dispositivo resta senza un'esecuzione riuscita di Active Backup for Business più a lungo di quanto consenta il suo ritmo, esclusi i giorni di riposo (`dumbmonit_abb_device_overdue`, vedi [Synology](../devices/synology.md#how-overdue-is-judged)). | > 0 | 30 min | Avviso (`warning`) | 24 h |
 | Dispositivo Active Backup in errore | Gli ultimi due o più tentativi di un dispositivo sono falliti (`dumbmonit_abb_device_consecutive_failures`); un'esecuzione annullata non conta in nessuno dei due casi. | ≥ 2 | 10 min | Avvertenza (`critical`) | 24 h |
+| Partizione di sistema Synology in crash | DSM segnala la sua partizione di sistema come in crash: il NAS potrebbe non sopravvivere a un riavvio. Controlla Gestione archiviazione (`dumbmonit_synology_system_crashed`). | > 0 | 5 min | Avvertenza (`critical`) | 1 h |
+| Partizione di sistema Synology da riparare | DSM dice che la sua partizione di sistema ha bisogno di una riparazione; Gestione archiviazione propone di eseguirla (`dumbmonit_synology_system_need_repair`). | > 0 | 30 min | Avviso (`warning`) | 12 h |
+| CPU Synology costantemente elevata | Il processore del NAS è rimasto sopra il 90 % per quindici minuti; una pulizia dei dati o un'indicizzazione di solito finiscono molto prima. Rientra sotto l'85 % (`dumbmonit_synology_cpu_usage_percent`). | > 90 % | 15 min | Avviso (`warning`) | 6 h |
+| Swap Synology molto utilizzato | Più del 60 % dello swap è in uso da un'ora: il NAS è a corto di memoria (`dumbmonit_synology_swap_usage_percent`). | > 60 % | 1 h | Informazioni (`info`) | 24 h |
+| Aggiornamento DSM Synology disponibile | È disponibile un aggiornamento di DSM (`dumbmonit_synology_update_available`). | > 0 | 1 h | Informazioni (`info`) | 7 d |
+| Hyper Backup Synology fallito | L'ultima esecuzione di un'attività Hyper Backup è fallita (destinazione non raggiungibile, errore di checksum…). Un'esecuzione in corso, un'esecuzione annullata o un'attività mai eseguita non fanno scattare la regola (`dumbmonit_synology_backup_last_result`). | ≥ 2 | 10 min | Avviso (`warning`) | 12 h |
+| Ultimo successo di Hyper Backup Synology troppo vecchio | Nessuna esecuzione riuscita di un'attività Hyper Backup da più di otto giorni: è disattivata, sospesa o non riesce mai a partire. Un'attività mensile ha bisogno di un limite più lungo (`dumbmonit_synology_backup_last_success_age_seconds`). | > 8 d | 1 h | Informazioni (`info`) | 7 d |
+| Volume Synology in sola lettura | Un volume è in sola lettura: nulla può scrivervi (errori del file system o volume degradato). Controlla Gestione archiviazione (`dumbmonit_synology_volume_read_only`). | > 0 | 5 min | Avvertenza (`critical`) | 1 h |
+| Volume Synology bloccato | Un volume cifrato è bloccato: le sue cartelle condivise non sono disponibili finché non si inserisce la chiave o non si monta il vault delle chiavi (`dumbmonit_synology_volume_locked`). | > 0 | 10 min | Avviso (`warning`) | 6 h |
+| Volume Synology senza inode | Un volume non ha più inode liberi: non si può creare nessun file, anche con spazio libero (`dumbmonit_synology_volume_inode_full`). | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Pulizia dei dati Synology in ritardo | L'ultima pulizia dei dati di un pool di archiviazione è terminata più di 200 giorni fa: pianificane una regolare in Gestione archiviazione (`dumbmonit_synology_pool_scrub_age_seconds`). | > 200 d | 1 h | Informazioni (`info`) | 30 d |
+| Certificato Synology in scadenza a breve | Un certificato di DSM scade tra meno di 14 giorni: il suo rinnovo automatico probabilmente non funziona (`dumbmonit_synology_certificate_expires_in_seconds`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Certificato Synology sul punto di scadere | Un certificato di DSM scade tra meno di 3 giorni, o è già scaduto (`dumbmonit_synology_certificate_expires_in_seconds`). | < 3 d | 10 min | Avvertenza (`critical`) | 6 h |
+| Certificato Synology danneggiato | DSM contrassegna un certificato come danneggiato: la sua chiave o la sua catena non può essere letta (`dumbmonit_synology_certificate_broken`). | > 0 | 1 h | Avviso (`warning`) | 24 h |
 
 ### Server di log e metriche {#log-and-metrics-servers}
 
@@ -437,6 +478,12 @@ Le serie portano l'etichetta `interface` o `sensor`, quindi una notifica riporta
 | Dispositivo UniFi in attesa di adozione | Un dispositivo è comparso sulla rete e attende di essere adottato in UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 min | Informazioni (`info`) | 24 h |
 | Aggiornamento firmware UniFi disponibile | È disponibile un aggiornamento firmware per dispositivi UniFi (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 h | Informazioni (`info`) | 7 d |
 | Allarmi UniFi | UniFi ha registrato eventi critici o sollevato allarmi nelle ultime 24 ore (`dumbmonit_unifi_alarms`). Letto solo con un account View Only. | > 0 | 5 min | Avviso (`warning`) | 24 h |
+| Sottosistema UniFi in errore | Un sottosistema UniFi (Wi-Fi, LAN o VPN) segnala un errore nella vista di salute del controller. Internet e i collegamenti WAN hanno le loro regole (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 min | Avviso (`warning`) | 6 h |
+| Dispositivo UniFi in surriscaldamento | Un dispositivo UniFi segnala che si sta surriscaldando (`dumbmonit_unifi_device_overheating`). | > 0 | 5 min | Avviso (`warning`) | 6 h |
+| Budget PoE UniFi quasi esaurito | Uno switch assorbe più del 90 % del suo budget PoE: il prossimo dispositivo collegato potrebbe non essere alimentato. Rientra sotto l'80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 min | Avviso (`warning`) | 24 h |
+| Canale Wi-Fi UniFi saturo | Il canale di una radio di un access point è occupato per più dell'80 % del tempo da trenta minuti: il Wi-Fi è lento per tutti quelli che lo usano. Rientra sotto il 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 min | Avviso (`warning`) | 24 h |
+| Client Wi-Fi UniFi con segnale debole | Più del 40 % dei client Wi-Fi, con almeno cinque connessi, ha un segnale più debole di -75 dBm: gli access point sono mal posizionati o troppo pochi (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 h | Informazioni (`info`) | 7 d |
+| Errori di porta UniFi | Una porta di uno switch ha registrato più di 100 errori di ricezione o di trasmissione in quindici minuti: controlla il cavo e i connettori (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 min | Avviso (`warning`) | 24 h |
 
 ### Home Assistant
 
@@ -464,6 +511,8 @@ Le serie portano l'etichetta `interface` o `sensor`, quindi una notifica riporta
 | Datastore vSphere inaccessibile | Un datastore vSphere è inaccessibile: le VM che vi sono memorizzate non possono funzionare (`dumbmonit_vsphere_datastore_accessible`). | < 1 | 5 min | Avvertenza (`critical`) | 1 h |
 | VMware Tools non in esecuzione in una VM | VMware Tools è installato ma non in esecuzione in una VM accesa: il guest potrebbe essere bloccato (`dumbmonit_vsphere_vm_tools_status == 2`). Le VM senza Tools non scattano. | > 0 | 30 min | Informazioni (`info`) | 24 h |
 | Allarme rosso vSphere | vSphere ha sollevato un allarme rosso che nessuno ha riconosciuto (`dumbmonit_vsphere_alarm{status="red"}`, una serie per allarme, con il nome dell'allarme e dell'oggetto). | > 0 | 5 min | Avviso (`warning`) | 6 h |
+| Snapshot di VM vSphere troppo vecchio | Lo snapshot più vecchio di una VM ha più di tre giorni: gli snapshot crescono, rallentano la VM e possono riempire il datastore. VMware raccomanda di non tenerne nessuno oltre le 72 ore (`dumbmonit_vsphere_vm_snapshot_oldest_age_seconds`). | > 3 d | 1 h | Avviso (`warning`) | 24 h |
+| Dischi di VM vSphere da consolidare | vSphere segnala che i dischi di una VM hanno bisogno di un consolidamento: la rimozione di uno snapshot ha lasciato dei file delta, e continuano a crescere (`dumbmonit_vsphere_vm_consolidation_needed`). | > 0 | 1 h | Avviso (`warning`) | 24 h |
 
 ### Database, message broker e motore di sicurezza {#databases-message-broker-and-security-engine}
 
@@ -576,6 +625,13 @@ Vedi [pfSense](../devices/pfsense.md). I gateway hanno l'etichetta `gateway`, le
 | Interfaccia pfSense senza link | Un'interfaccia pfSense abilitata non ha link: cavo, porta dello switch o scheda di rete (`dumbmonit_pfsense_interface_down`). | > 0 | 5 min | Avviso (`warning`) | 6 h |
 | Servizio pfSense fermo | Un servizio pfSense abilitato non è in esecuzione: resolver DNS, VPN, NTP… (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 min | Avviso (`warning`) | 6 h |
 | Disco pfSense quasi pieno | Il disco di pfSense è pieno per più del 90 %: log, report e aggiornamenti di pacchetti smettono di essere scritti (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 min | Avviso (`warning`) | 1 d |
+| Tabella degli stati pfSense quasi piena | pf segue più dell'80 % delle connessioni che gli sono consentite: oltre il limite il firewall scarta le nuove connessioni senza nessun altro sintomo. Rientra sotto il 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 min | Avviso (`warning`) | 6 h |
+| Buffer di rete pfSense quasi esauriti | Più del 90 % dei buffer di rete è in uso: un firewall che li esaurisce smette di inoltrare il traffico mentre il suo processore è ancora inattivo. Rientra sotto l'80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 min | Avviso (`warning`) | 6 h |
+| Temperatura pfSense elevata | La temperatura letta da pfSense è rimasta sopra gli 85 °C per dieci minuti: l'apparato sta per rallentarsi da solo. Rientra a 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 min | Avviso (`warning`) | 6 h |
+| CPU pfSense elevata | Il processore è rimasto sopra il 90 % per quindici minuti. Rientra sotto l'80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 min | Avviso (`warning`) | 6 h |
+| Swap pfSense in uso | pfSense usa più della metà del suo swap da un'ora: è a corto di memoria (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 h | Avviso (`warning`) | 24 h |
+| Errori di interfaccia pfSense | Un'interfaccia ha registrato più di 100 errori di ricezione o di trasmissione in quindici minuti: controlla il cavo, il modulo SFP e l'impostazione duplex (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 min | Avviso (`warning`) | 24 h |
+| Modalità manutenzione CARP pfSense lasciata attiva | CARP è rimasto in modalità manutenzione persistente per un'ora: questo firewall ha ceduto i suoi indirizzi virtuali al partner e non li riprenderà da solo (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 h | Informazioni (`info`) | 24 h |
 
 ### Unraid
 
@@ -591,6 +647,13 @@ Vedi [Unraid](../devices/unraid.md). I dischi hanno le etichette `disk` e `role`
 | Controllo di parità Unraid in ritardo | L'ultimo controllo di parità Unraid risale a più di 40 giorni fa: un controllo mensile è stato saltato (`dumbmonit_unraid_parity_check_age_seconds`). | > 40 d | 1 h | Avviso (`warning`) | 1 d |
 | Cache Unraid quasi piena | Un pool di cache Unraid è pieno per più del 90 %: le scritture ripiegano sull'array lento, o falliscono (`dumbmonit_unraid_disk_used_percent{role="cache"}`). | > 90 % | 30 min | Avviso (`warning`) | 1 d |
 | Container Unraid fermo | Un container Docker impostato per avviarsi con l'array non è in esecuzione (`dumbmonit_unraid_container_autostart_stopped`). | > 0 | 10 min | Avviso (`warning`) | 6 h |
+| VM Unraid in crash | Unraid segnala una macchina virtuale come in crash (`dumbmonit_unraid_vm_crashed`). | > 0 | 5 min | Avviso (`warning`) | 6 h |
+| Allarme Unraid non letto | Unraid ha emesso una notifica della massima importanza (alert) che nessuno ha letto: disco guasto, surriscaldamento, errore dell'array… (`dumbmonit_unraid_notifications_unread{importance="alert"}`). | > 0 | 10 min | Avviso (`warning`) | 24 h |
+| Array Unraid quasi pieno | L'array è pieno per più del 95 %: le scritture sulle condivisioni falliranno presto. Rientra sotto il 93 % (`dumbmonit_unraid_array_used_percent`). | > 95 % | 1 h | Avviso (`warning`) | 24 h |
+| Memoria Unraid quasi esaurita | Più del 95 % della memoria è in uso da quindici minuti: Unraid gira in memoria, e quando questa finisce vengono terminati container o VM. Rientra sotto il 90 % (`dumbmonit_unraid_memory_used_percent`). | > 95 % | 15 min | Avviso (`warning`) | 6 h |
+| Problema di licenza Unraid | Unraid segnala un problema di licenza (prova scaduta, chiave che non corrisponde alla chiavetta USB, file della chiave mancante…): l'array potrebbe rifiutarsi di avviarsi dopo il prossimo arresto (`dumbmonit_unraid_registration_ok`). | < 1 | 30 min | Avviso (`warning`) | 24 h |
+| Prova Unraid in scadenza | La licenza di prova termina tra meno di tre giorni: dopo, l'array non si avvia più (`dumbmonit_unraid_trial_expiry_seconds`). | < 3 d | 1 h | Avviso (`warning`) | 24 h |
+| Fine del diritto agli aggiornamenti di Unraid OS | La licenza perde il diritto agli aggiornamenti di Unraid OS tra meno di 30 giorni. Il server continua a funzionare; smette soltanto di ricevere nuove versioni (`dumbmonit_unraid_os_updates_expiry_seconds`). | < 30 d | 1 h | Informazioni (`info`) | 7 d |
 
 ### Veeam Backup & Replication
 
@@ -600,222 +663,14 @@ Vedi [Veeam Backup & Replication](../devices/veeam.md). I job hanno le etichette
 |---|---|---|---|---|---|
 | Job Veeam fallito | L'ultima esecuzione di un job Veeam abilitato è fallita: ciò che protegge non ha un nuovo punto di ripristino (`dumbmonit_veeam_job_failed`). | > 0 | 5 min | Avvertenza (`critical`) | 1 d |
 | Job Veeam terminato con un avviso | L'ultima esecuzione di un job Veeam abilitato è terminata con un avviso: alcuni oggetti potrebbero non essere protetti (`dumbmonit_veeam_job_warning`). | > 0 | 5 min | Avviso (`warning`) | 1 d |
-|
- 
-B
-a
-c
-k
-u
-p
- 
-V
-e
-e
-a
-m
- 
-t
-r
-o
-p
-p
-o
- 
-v
-e
-c
-c
-h
-i
-o
- 
-|
- 
-N
-e
-s
-s
-u
-n
-a
- 
-e
-s
-e
-c
-u
-z
-i
-o
-n
-e
- 
-r
-i
-u
-s
-c
-i
-t
-a
- 
-d
-i
- 
-u
-n
- 
-j
-o
-b
- 
-p
-i
-a
-n
-i
-f
-i
-c
-a
-t
-o
- 
-a
-l
-m
-e
-n
-o
- 
-o
-g
-n
-i
- 
-g
-i
-o
-r
-n
-o
- 
-d
-a
- 
-p
-i
-ù
- 
-d
-i
- 
-d
-u
-e
- 
-g
-i
-o
-r
-n
-i
- 
-(
-`
-d
-u
-m
-b
-m
-o
-n
-i
-t
-_
-v
-e
-e
-a
-m
-_
-j
-o
-b
-_
-l
-a
-s
-t
-_
-s
-u
-c
-c
-e
-s
-s
-_
-a
-g
-e
-_
-s
-e
-c
-o
-n
-d
-s
-`
-)
-.
- 
-|
- 
->
- 
-2
- 
-d
- 
-|
- 
-1
- 
-h
- 
-|
- 
-A
-v
-v
-i
-s
-o
- 
-(
-`
-w
-a
-r
-n
-i
-n
-g
-`
-)
- 
-|
- 
-1
- 
-d
- 
-|
+| Backup Veeam troppo vecchio | Nessuna esecuzione riuscita di un job pianificato almeno ogni giorno da più di due giorni (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 d | 1 h | Avviso (`warning`) | 1 d |
 | Repository Veeam quasi pieno | Un repository di backup Veeam è pieno per più del 90 %: i prossimi job falliranno per mancanza di spazio (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 min | Avviso (`warning`) | 1 d |
 | Licenza Veeam in scadenza | La licenza Veeam scade tra meno di 30 giorni: i job si fermano alla fine del periodo di tolleranza (`dumbmonit_veeam_license_expiry_seconds`). | < 30 d | 1 h | Avviso (`warning`) | 1 d |
+| Supporto Veeam in scadenza | Il contratto di supporto Veeam scade tra meno di 30 giorni: dopo quella data il server non riceve più né aggiornamenti né assistenza dal produttore (`dumbmonit_veeam_support_expiry_seconds`). | < 30 d | 1 h | Informazioni (`info`) | 24 h |
+| Repository Veeam offline | Un repository di backup è offline: i job che vi scrivono falliscono, e i suoi punti di ripristino non possono essere letti. Richiede la revisione API `1.2-rev0` o successiva (`dumbmonit_veeam_repository_online`). | < 1 | 10 min | Avvertenza (`critical`) | 6 h |
+| Licenza Veeam scaduta o non valida | La licenza Veeam non è più valida: i job si fermano al termine del periodo di tolleranza. Solo quando l'account può leggere la licenza (`dumbmonit_veeam_license_valid`). | < 1 | 30 min | Avvertenza (`critical`) | 24 h |
+| Backup della configurazione Veeam disattivato | Il backup della configurazione di Veeam stesso è disattivato: senza di esso, un server di backup perso va ricostruito a mano (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 h | Informazioni (`info`) | 7 d |
+| Backup della configurazione Veeam troppo vecchio | Il backup della configurazione è attivo ma non riesce da più di sette giorni (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 d | 1 h | Avviso (`warning`) | 24 h |
 
 ### Tailscale
 

@@ -46,6 +46,8 @@ Todas as métricas têm o prefixo `dumbmonit_pfsense_`.
 | `service_running`, `service_enabled` | `service`, `description` | Como Status > Services os mostra. |
 | `service_stopped` | `service`, `description` | 1 quando o serviço está ativado e não está em execução. |
 | `services_stopped` | | Contagem. |
+| `states`, `states_max`, `states_used_percent` | | Ligações que o pf segue, o limite e a parte em uso. Precisa do privilégio `/api/v2/firewall/states/size GET`. |
+| `carp_enabled`, `carp_maintenance_mode` | | 1 quando o CARP está ativado; 1 quando foi posto em modo de manutenção persistente. Precisa do privilégio `/api/v2/status/carp GET`. |
 | `restapi_update_available` | | Com o privilégio `/api/v2/system/restapi/version`: 1 quando o pacote REST API tem uma versão mais recente. |
 | `restapi_version_info` | `version`, `latest` | Valor 1: versão instalada e mais recente do pacote. |
 
@@ -54,20 +56,25 @@ disponível: a única rota que toca nas atualizações do sistema
 (`/api/v2/system/update`) inicia uma. O DumbMonit só reporta as
 atualizações do próprio pacote.
 
+A tabela de estados e o CARP são leituras opcionais. Cada uma precisa de mais um privilégio no utilizador `dumbmonit`: `/api/v2/firewall/states/size GET` e `/api/v2/status/carp GET`. Sem o privilégio, o pfSense recusa essa leitura e os valores correspondentes ficam simplesmente ausentes: nem erro, nem alerta.
+
 As [regras incorporadas](../alerting/rules.md#pfsense) que se aplicam:
 
-- **pfSense gateway down**: um gateway está marcado como em baixo há três
-  minutos (Warning).
-- **pfSense gateway losing packets**: mais de 10% de perda durante dez
-  minutos, num gateway que não está já em baixo (Advisory).
-- **pfSense gateway slow**: tempo de ida e volta acima de 500 ms durante
-  quinze minutos (Advisory). Suba-o para uma ligação por satélite.
-- **pfSense interface without link**: uma interface ativada sem ligação
-  durante cinco minutos (Advisory).
-- **pfSense service stopped**: um serviço ativado não em execução durante
-  cinco minutos (Advisory).
-- **pfSense disk nearly full**: mais de 90% durante trinta minutos
-  (Advisory).
+| Regra | O quê | Limiar predefinido | Retenção | Severidade | Lembrete |
+|---|---|---|---|---|---|
+| pfSense gateway down | Um gateway pfSense está em baixo: o seu endereço de monitorização já não responde, e o tráfego que transporta para ou falha para outro (`dumbmonit_pfsense_gateway_up`). | < 1 | 3 min | Warning (`critical`) | 6 h |
+| pfSense gateway losing packets | Um gateway pfSense perde mais de 10% das sondas ao seu endereço de monitorização: a linha está degradada (`dumbmonit_pfsense_gateway_loss_percent unless on (target, gateway) dumbmonit_pfsense_gateway_up == 0`). | > 10 % | 10 min | Advisory (`warning`) | 6 h |
+| pfSense gateway slow | O tempo de ida e volta até ao endereço de monitorização de um gateway pfSense manteve-se acima de 500 ms durante quinze minutos (`dumbmonit_pfsense_gateway_delay_milliseconds`). | > 500 ms | 15 min | Advisory (`warning`) | 6 h |
+| pfSense interface without link | Uma interface pfSense ativada não tem ligação: cabo, porta de comutador ou placa de rede (`dumbmonit_pfsense_interface_down`). | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| pfSense service stopped | Um serviço pfSense ativado não está em execução: resolvedor DNS, VPN, NTP… (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| pfSense disk nearly full | O disco do pfSense está mais de 90% cheio: logs, relatórios e atualizações de pacote deixam de ser escritos (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 min | Advisory (`warning`) | 1 d |
+| pfSense state table nearly full | O pf segue mais de 80 % das ligações que lhe são permitidas: passado o limite, a firewall descarta as novas ligações sem qualquer outro sintoma. Resolve abaixo de 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 min | Advisory (`warning`) | 6 h |
+| pfSense network buffers nearly exhausted | Mais de 90 % dos buffers de rede estão em uso: uma firewall que fica sem eles deixa de encaminhar tráfego enquanto o seu processador ainda está parado. Resolve abaixo de 80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 min | Advisory (`warning`) | 6 h |
+| pfSense temperature high | A temperatura que o pfSense lê manteve-se acima de 85 °C durante dez minutos: o equipamento está prestes a abrandar-se a si próprio. Resolve aos 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 min | Advisory (`warning`) | 6 h |
+| pfSense CPU high | O processador manteve-se acima de 90 % durante quinze minutos. Resolve abaixo de 80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 min | Advisory (`warning`) | 6 h |
+| pfSense swap in use | O pfSense usa mais de metade do seu swap há uma hora: tem falta de memória (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 h | Advisory (`warning`) | 24 h |
+| pfSense interface errors | Uma interface registou mais de 100 erros de receção ou de transmissão em quinze minutos: verifique o cabo, o módulo SFP e a definição de duplex (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 min | Advisory (`warning`) | 24 h |
+| pfSense CARP maintenance mode left on | O CARP ficou em modo de manutenção persistente durante uma hora: esta firewall entregou os seus endereços virtuais ao parceiro e não os retoma sozinha (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 h | Info (`info`) | 24 h |
 
 ## A página do monitor {#the-device-page}
 
@@ -111,6 +118,13 @@ URL. Opções:
 - **Accept an unverifiable certificate**: o próprio certificado do pfSense
   é autoassinado.
 - **Timeout per request** (15 s).
+
+## Limites conhecidos
+
+- Os certificados não são lidos: o pacote devolve as suas chaves privadas juntamente com eles, e o DumbMonit recusa-se a pedi-los. Vigie uma data de expiração com um [monitor TLS](services.md#tls) no endereço que serve o certificado.
+- Os túneis VPN (IPsec, OpenVPN, WireGuard) não são seguidos um a um. Os seus serviços são, através de «pfSense service stopped».
+- As atualizações do pfSense não são indicadas: a única rota da API que lhes toca inicia uma.
+- A memória não tem regra: o pfSense conta a cache ZFS como memória usada, por isso um valor alto é normal. O swap em uso é o sinal fiável de uma firewall com falta de memória.
 
 ## Resolução de problemas {#troubleshooting}
 

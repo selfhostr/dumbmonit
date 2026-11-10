@@ -222,22 +222,9 @@ sur certaines des nouvelles. DumbMonit demande d'abord l'orthographe
 actuelle et se replie sur l'autre en cas de `403`, le même groupe
 fonctionne donc des deux côtés du renommage.
 
-## Certificats et alertes par défaut
+## Certificats
 
 La date d'expiration des certificats que le pare-feu garde (interface d'administration, portail captif, VPN) est lue dans System: Trust: Certificates. Les certificats que OPNsense marque comme inutilisés sont ignorés. L'option est sautée sans bruit si le compte n'a pas le droit.
-
-| Alerte | Se déclenche quand |
-|---|---|
-| OPNsense certificate expiring / expired | Un certificat expire dans moins de 14 jours / a expiré |
-| OPNsense disk almost full | Le disque est plein à plus de 90 % depuis 15 minutes |
-| OPNsense CPU high | Le processeur dépasse 90 % depuis 15 minutes |
-| OPNsense swap in use | Plus de la moitié du swap est utilisée depuis une heure |
-| OPNsense packet filter disabled | pf est désactivé depuis 5 minutes |
-| OPNsense interface errors | Une interface journalise plus de 100 erreurs en 15 minutes |
-| OPNsense update mirror unreachable | Le pare-feu ne joint plus son miroir de mises à jour depuis 12 heures (information) |
-| Passerelle, perte, latence, table d'états, tunnel VPN, services, CARP, mises à jour | Comme avant |
-
-Toutes les règles se modifient ou se désactivent dans Alertes.
 
 ## Options
 
@@ -296,6 +283,41 @@ ports les plus fréquents.
   restent.
 - Un pare-feu interrogé par un agent relais n'a pas de carte en direct : le
   serveur ne joint pas son journal.
+
+## Règles d'alerte intégrées
+
+Ces règles sont livrées avec DumbMonit et actives dès le départ. Chacune se modifie ou se désactive dans Alertes ; la [référence des règles intégrées](../alerting/rules.md#opnsense) liste toutes les règles de toutes les intégrations.
+
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Passerelle Internet en panne | dpinger n'obtient plus de réponse d'une passerelle (`dumbmonit_opnsense_gateway_up`). Sur un pare-feu multi-WAN, le trafic a déjà bougé vers un autre lien, silencieusement. `loss` et `delay` sont des avertissements, pas des pannes, et ne déclenchent pas cette règle. | < 1 | 5 min | Avertissement (`critical`) | 6 h |
+| Passerelle qui perd des paquets | Une passerelle perd plus d'un cinquième des paquets qui lui sont envoyés (`dumbmonit_opnsense_gateway_loss_percent`) : le lien répond, mal. Se résout sous 10 %. | > 20 % | 10 min | Avis (`warning`) | 6 h |
+| Passerelle lente | Le temps d'aller-retour d'une passerelle est resté au-dessus de 300 ms (`dumbmonit_opnsense_gateway_delay_seconds`). Trois cents millisecondes laisse tranquille un lien de secours mobile. | > 300 ms | 15 min | Info (`info`) | 12 h |
+| Table d'états du pare-feu qui se remplit | pf suit plus de 80 % des connexions qu'il est autorisé à suivre (`dumbmonit_opnsense_pf_states_used_percent`). Au-delà de la limite, le pare-feu abandonne les nouvelles connexions sans autre symptôme. | > 80 % | 10 min | Avis (`warning`) | 6 h |
+| Buffers réseau du pare-feu épuisés | Plus de 90 % des buffers réseau FreeBSD sont utilisés (`dumbmonit_opnsense_mbuf_used_percent`). Un pare-feu qui en manque arrête de transférer avec le CPU encore inactif. | > 90 % | 10 min | Avis (`warning`) | 6 h |
+| Tunnel VPN en panne | Un tunnel VPN configuré n'a eu aucune session depuis dix minutes (`dumbmonit_opnsense_vpn_tunnel_up`). Un plugin qui n'est pas installé, ou une connexion désactivée, n'a aucune série et ne peut pas se déclencher. | < 1 | 10 min | Avis (`warning`) | 6 h |
+| Résolveur du pare-feu arrêté | Unbound a arrêté de répondre (`dumbmonit_opnsense_unbound_running`). Le pare-feu route toujours ; les machines derrière ne résolvent plus. Désactivez cette règle si votre pare-feu résout avec autre chose. | < 1 | 5 min | Avis (`warning`) | 6 h |
+| Service principal du pare-feu arrêté | dpinger, qui surveille les passerelles, ou configd, qui fait tourner tout le reste, est arrêté (`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`). Seulement ces deux, parce qu'un service éteint volontairement n'est pas une panne. | < 1 | 5 min | Avertissement (`critical`) | 6 h |
+| Pare-feu trop chaud | Un capteur lit au-dessus de 85 °C (`dumbmonit_opnsense_temperature_celsius`) : le boîtier sans ventilateur dans le placard va bientôt réduire ses performances. Se résout à 78 °C. | > 85 °C | 10 min | Avis (`warning`) | 6 h |
+| Pare-feu laissé en mode maintenance CARP | CARP est resté en mode maintenance persistant (`dumbmonit_opnsense_carp_maintenance_mode`) : ce pare-feu a donné ses adresses virtuelles à son partenaire et ne les reprendra pas de lui-même. | > 0 | 1 h | Info (`info`) | 24 h |
+| Redémarrage du pare-feu en attente | Une mise à jour est installée mais a besoin d'un redémarrage pour prendre effet (`dumbmonit_opnsense_firmware_reboot_required`). | > 0 | 1 h | Info (`info`) | 7 j |
+| Mises à jour du pare-feu en attente | Le pare-feu a des paquets en attente de mise à jour (`dumbmonit_opnsense_firmware_updates_pending`). C'est la machine la plus exposée du réseau. | > 0 | 1 h | Info (`info`) | 7 j |
+| Certificat OPNsense arrivant à expiration | Un certificat que le pare-feu utilise (interface web, portail captif, VPN) expire dans moins de 14 jours (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 14 j | 1 h | Avis (`warning`) | 24 h |
+| Certificat OPNsense expiré | Un certificat que le pare-feu utilise a expiré : les clients le refusent désormais (`dumbmonit_opnsense_certificate_expiry_seconds`). | < 0 | 10 min | Avertissement (`critical`) | 12 h |
+| Disque OPNsense presque plein | Le disque du pare-feu est plein à plus de 90 % : les journaux, les captures et les mises à jour vont échouer. Se lève sous 85 % (`dumbmonit_opnsense_disk_used_percent`). | > 90 % | 15 min | Avis (`warning`) | 12 h |
+| CPU OPNsense élevé | Le processeur du pare-feu est resté au-dessus de 90 % pendant quinze minutes. Se lève sous 80 % (`dumbmonit_opnsense_cpu_percent`). | > 90 % | 15 min | Avis (`warning`) | 6 h |
+| Swap OPNsense utilisé | Le pare-feu utilise plus de la moitié de son swap depuis une heure : il manque de mémoire (`dumbmonit_opnsense_swap_used_percent`). | > 50 % | 1 h | Avis (`warning`) | 24 h |
+| Filtre de paquets OPNsense désactivé | Le filtre de paquets (pf) est désactivé : le pare-feu ne filtre et ne traduit plus rien (`dumbmonit_opnsense_pf_enabled`). | < 1 | 5 min | Avertissement (`critical`) | 1 h |
+| Erreurs d'interface OPNsense | Une interface a enregistré plus de 100 erreurs de réception ou d'émission en quinze minutes : vérifiez le câble, le module SFP et le réglage duplex (`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`). | > 100 | 15 min | Avis (`warning`) | 24 h |
+| Miroir de mises à jour OPNsense injoignable | Le pare-feu n'arrive plus à joindre son miroir de mises à jour depuis douze heures : il n'apprendra pas l'existence des mises à jour de sécurité (`dumbmonit_opnsense_firmware_connection_ok`). | < 1 | 12 h | Info (`info`) | 7 j |
+
+## Limites connues
+
+- La vérification de mise à jour n'est jamais déclenchée : DumbMonit lit le résultat de la dernière vérification faite par le pare-feu lui-même. Un pare-feu qui n'a jamais vérifié ne dit rien de ses mises à jour.
+- Au plus 64 séries par famille : passerelles, interfaces, services, tunnels, partitions, capteurs.
+- Un plugin qui n'est pas installé (WireGuard, OpenVPN, IPsec, Unbound, Kea) ne fait aucun bruit : ni série, ni règle, ni erreur.
+- Les sessions VPN et les baux DHCP sont comptés, jamais listés : aucune adresse de client ni aucun nom d'hôte n'est lu.
+- Les certificats qu'OPNsense marque comme inutilisés sont ignorés.
 
 ## Erreurs courantes
 

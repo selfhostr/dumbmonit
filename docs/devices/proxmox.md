@@ -482,6 +482,60 @@ missing.
 | `packages` | Detect package changes | `true` | `apt/versions` compared with the previous probe; a change is reported for one hour in `node_packages_changed`. |
 | `subscription` | Watch subscription and repositories | `true` | `subscription` and `apt/repositories`: status, warnings, enabled standard repositories. |
 
+## Built-in alert rules
+
+These rules come with DumbMonit and are enabled from the start. Each one can be edited or turned off under Alerts; the [built-in rules reference](../alerting/rules.md#proxmox-ve) lists every rule of every integration.
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Backup too old | No successful Proxmox VE backup for more than seven days (`dumbmonit_proxmox_backup_last_age_seconds`). | > 7 d | 1 h | Advisory (`warning`) | 24 h |
+| VM or container stopped | The guest was running within the last two hours and has been stopped for five minutes (`1 - dumbmonit_proxmox_guest_running`, and'd with `max_over_time(…[2h]) == 1`). | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| VM or container CPU high | A guest has used more than 90 % of its allocated cores for fifteen minutes (`dumbmonit_proxmox_guest_cpu_percent`). The notification names the guest, `nextcloud (202)`. | > 90 % | 15 min | Advisory (`warning`) | 6 h |
+| VM or container memory high | A guest has used more than 95 % of its memory for ten minutes (`dumbmonit_proxmox_guest_memory_percent`). | > 95 % | 10 min | Advisory (`warning`) | 6 h |
+| VM or container disk almost full | The root disk of a guest is more than 90 % full (`dumbmonit_proxmox_guest_disk_used_percent`): containers always, VMs only when the QEMU guest agent reports usage. | > 90 % | 15 min | Advisory (`warning`) | 24 h |
+| Guest locked | A VM or container has been locked for six hours (`dumbmonit_proxmox_guest_locked`, label `lock`): an interrupted backup or migration left the lock behind and no operation can run on the guest, not even the next backup. | > 0 | 6 h | Advisory (`warning`) | 24 h |
+| Old snapshot | The oldest snapshot of a guest is more than thirty days old (`dumbmonit_proxmox_guest_snapshot_oldest_age_seconds`). | > 30 d | 1 h | Info (`info`) | 7 d |
+| HA resource in error | A Proxmox HA resource is in error or fenced (`dumbmonit_proxmox_ha_resource_error`). | > 0 | 2 min | Warning (`critical`) | 1 h |
+| HA manager not reporting | The HA local resource manager of a node has stopped writing its state (`dumbmonit_proxmox_ha_lrm_stale`): that node's HA guests will be neither restarted nor relocated. | > 0 | 5 min | Warning (`critical`) | 1 h |
+| Cluster lost quorum | The Proxmox cluster is not quorate (`1 - dumbmonit_proxmox_cluster_quorate`): guests can no longer be started. | > 0 | 1 min | Warning (`critical`) | 30 min |
+| Proxmox node offline | A cluster node is reported offline (`1 - dumbmonit_proxmox_node_up`). | > 0 | 2 min | Warning (`critical`) | 30 min |
+| Proxmox service down | A core Proxmox daemon is not running on a node (`dumbmonit_proxmox_node_core_services_down`: `pve-cluster`, `pvedaemon`, `pveproxy`, `pvestatd`, `pve-firewall`, `corosync`, `watchdog-mux`, each counted only where the node enables it). | > 0 | 5 min | Warning (`critical`) | 1 h |
+| Node network interface down | An interface set to start at boot is not up on a node (`dumbmonit_proxmox_node_interface_offline`). An interface brought up on demand is never reported. | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| Proxmox storage almost full | A Proxmox storage is more than 85% full (`dumbmonit_proxmox_storage_used_percent`); "Disk almost full" takes over at 90%. | > 85 % | 15 min | Advisory (`warning`) | 24 h |
+| Thin pool almost full | An LVM thin pool is more than 90 % full: every guest stored on it goes read-only when it fills (`dumbmonit_proxmox_node_thinpool_used_percent`); clears below 88 %. | > 90 % | 15 min | Warning (`critical`) | 6 h |
+| Thin pool metadata almost full | The metadata volume of an LVM thin pool is more than 80 % full (`dumbmonit_proxmox_node_thinpool_metadata_used_percent`). It is far smaller than the data volume and often saturates first, with the same consequence. | > 80 % | 15 min | Warning (`critical`) | 6 h |
+| Proxmox disk wearing out | An SSD or NVMe of a node has used more than 90 % of its rated life (`dumbmonit_proxmox_node_disk_wearout_percent`). The notification reads `pve1 · /dev/nvme0n1`. | > 90 % | 1 h | Advisory (`warning`) | 7 d |
+| Proxmox disk SMART failure | A disk of a node reports SMART health `FAILED` (`dumbmonit_proxmox_node_disk_smart_failed`). | > 0 | 5 min | Warning (`critical`) | 24 h |
+| Proxmox ZFS pool degraded | A ZFS pool of a node is not `ONLINE` (`dumbmonit_proxmox_node_zfs_pool_degraded`). The notification reads `pve2 · tank`. | > 0 | 5 min | Warning (`critical`) | 6 h |
+| Backup job failed | The last vzdump job on a node, or a scheduled backup job, failed (`1 - dumbmonit_proxmox_backup_job_last_ok`). | > 0 | 10 min | Warning (`critical`) | 24 h |
+| Backup job excludes a disk | A scheduled backup job skips a disk of one of the guests it covers (`dumbmonit_proxmox_backup_job_guest_excluded_volumes`): the job succeeds every night with that data missing. CD-ROM drives and cloudinit images are excluded by design and never counted. | > 0 | 1 h | Advisory (`warning`) | 7 d |
+| Replication failed | A replication job reports an error or a non-zero fail count (`dumbmonit_proxmox_replication_job_error`): the standby copy is stale. | > 0 | 10 min | Warning (`critical`) | 6 h |
+| Ceph health error | Ceph reports `HEALTH_ERR` (`dumbmonit_proxmox_ceph_health`, 0 OK, 1 WARN, 2 ERR). | ≥ 2 | 2 min | Warning (`critical`) | 30 min |
+| Ceph health warning | Ceph reports `HEALTH_WARN` for more than fifteen minutes (`dumbmonit_proxmox_ceph_health == 1`). | > 0 | 15 min | Advisory (`warning`) | 6 h |
+| Ceph OSD down | A Ceph OSD has been down for five minutes (`1 - dumbmonit_proxmox_ceph_osd_up`). The notification names the OSD and its host. | > 0 | 5 min | Warning (`critical`) | 1 h |
+| Ceph OSD nearly full | A single Ceph OSD is more than 85 % full (`dumbmonit_proxmox_ceph_osd_used_percent`): writes stop when it reaches its limit, whatever the cluster average says; clears below 82 %. | > 85 % | 15 min | Advisory (`warning`) | 24 h |
+| Ceph pool almost full | A Ceph pool is more than 85 % full (`dumbmonit_proxmox_ceph_pool_used_percent`); clears below 82 %. | > 85 % | 15 min | Advisory (`warning`) | 24 h |
+| Ceph noout flag left on | The Ceph `noout` flag has been set for two hours (`dumbmonit_proxmox_ceph_flag{flag="noout"}`): rebalancing is disabled, and the cluster reads healthy while its redundancy shrinks. | > 0 | 2 h | Info (`info`) | 24 h |
+| Proxmox updates pending | More than twenty package updates are pending on a node (`dumbmonit_proxmox_node_updates_pending`). | > 20 | 1 h | Info (`info`) | 7 d |
+| Proxmox security updates pending | At least one pending update comes from a security archive (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 h | Advisory (`warning`) | 7 d |
+| Proxmox packages changed | The installed version of a Proxmox package changed between two probes — someone ran `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, published for one hour with the detail in its `changes` label: `pve1 · pve-manager 8.2.4→8.2.7`). Resolves by itself an hour later. | > 0 | 1 min | Info (`info`) | 24 h |
+| Node certificate expiring | A Proxmox node certificate expires in less than fourteen days (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 d | 1 h | Advisory (`warning`) | 24 h |
+| Proxmox storage inactive | An enabled storage is not active on a node (unreachable share, unmounted disk, backup server down): backups to it and disks on it fail (`dumbmonit_proxmox_storage_active`). | < 1 | 10 min | Advisory (`warning`) | 6 h |
+| Proxmox node needs a reboot | A newer kernel has been installed on a node for three days without a reboot: the node still runs the old one (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 d | Info (`info`) | 7 d |
+| Proxmox subscription expired | The subscription of a node is expired, invalid or suspended: the enterprise repository stops serving updates (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 h | Advisory (`warning`) | 7 d |
+| Proxmox replication overdue | A storage replication job is more than six hours behind its schedule: the copy on the other node is getting older (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 h | 15 min | Advisory (`warning`) | 12 h |
+| Proxmox backup job not running | An enabled backup job has not run for more than eight days (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 d | 1 h | Advisory (`warning`) | 24 h |
+| Proxmox guest not in any backup job | A VM or container has been in no backup job for a day (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 h | Info (`info`) | 7 d |
+| Proxmox tasks failed | Tasks failed on a node in the last six hours (guest start, migration, restore…). Backups have their own rule (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 min | Info (`info`) | 24 h |
+
+## Known limits
+
+- Board temperatures are not available: the Proxmox VE API only gives the SMART temperature of the disks. Install the DumbMonit agent on the node for the other sensors.
+- Disk usage inside a VM needs the QEMU guest agent. Without it the VM has a size and no usage.
+- The operating system and the addresses of a guest are asked at most once an hour.
+- Snapshots are inventoried for at most 200 guests per probe (option `max_snapshot_guests`); the others are counted as skipped.
+- A missing privilege, an older Proxmox VE or a feature that is not installed never raises an error: the matching series are absent, and the monitor page names the missing privilege.
+
 ## Common errors
 
 | Symptom | Likely cause |

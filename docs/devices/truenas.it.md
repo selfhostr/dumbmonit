@@ -176,6 +176,41 @@ dell'API WebSocket. Fino ad allora, REST è ciò che ogni release fino a
 | `tasks` | Watch replication and snapshot tasks | `true` | Stato, ultima esecuzione e ultimo snapshot di ogni task. |
 | `services` | Watch the services | `true` | Servizi impostati per avviarsi con il NAS, e se funzionano. |
 
+## Regole di avviso integrate
+
+Queste regole sono fornite con DumbMonit e sono attive fin dall'inizio. Ognuna si può modificare o disattivare in Avvisi; il [riferimento delle regole integrate](../alerting/rules.md#truenas) elenca tutte le regole di tutte le integrazioni.
+
+| Regola | Cosa | Soglia predefinita | Mantenimento | Gravità | Promemoria |
+|---|---|---|---|---|---|
+| Pool NAS degradato | ZFS non considera più sano un pool (`dumbmonit_truenas_pool_healthy`). Un pool degradato serve ancora i suoi dati, ed è esattamente per questo che nessuno se ne accorge fino al guasto del prossimo disco. La pagina del monitor indica il disco. | < 1 | 5 min | Avvertenza (`critical`) | 6 h |
+| Errori sui dischi del NAS | I dischi di un pool hanno segnalato errori di lettura, scrittura o checksum dall'ultimo `zpool clear` (`dumbmonit_truenas_pool_device_errors`, una serie per tipo). | > 0 | 15 min | Avviso (`warning`) | 24 h |
+| Pool NAS quasi pieno | Un pool è pieno per più dell'85 % (`dumbmonit_truenas_pool_used_percent`). ZFS rallenta ben prima di essere pieno. Rientra all'80 %. | > 85 % | 30 min | Avviso (`warning`), escalation dopo 7 d | 24 h |
+| Lo scrub del NAS ha trovato errori | L'ultimo scrub di un pool ha trovato dati danneggiati (`dumbmonit_truenas_pool_last_scrub_errors`). | > 0 | 5 min | Avvertenza (`critical`) | 24 h |
+| Scrub del NAS in ritardo | Un pool non completa uno scrub da più di 45 giorni (`dumbmonit_truenas_pool_last_scrub_age_seconds`). Assente dopo un resilver, che cancella il record dell'ultimo scrub. | > 45 d | 1 h | Informazioni (`info`) | 7 d |
+| Disco del NAS fallisce il test SMART | Un self-test SMART nel registro di un disco è fallito (`dumbmonit_truenas_disk_smart_failed`). Un disco mai testato non ha serie. | > 0 | 5 min | Avvertenza (`critical`) | 24 h |
+| Disco del NAS troppo caldo | Un disco è sopra i 55 °C (`dumbmonit_truenas_disk_temperature_celsius`, letta dalla cache di TrueNAS). Rientra a 50 °C. | > 55 °C | 15 min | Avviso (`warning`) | 6 h |
+| Dataset del NAS vicino alla quota | Un dataset ha usato più del 90 % della sua quota (`dumbmonit_truenas_dataset_quota_used_percent`): al 100 % le sue scritture falliscono mentre il pool ha ancora spazio. Nessuna quota, nessuna serie. | > 90 % | 30 min | Avviso (`warning`) | 24 h |
+| Replica del NAS fallita | Un task di replica abilitato è in errore (`dumbmonit_truenas_replication_error`): la copia dall'altra parte invecchia. | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Task di snapshot del NAS fallito | Un task di snapshot periodico abilitato è in errore (`dumbmonit_truenas_snapshot_task_error`). | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Snapshot del NAS obsoleti | Un task di snapshot periodico abilitato non viene eseguito da più di otto giorni (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`): un task che smette di girare non fallisce, tace. | > 8 d | 1 h | Avviso (`warning`) | 24 h |
+| Avviso sollevato da TrueNAS | TrueNAS stesso ha sollevato un avviso di livello ERROR o superiore (`dumbmonit_truenas_alerts`). La sua frase è sulla pagina del monitor. | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Servizio del NAS fermo | Un servizio impostato per avviarsi con il NAS è fermo (`dumbmonit_truenas_service_running`). Un servizio spento di proposito non ha serie. | < 1 | 10 min | Avviso (`warning`) | 6 h |
+| Certificato del NAS in scadenza a breve | Il certificato che serve l'interfaccia web di TrueNAS scade tra meno di 14 giorni: i browser, le app e i peer di replica lo rifiuteranno (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 d | 1 h | Avviso (`warning`) | 24 h |
+| Certificato del NAS scaduto | Il certificato che serve l'interfaccia web di TrueNAS scade tra meno di 2 giorni, o è già scaduto (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 d | 15 min | Avvertenza (`critical`) | 12 h |
+| Pool di avvio del NAS degradato | Il pool di avvio non è più integro: il NAS si avvia ancora dal dispositivo rimasto, finché non cede anche quello (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 min | Avviso (`warning`) | 12 h |
+| Pool di avvio del NAS quasi pieno | Il pool di avvio è pieno per più dell'85 %: i vecchi ambienti di avvio si accumulano a ogni aggiornamento e bloccano il successivo. Rientra sotto l'80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 h | Avviso (`warning`) | 24 h |
+| Attività di backup remoto del NAS fallita | L'ultima esecuzione di un'attività di sincronizzazione cloud, rsync o backup cloud è fallita: la copia remota sta invecchiando (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 min | Avviso (`warning`) | 12 h |
+| Applicazione del NAS in crash | Un'applicazione è nello stato di crash (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 min | Avviso (`warning`) | 6 h |
+| Macchina virtuale del NAS ferma | Una macchina virtuale impostata per avviarsi con il NAS non è in esecuzione (`dumbmonit_truenas_vm_running`). | < 1 | 10 min | Avviso (`warning`) | 6 h |
+
+## Limiti noti
+
+- Tramite l'API REST usata da DumbMonit, TrueNAS non ha una chiave di sola lettura: la chiave appartiene a un amministratore completo. DumbMonit legge soltanto, e non avvia mai uno scrub, un test SMART o una replica.
+- L'età dello snapshot più recente di un dataset è l'ultima esecuzione dell'attività di snapshot che lo copre. Un dataset che nessuna attività copre non ha un'età.
+- Le temperature arrivano dalla cache di TrueNAS, aggiornata circa ogni cinque minuti. Un disco in standby non viene mai risvegliato.
+- I risultati dei test SMART hanno lasciato l'API in TrueNAS 25.10 e vengono saltati da quella versione in poi.
+- Le regole sui certificati sorvegliano solo il certificato che serve l'interfaccia web.
+
 ## Errori comuni
 
 | Sintomo | Causa probabile |

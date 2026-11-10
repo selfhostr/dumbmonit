@@ -183,6 +183,41 @@ OPNsense 25.7 把其 API 路径从 `systemResources` 重命名为
 | `firmware` | 监控更新 | `true` | 读取防火墙上次更新检查的结果以及是否需要重启。 |
 | `temperature` | 读取温度传感器 | `true` | 读取防火墙公布的 CPU 和主板传感器。 |
 
+## 内置告警规则
+
+这些规则随 DumbMonit 提供，从一开始就已启用。每条规则都可以在“告警”中修改或关闭；[内置规则参考](../alerting/rules.md#opnsense)列出了所有集成的全部规则。
+
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| 互联网网关关闭 | dpinger 不再从网关获得应答(`dumbmonit_opnsense_gateway_up`)。在多 WAN 防火墙上流量已经静默移动到另一条链接。`loss`和`delay`是警告,不是故障,不触发此规则。 | < 1 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| 网关丢失数据包 | 网关丢失超过五分之一发送给它的数据包(`dumbmonit_opnsense_gateway_loss_percent`):链接应答,坏。在 10% 下清除。 | > 20 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| 网关缓慢 | 网关的往返时间保持在 300 ms 上方(`dumbmonit_opnsense_gateway_delay_seconds`)。3 百毫秒留下移动备用链接单独。 | > 300 毫秒 | 15 分钟 | 信息 (`info`) | 12 小时 |
+| 防火墙状态表填满 | pf 跟踪超过 80% 它被允许的连接(`dumbmonit_opnsense_pf_states_used_percent`)。超过限制防火墙丢弃新连接没有其他症状。 | > 80 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| 防火墙网络缓冲区耗尽 | 超过 90% FreeBSD 网络缓冲区在使用中(`dumbmonit_opnsense_mbuf_used_percent`)。耗尽缓冲区的防火墙停止转发 CPU 仍空闲。 | > 90 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| VPN 隧道关闭 | 配置 VPN 隧道已无会话 10 分钟(`dumbmonit_opnsense_vpn_tunnel_up`)。未安装的插件或禁用的连接没有系列无法触发。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| 防火墙解析器停止 | Unbound 已停止应答(`dumbmonit_opnsense_unbound_running`)。防火墙仍路由;其后的机器不再解决。如果你的防火墙用别的解决关闭此规则。 | < 1 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| 防火墙核心服务停止 | dpinger,它观察网关,或 configd,它运行一切,已停止(`dumbmonit_opnsense_service_running{service=~"dpinger\|configd"}`)。仅那两个,因为故意关闭的服务不是故障。 | < 1 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| 防火墙太热 | 传感器读取 85°C 以上(`dumbmonit_opnsense_temperature_celsius`):壁橱中的无风扇盒子要开始节流。在 78°C 下清除。 | > 85°C | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| 防火墙留在 CARP 维护模式 | CARP 已留在持久维护模式(`dumbmonit_opnsense_carp_maintenance_mode`):此防火墙将其虚拟地址移交给其合作伙伴不会独自取回。 | > 0 | 1 小时 | 信息 (`info`) | 24 小时 |
+| 防火墙重启待处理 | 更新已安装但需要重启才能生效(`dumbmonit_opnsense_firmware_reboot_required`)。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
+| 防火墙更新待处理 | 防火墙有包等待更新(`dumbmonit_opnsense_firmware_updates_pending`)。它是网络上最暴露的机器。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
+| OPNsense 证书即将到期 | 防火墙使用的某个证书（Web 界面、强制门户、VPN）将在 14 天内到期(`dumbmonit_opnsense_certificate_expiry_seconds`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| OPNsense 证书已过期 | 防火墙使用的某个证书已过期：客户端现在会拒绝它(`dumbmonit_opnsense_certificate_expiry_seconds`)。 | < 0 | 10 分钟 | 警告 (`critical`) | 12 小时 |
+| OPNsense 磁盘几乎已满 | 防火墙的磁盘使用率超过 90 %：日志、抓包和更新都将失败。低于 85 % 时解除(`dumbmonit_opnsense_disk_used_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| OPNsense CPU 高 | 防火墙的处理器连续十五分钟高于 90 %。低于 80 % 时解除(`dumbmonit_opnsense_cpu_percent`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| OPNsense 交换空间被使用 | 防火墙使用超过一半的交换空间已达一小时：内存不足(`dumbmonit_opnsense_swap_used_percent`)。 | > 50 % | 1 小时 | 通知 (`warning`) | 24 小时 |
+| OPNsense 包过滤器已禁用 | 包过滤器（pf）已禁用：防火墙不再过滤，也不再做地址转换(`dumbmonit_opnsense_pf_enabled`)。 | < 1 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| OPNsense 接口错误 | 某个接口在十五分钟内记录了超过 100 个接收或发送错误：请检查网线、SFP 模块和双工设置(`dumbmonit_opnsense_interface_errors_in` + `dumbmonit_opnsense_interface_errors_out`)。 | > 100 | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| OPNsense 更新镜像不可达 | 防火墙已有十二小时无法连接其更新镜像：它将无法得知安全更新(`dumbmonit_opnsense_firmware_connection_ok`)。 | < 1 | 12 小时 | 信息 (`info`) | 7 天 |
+
+## 已知限制
+
+- 绝不触发更新检查：DumbMonit 读取的是防火墙自己上一次检查的结果。从未检查过的防火墙不会给出任何更新信息。
+- 每个系列最多 64 个序列：网关、接口、服务、隧道、分区、传感器。
+- 未安装的插件（WireGuard、OpenVPN、IPsec、Unbound、Kea）不会产生任何噪音：没有序列，没有规则，没有错误。
+- VPN 会话和 DHCP 租约只计数，从不列出：不读取任何客户端地址或主机名。
+- OPNsense 标记为未使用的证书会被忽略。
+
 ## 常见错误 {#common-errors}
 
 | 现象 | 可能原因 |

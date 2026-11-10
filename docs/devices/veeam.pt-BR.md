@@ -45,25 +45,31 @@ Todas as métricas têm o prefixo `dumbmonit_veeam_`.
 | `jobs`, `jobs_failed`, `jobs_warning`, `jobs_running`, `jobs_disabled` | | Contagens; no máximo 200 jobs são descritos um a um. |
 | `sessions_24h`, `sessions_failed_24h`, `sessions_warning_24h` | | Sessões criadas nas últimas 24 horas, por resultado. |
 | `repository_capacity_bytes`, `repository_free_bytes`, `repository_used_bytes`, `repository_used_percent` | `repository`, `type` | Por repositório. Um repositório de armazenamento de objetos não tem capacidade: apenas seu espaço usado é publicado. |
+| `repository_online` | `repository`, `type` | 1 quando o repositório está online, 0 quando o Veeam não consegue alcançá-lo. Somente a partir da revisão de API `1.2-rev0`: veja a opção de versão da API. |
 | `license_valid` | | 1 quando o status da licença é `Valid`. |
 | `license_info` | `status`, `type`, `edition` | Valor 1. |
 | `license_expiry_seconds`, `support_expiry_seconds` | | Até a licença e o contrato de suporte expirarem; ausente para uma licença perpétua. |
 | `license_instances_licensed`, `license_instances_used` | | Uso de licença de instância. |
-| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points` | 1 quando a conta pode lê-la, 0 quando o Veeam recusou. |
+| `config_backup_enabled`, `config_backup_encrypted` | | 1 quando o backup da configuração do próprio Veeam está ativado; 1 quando está criptografado. Somente com a função Backup Administrator. |
+| `config_backup_last_success_age_seconds` | | Desde o último backup da configuração bem-sucedido. Somente com a função Backup Administrator. |
+| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points`, `config_backup` | 1 quando a conta pode lê-la, 0 quando o Veeam recusou. |
 
-As [regras integradas](../alerting/rules.md#veeam-backup--replication) que
-se aplicam:
+Duas leituras dependem do servidor e da conta. O estado online de um repositório só existe a partir da revisão de API `1.2-rev0`: defina a opção de versão da API para essa revisão, ou para uma posterior que o seu servidor liste; caso contrário a série fica ausente e "Veeam repository offline" não pode disparar. O backup da configuração, assim como a licença, é reservado à função Backup Administrator: com a função Viewer ele aparece como "não legível" e suas duas regras ficam em silêncio.
 
-- **Veeam job failed**: a última execução de um job ativado falhou
-  (Warning, lembrada diariamente).
-- **Veeam job ended with a warning** (Advisory, lembrada diariamente).
-- **Veeam repository nearly full**: mais de 90% por trinta minutos
-  (Advisory).
-- **Veeam license expiring**: menos de 30 dias restantes (Advisory,
-  lembrada diariamente). Apenas quando a conta pode ler a licença.
-- **Client device stale**: um computador ou VM protegido passou
-  `device_stale_days` sem um backup bem sucedido (Advisory, lembrada
-  diariamente); veja [Dispositivos](#devices) abaixo.
+As [regras integradas](../alerting/rules.md#veeam-backup--replication) que se aplicam:
+
+| Regra | O que é | Limite padrão | Retenção | Severidade | Lembrete |
+|---|---|---|---|---|---|
+| Veeam job failed | A última execução de um job Veeam ativado falhou: o que ele protege não tem novo ponto de restauração (`dumbmonit_veeam_job_failed`). | > 0 | 5 min | Alerta (`critical`) | 1 d |
+| Veeam job ended with a warning | A última execução de um job Veeam ativado terminou com um aviso: alguns objetos podem não estar protegidos (`dumbmonit_veeam_job_warning`). | > 0 | 5 min | Aviso (`warning`) | 1 d |
+| Veeam backup too old | Nenhuma execução bem-sucedida de um job agendado pelo menos diariamente há mais de dois dias (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 d | 1 h | Aviso (`warning`) | 1 d |
+| Veeam repository nearly full | Um repositório de backup Veeam está mais de 90% cheio: os próximos jobs falharão por falta de espaço (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 min | Aviso (`warning`) | 1 d |
+| Veeam license expiring | A licença Veeam expira em menos de 30 dias: jobs param no fim do período de tolerância (`dumbmonit_veeam_license_expiry_seconds`). | < 30 d | 1 h | Aviso (`warning`) | 1 d |
+| Veeam support expiring | O contrato de suporte da Veeam expira em menos de 30 dias: depois dessa data o servidor não recebe mais atualizações nem suporte do fabricante (`dumbmonit_veeam_support_expiry_seconds`). | < 30 d | 1 h | Info (`info`) | 24 h |
+| Veeam repository offline | Um repositório de backup está offline: os jobs que gravam nele falham, e seus pontos de restauração não podem ser lidos. Precisa da revisão de API `1.2-rev0` ou posterior (`dumbmonit_veeam_repository_online`). | < 1 | 10 min | Alerta (`critical`) | 6 h |
+| Veeam license expired or invalid | A licença da Veeam não é mais válida: os jobs param quando o período de carência termina. Somente quando a conta pode ler a licença (`dumbmonit_veeam_license_valid`). | < 1 | 30 min | Alerta (`critical`) | 24 h |
+| Veeam configuration backup disabled | O backup da configuração do próprio Veeam está desativado: sem ele, um servidor de backup perdido precisa ser reconstruído à mão (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 h | Info (`info`) | 7 d |
+| Veeam configuration backup too old | O backup da configuração está ativado, mas não tem sucesso há mais de sete dias (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 d | 1 h | Aviso (`warning`) | 24 h |
 
 ## Dispositivos {#devices}
 
@@ -144,6 +150,14 @@ URL. Opções:
 - **Tempo limite por requisição** (15 s).
 - **Desatualização de dispositivo** (`device_stale_days`, 3 dias por
   padrão): veja [Dispositivos](#devices) acima.
+
+## Limites conhecidos
+
+- Com a função Viewer, a licença e o backup da configuração não são legíveis. Suas regras precisam de uma conta com a função Backup Administrator, que também pode alterar coisas no servidor: escolha com consciência.
+- O estado online dos repositórios precisa da revisão de API `1.2-rev0` ou posterior.
+- Os eventos de detecção de malware não são lidos.
+- No máximo 200 jobs são descritos um a um; além disso, só restam os totais.
+- Um repositório de armazenamento de objetos não informa nenhuma capacidade, então "Veeam repository nearly full" não pode disparar para ele.
 
 ## Solução de problemas {#troubleshooting}
 

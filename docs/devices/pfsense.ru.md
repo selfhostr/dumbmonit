@@ -44,6 +44,8 @@ DumbMonit параллельно читает `/api/v2/status/system`,
 | `service_running`, `service_enabled` | `service`, `description` | Как показывает Status > Services. |
 | `service_stopped` | `service`, `description` | 1, когда служба включена и не работает. |
 | `services_stopped` | | Счётчик. |
+| `states`, `states_max`, `states_used_percent` | | Соединения, которые отслеживает pf, предел и занятая доля. Требуется привилегия `/api/v2/firewall/states/size GET`. |
+| `carp_enabled`, `carp_maintenance_mode` | | 1, когда CARP включён; 1, когда он переведён в постоянный режим обслуживания. Требуется привилегия `/api/v2/status/carp GET`. |
 | `restapi_update_available` | | С правом `/api/v2/system/restapi/version`: 1, когда у пакета REST API есть более новый релиз. |
 | `restapi_version_info` | `version`, `latest` | Значение 1: установленный и последний релиз пакета. |
 
@@ -52,20 +54,25 @@ pfSense не сообщает через этот API, доступно ли о�
 (`/api/v2/system/update`), запускает его. DumbMonit сообщает только об
 обновлениях самого пакета.
 
+Таблица состояний и CARP — необязательные запросы. Каждому нужна ещё одна привилегия у пользователя `dumbmonit`: `/api/v2/firewall/states/size GET` и `/api/v2/status/carp GET`. Без привилегии pfSense отклоняет этот запрос, и соответствующие значения просто отсутствуют: ни ошибки, ни оповещения.
+
 Применяемые [встроенные правила](../alerting/rules.md#pfsense):
 
-- **Шлюз pfSense не работает**: шлюз отмечен как недоступный уже три минуты
-  (Warning).
-- **Шлюз pfSense теряет пакеты**: более 10 % потерь за десять минут, на
-  шлюзе, который ещё не недоступен (Advisory).
-- **Медленный шлюз pfSense**: время приёма-передачи выше 500 мс в течение
-  пятнадцати минут (Advisory). Поднимите порог для спутниковой линии.
-- **Интерфейс pfSense без линка**: включённый интерфейс без линка уже пять
-  минут (Advisory).
-- **Служба pfSense остановлена**: включённая служба не работает уже пять
-  минут (Advisory).
-- **Диск pfSense почти заполнен**: более 90 % в течение тридцати минут
-  (Advisory).
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| pfSense gateway down | Шлюз pfSense не работает: его адрес мониторинга больше не отвечает, и несомый им трафик прекращается или переключается (`dumbmonit_pfsense_gateway_up`). | < 1 | 3 мин | Warning (`critical`) | 6 ч |
+| pfSense gateway losing packets | Шлюз pfSense теряет более 10 % зондов к своему адресу мониторинга: линия деградировала (`dumbmonit_pfsense_gateway_loss_percent unless on (target, gateway) dumbmonit_pfsense_gateway_up == 0`). | > 10 % | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense gateway slow | Время кругового обхода до адреса мониторинга шлюза pfSense остаётся выше 500 мс пятнадцать минут (`dumbmonit_pfsense_gateway_delay_milliseconds`). | > 500 мс | 15 мин | Advisory (`warning`) | 6 ч |
+| pfSense interface without link | У включённого интерфейса pfSense нет линка: кабель, порт коммутатора или сетевая карта (`dumbmonit_pfsense_interface_down`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| pfSense service stopped | Включённая служба pfSense не запущена: DNS-резолвер, VPN, NTP… (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| pfSense disk nearly full | Диск pfSense заполнен более чем на 90 %: логи, отчёты и обновления пакетов перестают записываться (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 мин | Advisory (`warning`) | 1 дн |
+| pfSense state table nearly full | pf отслеживает более 80 % разрешённых ему соединений: за пределом межсетевой экран отбрасывает новые соединения без каких-либо других симптомов. Снимается ниже 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense network buffers nearly exhausted | Занято более 90 % сетевых буферов: межсетевой экран, у которого они закончились, перестаёт пересылать трафик, хотя его процессор простаивает. Снимается ниже 80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense temperature high | Температура, которую считывает pfSense, десять минут держалась выше 85 °C: устройство вот-вот начнёт само себя замедлять. Снимается при 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 мин | Advisory (`warning`) | 6 ч |
+| pfSense CPU high | Процессор пятнадцать минут держался выше 90 %. Снимается ниже 80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| pfSense swap in use | pfSense уже час использует больше половины своего swap: ему не хватает памяти (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 ч | Advisory (`warning`) | 24 ч |
+| pfSense interface errors | Интерфейс зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель, SFP-модуль и настройку дуплекса (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
+| pfSense CARP maintenance mode left on | CARP уже час оставлен в постоянном режиме обслуживания: этот межсетевой экран передал свои виртуальные адреса напарнику и сам их не вернёт (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 ч | Info (`info`) | 24 ч |
 
 ## Страница монитора
 
@@ -108,6 +115,13 @@ pfSense не сообщает через этот API, доступно ли о�
 - **Accept an unverifiable certificate**: собственный сертификат pfSense
   самоподписан.
 - **Timeout per request** (15 с).
+
+## Известные ограничения
+
+- Сертификаты не читаются: пакет возвращает вместе с ними их закрытые ключи, и DumbMonit отказывается их запрашивать. Следите за сроком действия с помощью [монитора TLS](services.md#tls) на адресе, который отдаёт сертификат.
+- VPN-туннели (IPsec, OpenVPN, WireGuard) не отслеживаются по одному. Их службы отслеживаются — правилом «pfSense service stopped».
+- Об обновлениях pfSense не сообщается: единственный маршрут API, который их касается, запускает обновление.
+- Для памяти правила нет: pfSense считает кэш ZFS занятой памятью, поэтому высокое значение — норма. Занятый swap — надёжный признак того, что межсетевому экрану не хватает памяти.
 
 ## Диагностика
 

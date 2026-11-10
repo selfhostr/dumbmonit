@@ -51,25 +51,36 @@ Alle Metriken haben das Präfix `dumbmonit_unraid_`.
 | `vms`, `vms_running` | | VMs. |
 | `vm_state_info`, `vm_crashed` | `vm` (und `state`) | Pro VM. |
 | `notifications_unread` | `importance`: `alert`, `warning`, `info` | Ungelesene Benachrichtigungen. |
+| `registration_ok` | | 1, wenn Unraid kein Lizenzproblem meldet, 0, wenn der Lizenzstatus ein Fehler ist (abgelaufene Testlizenz, Schlüssel passt nicht zum USB-Stick, fehlende Schlüsseldatei…). |
+| `registration_info` | `state`, `type` | Wert 1: der Lizenzstatus, wie Unraid ihn meldet (`trial`, `pro`, `eexpired`, `eguid`…), und der Lizenztyp. |
+| `trial_expiry_seconds` | | Bis die Testlizenz endet; nur während einer Testphase. |
+| `os_updates_expiry_seconds` | | Bis der Anspruch der Lizenz auf Unraid-OS-Updates endet; fehlt, wenn die Lizenz kein solches Datum hat. |
+| `uptime_seconds` | | Seit dem Start des Servers. |
+| `cpu_usage_percent` | | Prozessorlast, alle Kerne zusammen. |
+| `memory_total_bytes`, `memory_available_bytes`, `memory_used_percent` | | Arbeitsspeicher. Als belegt zählt, was nicht verfügbar ist: Der Cache, den Unraid zurückgeben kann, wird nicht mitgezählt. |
+| `swap_used_percent` | | Nur wenn der Server Swap hat. |
+
+Die Lizenz und die Systemlast (Betriebszeit, Prozessor, Arbeitsspeicher) stammen aus zwei weiteren, optionalen Abfragen. Eine ältere API-Version, die sie nicht kennt, lässt nur diese Zeilen weg: Der Rest des Monitors ist nicht betroffen.
 
 Die geltenden [eingebauten Regeln](../alerting/rules.md#unraid):
 
-- **Unraid array stopped**: das Array ist seit zehn Minuten nicht
-  gestartet (Warning).
-- **Unraid disk disabled or missing**: der Status einer Platte ist seit
-  fünf Minuten nicht `DISK_OK` (Warning). Das Array läuft degradiert.
-- **Unraid disk read errors**: eine Platte meldet Lesefehler
-  (Advisory).
-- **Unraid disk too hot**: eine Daten- oder Paritätsplatte seit
-  fünfzehn Minuten über 55 °C (Advisory). Cache-Platten, oft NVMe,
-  werden ausgelassen.
-- **Unraid parity check found errors** (Advisory).
-- **Unraid parity check overdue**: die letzte Prüfung ist mehr als 40
-  Tage alt (Advisory).
-- **Unraid cache nearly full**: eine Cache-Platte seit dreißig Minuten
-  mehr als 90 % voll (Advisory).
-- **Unraid container stopped**: ein zum Start mit dem Array
-  vorgesehener Container läuft seit zehn Minuten nicht (Advisory).
+| Regel | Was | Standardschwelle | Haltezeit | Schweregrad | Erinnerung |
+|---|---|---|---|---|---|
+| Unraid-Array gestoppt | Das Unraid-Array ist nicht gestartet: Darauf liegende Shares, Container und VMs sind nicht verfügbar (`dumbmonit_unraid_array_started`). | < 1 | 10 Min. | Warnung (`critical`) | 6 h |
+| Unraid-Platte deaktiviert oder fehlt | Eine Unraid-Platte ist deaktiviert, fehlt oder ist ungültig: Das Array läuft degradiert, und ein weiterer Ausfall verliert Daten (`dumbmonit_unraid_disk_ok`). | < 1 | 5 Min. | Warnung (`critical`) | 6 h |
+| Unraid-Platte Lesefehler | Eine Unraid-Platte hat seit dem Start des Arrays Lesefehler gemeldet: Beim nächsten wird sie möglicherweise deaktiviert (`dumbmonit_unraid_disk_errors`). | > 0 | 5 Min. | Hinweis (`warning`) | 1 T. |
+| Unraid-Platte zu heiß | Eine Unraid-Array- oder Paritätsplatte lag fünfzehn Minuten lang über 55 °C (`dumbmonit_unraid_disk_temperature_celsius{role=~"data\|parity"}`). | > 55 °C | 15 Min. | Hinweis (`warning`) | 6 h |
+| Unraid-Paritätsprüfung hat Fehler gefunden | Die letzte Unraid-Paritätsprüfung ist fehlgeschlagen oder hat Sync-Fehler gefunden: Die Parität stimmt nicht mehr mit den Daten überein (`dumbmonit_unraid_parity_check_ok`). | < 1 | 5 Min. | Hinweis (`warning`) | 1 T. |
+| Unraid-Paritätsprüfung überfällig | Die letzte Unraid-Paritätsprüfung ist mehr als 40 Tage alt: Eine monatliche Prüfung wurde verpasst (`dumbmonit_unraid_parity_check_age_seconds`). | > 40 T. | 1 h | Hinweis (`warning`) | 1 T. |
+| Unraid-Cache fast voll | Ein Unraid-Cache-Pool ist zu mehr als 90 % voll: Schreibvorgänge fallen auf das langsame Array zurück oder scheitern (`dumbmonit_unraid_disk_used_percent{role="cache"}`). | > 90 % | 30 Min. | Hinweis (`warning`) | 1 T. |
+| Unraid-Container gestoppt | Ein Docker-Container, der mit dem Array starten soll, läuft nicht (`dumbmonit_unraid_container_autostart_stopped`). | > 0 | 10 Min. | Hinweis (`warning`) | 6 h |
+| Unraid-VM abgestürzt | Unraid meldet eine virtuelle Maschine als abgestürzt (`dumbmonit_unraid_vm_crashed`). | > 0 | 5 Min. | Hinweis (`warning`) | 6 h |
+| Ungelesener Unraid-Alarm | Unraid hat eine Benachrichtigung der höchsten Wichtigkeit (alert) ausgelöst, die niemand gelesen hat: ausgefallene Platte, Überhitzung, Array-Fehler… (`dumbmonit_unraid_notifications_unread{importance="alert"}`). | > 0 | 10 Min. | Hinweis (`warning`) | 24 h |
+| Unraid-Array fast voll | Das Array ist zu mehr als 95 % voll: Schreibvorgänge auf die Freigaben scheitern bald. Endet unter 93 % (`dumbmonit_unraid_array_used_percent`). | > 95 % | 1 h | Hinweis (`warning`) | 24 h |
+| Unraid-Arbeitsspeicher fast erschöpft | Seit fünfzehn Minuten sind mehr als 95 % des Arbeitsspeichers belegt: Unraid läuft aus dem Arbeitsspeicher, und Container oder VMs werden beendet, wenn er ausgeht. Endet unter 90 % (`dumbmonit_unraid_memory_used_percent`). | > 95 % | 15 Min. | Hinweis (`warning`) | 6 h |
+| Unraid-Lizenzproblem | Unraid meldet ein Lizenzproblem (abgelaufene Testlizenz, Schlüssel passt nicht zum USB-Stick, fehlende Schlüsseldatei…): Das Array verweigert nach dem nächsten Stopp womöglich den Start (`dumbmonit_unraid_registration_ok`). | < 1 | 30 Min. | Hinweis (`warning`) | 24 h |
+| Unraid-Testlizenz endet bald | Die Testlizenz endet in weniger als drei Tagen: Danach startet das Array nicht mehr (`dumbmonit_unraid_trial_expiry_seconds`). | < 3 T. | 1 h | Hinweis (`warning`) | 24 h |
+| Anspruch auf Unraid-OS-Updates endet | Der Anspruch der Lizenz auf Unraid-OS-Updates endet in weniger als 30 Tagen. Der Server läuft weiter; er erhält nur keine neuen Versionen mehr (`dumbmonit_unraid_os_updates_expiry_seconds`). | < 30 T. | 1 h | Info (`info`) | 7 T. |
 
 ## Die Monitorseite
 
@@ -120,6 +131,13 @@ eine URL. Optionen:
 - **Accept an unverifiable certificate**: für ein selbstsigniertes
   Zertifikat.
 - **Timeout pro Request** (15 s).
+
+## Bekannte Grenzen
+
+- Die USV wird nicht gelesen: Binden Sie sie stattdessen über [NUT](nut.md) an.
+- Keine SMART-Details: DumbMonit liest den Status, die Fehler und die Temperatur, die Unraid für jede Platte angibt, nicht die SMART-Attribute.
+- Ob für einen Container ein Image-Update ansteht, wird nicht gelesen.
+- Die Werte zu Lizenz, Prozessor und Arbeitsspeicher brauchen eine aktuelle Version der Unraid-API. Bei einer Version, der sie fehlen, fehlen diese Zeilen und ihre Regeln einfach.
 
 ## Fehlerbehebung
 

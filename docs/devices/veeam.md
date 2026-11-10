@@ -52,24 +52,31 @@ All metrics are prefixed `dumbmonit_veeam_`.
 | `jobs`, `jobs_failed`, `jobs_warning`, `jobs_running`, `jobs_disabled` | | Counts; at most 200 jobs are described one by one. |
 | `sessions_24h`, `sessions_failed_24h`, `sessions_warning_24h` | | Sessions created in the last 24 hours, by result. |
 | `repository_capacity_bytes`, `repository_free_bytes`, `repository_used_bytes`, `repository_used_percent` | `repository`, `type` | Per repository. An object storage repository has no capacity: only its used space is published. |
+| `repository_online` | `repository`, `type` | 1 when the repository is online, 0 when Veeam cannot reach it. Only from API revision `1.2-rev0` on: see the API version option. |
 | `license_valid` | | 1 when the license status is `Valid`. |
 | `license_info` | `status`, `type`, `edition` | Value 1. |
 | `license_expiry_seconds`, `support_expiry_seconds` | | Until the license and the support contract expire; absent for a perpetual license. |
 | `license_instances_licensed`, `license_instances_used` | | Instance license use. |
-| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points` | 1 when the account may read it, 0 when Veeam refused. |
+| `config_backup_enabled`, `config_backup_encrypted` | | 1 when the backup of Veeam's own configuration is enabled; 1 when it is encrypted. Backup Administrator role only. |
+| `config_backup_last_success_age_seconds` | | Since the last successful configuration backup. Backup Administrator role only. |
+| `section_readable` | `section`: `sessions`, `repositories`, `license`, `restore_points`, `config_backup` | 1 when the account may read it, 0 when Veeam refused. |
+
+Two readings depend on the server and on the account. The online state of a repository only exists from API revision `1.2-rev0`: set the API version option to that revision, or to a later one your server lists; otherwise the series is absent and "Veeam repository offline" cannot fire. The configuration backup, like the license, is reserved to the Backup Administrator role: with the Viewer role it reads "not readable" and its two rules stay silent.
 
 The [built-in rules](../alerting/rules.md#veeam-backup--replication) that apply:
 
-- **Veeam job failed**: the last run of an enabled job failed (Warning,
-  reminded daily).
-- **Veeam job ended with a warning** (Advisory, reminded daily).
-- **Veeam repository nearly full**: more than 90 % for thirty minutes
-  (Advisory).
-- **Veeam license expiring**: less than 30 days left (Advisory, reminded
-  daily). Only when the account can read the license.
-- **Client device stale**: a protected computer or VM has gone past
-  `device_stale_days` without a successful backup (Advisory, reminded daily);
-  see [Devices](#devices) below.
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Veeam job failed | The last run of an enabled Veeam job failed: what it protects has no new restore point (`dumbmonit_veeam_job_failed`). | > 0 | 5 min | Warning (`critical`) | 1 d |
+| Veeam job ended with a warning | The last run of an enabled Veeam job ended with a warning: some objects may not be protected (`dumbmonit_veeam_job_warning`). | > 0 | 5 min | Advisory (`warning`) | 1 d |
+| Veeam backup too old | No successful run of a job scheduled at least daily for more than two days (`dumbmonit_veeam_job_last_success_age_seconds`). | > 2 d | 1 h | Advisory (`warning`) | 1 d |
+| Veeam repository nearly full | A Veeam backup repository is more than 90 % full: the next jobs will fail for lack of space (`dumbmonit_veeam_repository_used_percent`). | > 90 % | 30 min | Advisory (`warning`) | 1 d |
+| Veeam license expiring | The Veeam license expires in less than 30 days: jobs stop at the end of the grace period (`dumbmonit_veeam_license_expiry_seconds`). | < 30 d | 1 h | Advisory (`warning`) | 1 d |
+| Veeam support expiring | The Veeam support contract expires in less than 30 days: after that date the server receives no more updates and no vendor support (`dumbmonit_veeam_support_expiry_seconds`). | < 30 d | 1 h | Info (`info`) | 24 h |
+| Veeam repository offline | A backup repository is offline: the jobs that write to it fail, and its restore points cannot be read. Needs API revision `1.2-rev0` or later (`dumbmonit_veeam_repository_online`). | < 1 | 10 min | Warning (`critical`) | 6 h |
+| Veeam license expired or invalid | The Veeam license is no longer valid: jobs stop once the grace period ends. Only when the account can read the license (`dumbmonit_veeam_license_valid`). | < 1 | 30 min | Warning (`critical`) | 24 h |
+| Veeam configuration backup disabled | The backup of Veeam's own configuration is disabled: without it, a lost backup server has to be rebuilt by hand (`dumbmonit_veeam_config_backup_enabled`). | < 1 | 24 h | Info (`info`) | 7 d |
+| Veeam configuration backup too old | The configuration backup is enabled but has not succeeded for more than seven days (`dumbmonit_veeam_config_backup_last_success_age_seconds`). | > 7 d | 1 h | Advisory (`warning`) | 24 h |
 
 ## Devices
 
@@ -149,6 +156,14 @@ Options:
 - **Timeout per request** (15 s).
 - **Device staleness** (`device_stale_days`, 3 days by default): see
   [Devices](#devices) above.
+
+## Known limits
+
+- With the Viewer role, the license and the configuration backup are not readable. Their rules need an account with the Backup Administrator role, which can also change things on the server: choose knowingly.
+- The online state of the repositories needs API revision `1.2-rev0` or later.
+- Malware detection events are not read.
+- At most 200 jobs are described one by one; beyond that, only the totals remain.
+- An object storage repository reports no capacity, so "Veeam repository nearly full" cannot fire for it.
 
 ## Troubleshooting
 

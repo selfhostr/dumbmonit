@@ -73,10 +73,23 @@ name, or its MAC address when it has none), `mac`, `model` and `type`
 | `port_rx_bytes_total`, `port_tx_bytes_total`, `port_rx_errors_total`, `port_tx_errors_total` | per-port counters, drawn by the switch panel | same |
 | `port_neighbor_info` | value 1, LLDP neighbour of the port (`lldp_table`) | same, `remote_chassis`, `remote_port` |
 
-The [built-in rules](../alerting/rules.md#unifi-network) that apply: UniFi
-device offline, UniFi Internet down, UniFi WAN link down, UniFi gateway CPU
-high, UniFi device waiting for adoption, UniFi firmware update available,
-UniFi alarms, plus Monitor unreachable.
+The [built-in rules](../alerting/rules.md#unifi-network) that apply:
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| UniFi device offline | A UniFi device adopted by the controller is offline, isolated or failed to adopt (`dumbmonit_unifi_device_up`). | < 1 | 5 min | Advisory (`warning`), escalates after 1 h | 6 h |
+| UniFi Internet down | The UniFi gateway reports no Internet connection (`dumbmonit_unifi_internet_up`). Without a UniFi gateway the series does not exist and the rule stays silent. | < 1 | 3 min | Warning (`critical`) | 1 h |
+| UniFi WAN link down | A WAN link of the UniFi gateway is down (`dumbmonit_unifi_wan_link_up`): with two links, redundancy is lost while nothing seems broken. A disabled port has no series. | < 1 | 5 min | Advisory (`warning`) | 6 h |
+| UniFi gateway CPU high | The UniFi gateway's processor has been above 90% for fifteen minutes (`dumbmonit_unifi_device_cpu_percent{type="gateway"}`); clears below 80 %. | > 90 % | 15 min | Advisory (`warning`) | 6 h |
+| UniFi device waiting for adoption | A device appeared on the network and waits to be adopted in UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 min | Info (`info`) | 24 h |
+| UniFi firmware update available | A firmware update is available for UniFi devices (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 h | Info (`info`) | 7 d |
+| UniFi alarms | UniFi logged critical events or raised alarms in the last 24 hours (`dumbmonit_unifi_alarms`). Only read with a View Only account. | > 0 | 5 min | Advisory (`warning`) | 24 h |
+| UniFi subsystem in error | A UniFi subsystem (Wi-Fi, LAN or VPN) reports an error in the controller's health view. Internet and the WAN links have their own rules (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 min | Advisory (`warning`) | 6 h |
+| UniFi device overheating | A UniFi device reports that it is overheating (`dumbmonit_unifi_device_overheating`). | > 0 | 5 min | Advisory (`warning`) | 6 h |
+| UniFi PoE budget nearly used | A switch draws more than 90 % of its PoE budget: the next device plugged in may not be powered. Clears below 80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 min | Advisory (`warning`) | 24 h |
+| UniFi Wi-Fi channel saturated | The channel of an access point radio has been busy more than 80 % of the time for thirty minutes: Wi-Fi is slow for everyone on it. Clears below 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 min | Advisory (`warning`) | 24 h |
+| UniFi Wi-Fi clients with a weak signal | More than 40 % of the Wi-Fi clients, with at least five connected, have a signal weaker than -75 dBm: the access points are badly placed or too few (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 h | Info (`info`) | 7 d |
+| UniFi port errors | A switch port logged more than 100 receive or transmit errors in fifteen minutes: check the cable and the connectors (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 min | Advisory (`warning`) | 24 h |
 
 ## Devices
 
@@ -110,22 +123,6 @@ On top of the device states, WAN and clients above, DumbMonit reads, with a loca
 - **Gateway speed test**: download, upload and latency of the last test run by the gateway.
 
 Nothing here sends a command; if the classic API refuses a call, the matching series are simply missing and the monitor is not in error.
-
-## Default alerts
-
-| Alert | Fires when |
-|---|---|
-| UniFi device offline | An adopted device is offline, isolated or failed to adopt for 5 minutes |
-| UniFi Internet down / WAN link down | The gateway reports no Internet, or a WAN link is down |
-| UniFi subsystem in error | Wi-Fi, LAN or VPN reports an error for 10 minutes |
-| UniFi device overheating | A device reports overheating for 5 minutes |
-| UniFi PoE budget nearly used | A switch draws more than 90% of its PoE budget for 15 minutes |
-| UniFi Wi-Fi channel saturated | A radio's channel is busy more than 80% of the time for 30 minutes |
-| UniFi Wi-Fi clients with a weak signal | More than 40% of at least five Wi-Fi clients are under -75 dBm for an hour (information) |
-| UniFi port errors | A port logs more than 100 errors in 15 minutes |
-| UniFi firmware update, device waiting for adoption, alarms, gateway CPU | As before |
-
-All rules can be edited or disabled in Alerts.
 
 ## The monitor page
 
@@ -195,3 +192,10 @@ self-hosted server), or a full URL; an address copied from the browser, with
 certificate check, request timeout (15 s), clients to watch besides the marked
 ones (empty, or `all`), and device staleness (`device_stale_days`, 3 days by
 default).
+
+## Known limits
+
+- The Internet and WAN status, the alarms, PoE and Wi-Fi details only exist in the classic API. Some controllers refuse it to an API key: those series are then absent, without an error. A View Only account reads everything.
+- Alarms are the critical entries of the system log over the last 24 hours on UniFi Network 8 and later, the unarchived alarms before that.
+- Only the clients you marked in UniFi (named, with a fixed IP, or annotated) are followed one by one, unless the `watched_clients` option says otherwise.
+- No command is ever sent: no restart, no adoption, no firmware upgrade.

@@ -244,6 +244,60 @@ API 接受两片中的令牌（`token_id` + `secret`）或如较旧版本做的�
 | `packages` | 检测包变更 | `true` | `apt/versions` 与前一个探针比较；变更在 `node_packages_changed` 中报告一小时。 |
 | `subscription` | 观察订阅和存储库 | `true` | `subscription` 和 `apt/repositories`：状态、警告、启用的标准存储库。 |
 
+## 内置告警规则
+
+这些规则随 DumbMonit 提供，从一开始就已启用。每条规则都可以在“告警”中修改或关闭；[内置规则参考](../alerting/rules.md#proxmox-ve)列出了所有集成的全部规则。
+
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| 备份太旧 | 没有成功的 Proxmox VE 备份超过 7 天(`dumbmonit_proxmox_backup_last_age_seconds`)。 | > 7 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| VM 或容器停止 | 客人在最后两小时内运行并停止了 5 分钟(`1 - dumbmonit_proxmox_guest_running`,并'和`max_over_time(…[2h]) == 1`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| VM 或容器 CPU 高 | 客人已使用超过 90% 其分配的内核 15 分钟(`dumbmonit_proxmox_guest_cpu_percent`)。通知命名客人,`nextcloud (202)`。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| VM 或容器内存高 | 客人已使用超过 95% 其内存 10 分钟(`dumbmonit_proxmox_guest_memory_percent`)。 | > 95 % | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| VM 或容器磁盘即将满 | 客人的根磁盘超过 90% 满(`dumbmonit_proxmox_guest_disk_used_percent`):容器总是,VM 仅当 QEMU 客人代理报告使用时。 | > 90 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| 客人锁定 | VM 或容器已锁定 6 小时(`dumbmonit_proxmox_guest_locked`,标签`lock`):中断的备份或迁移留下了锁,没有操作可以在客人上运行,甚至不是下一个备份。 | > 0 | 6 小时 | 通知 (`warning`) | 24 小时 |
+| 旧快照 | 客人最旧的快照超过 30 天(`dumbmonit_proxmox_guest_snapshot_oldest_age_seconds`)。 | > 30 天 | 1 小时 | 信息 (`info`) | 7 天 |
+| HA 资源出错 | Proxmox HA 资源处于错误或隔离(`dumbmonit_proxmox_ha_resource_error`)。 | > 0 | 2 分钟 | 警告 (`critical`) | 1 小时 |
+| HA 管理器不报告 | 一个节点的 HA 本地资源管理器已停止写入其状态(`dumbmonit_proxmox_ha_lrm_stale`):该节点的 HA 客人将既不重启也不重新定位。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| 集群失去仲裁 | Proxmox 集群不是仲裁者(`1 - dumbmonit_proxmox_cluster_quorate`):客人无法再启动。 | > 0 | 1 分钟 | 警告 (`critical`) | 30 分钟 |
+| Proxmox 节点离线 | 集群节点被报告离线(`1 - dumbmonit_proxmox_node_up`)。 | > 0 | 2 分钟 | 警告 (`critical`) | 30 分钟 |
+| Proxmox 服务关闭 | 一个核心 Proxmox 守护进程在节点上未运行(`dumbmonit_proxmox_node_core_services_down`:`pve-cluster`、`pvedaemon`、`pveproxy`、`pvestatd`、`pve-firewall`、`corosync`、`watchdog-mux`,每个仅在节点启用时计数)。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| 节点网络接口关闭 | 设置为在启动时启动的接口在节点上未启动(`dumbmonit_proxmox_node_interface_offline`)。按需启动的接口永远不被报告。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| Proxmox 存储即将满 | Proxmox 存储超过 85% 满(`dumbmonit_proxmox_storage_used_percent`);在 90% 时"磁盘即将满"接管。 | > 85 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| 精简池即将满 | LVM 精简池超过 90% 满:每个存储在其上的客人当其填满时变为只读(`dumbmonit_proxmox_node_thinpool_used_percent`);在 88% 下清除。 | > 90 % | 15 分钟 | 警告 (`critical`) | 6 小时 |
+| 精简池元数据即将满 | LVM 精简池的元数据体积超过 80% 满(`dumbmonit_proxmox_node_thinpool_metadata_used_percent`)。它远小于数据体积并且经常首先饱和,具有相同的后果。 | > 80 % | 15 分钟 | 警告 (`critical`) | 6 小时 |
+| Proxmox 磁盘磨损 | 节点的 SSD 或 NVMe 已使用超过 90% 其额定寿命(`dumbmonit_proxmox_node_disk_wearout_percent`)。通知读`pve1 · /dev/nvme0n1`。 | > 90 % | 1 小时 | 通知 (`warning`) | 7 天 |
+| Proxmox 磁盘 SMART 故障 | 节点的磁盘报告 SMART 健康`FAILED`(`dumbmonit_proxmox_node_disk_smart_failed`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 24 小时 |
+| Proxmox ZFS 池降级 | 节点的 ZFS 池不是`ONLINE`(`dumbmonit_proxmox_node_zfs_pool_degraded`)。通知读`pve2 · tank`。 | > 0 | 5 分钟 | 警告 (`critical`) | 6 小时 |
+| 备份工作失败 | 节点上最后的 vzdump 工作,或计划备份工作,失败(`1 - dumbmonit_proxmox_backup_job_last_ok`)。 | > 0 | 10 分钟 | 警告 (`critical`) | 24 小时 |
+| 备份工作排除磁盘 | 计划备份工作跳过它覆盖的客人之一的磁盘(`dumbmonit_proxmox_backup_job_guest_excluded_volumes`):工作每晚成功,该数据丢失。CD-ROM 驱动器和 cloudinit 镜像按设计被排除并永不计数。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
+| 复制失败 | 复制工作报告错误或非零失败计数(`dumbmonit_proxmox_replication_job_error`):备用副本已过期。 | > 0 | 10 分钟 | 警告 (`critical`) | 6 小时 |
+| Ceph 健康错误 | Ceph 报告`HEALTH_ERR`(`dumbmonit_proxmox_ceph_health`,0 OK,1 WARN,2 ERR)。 | ≥ 2 | 2 分钟 | 警告 (`critical`) | 30 分钟 |
+| Ceph 健康警告 | Ceph 报告`HEALTH_WARN`超过 15 分钟(`dumbmonit_proxmox_ceph_health == 1`)。 | > 0 | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| Ceph OSD 关闭 | Ceph OSD 已关闭 5 分钟(`1 - dumbmonit_proxmox_ceph_osd_up`)。通知命名 OSD 和其主机。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 小时 |
+| Ceph OSD 几乎满 | 单个 Ceph OSD 超过 85% 满(`dumbmonit_proxmox_ceph_osd_used_percent`):当它达到其限制时写入停止,无论集群平均说什么;在 82% 下清除。 | > 85 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| Ceph 池几乎满 | Ceph 池超过 85% 满(`dumbmonit_proxmox_ceph_pool_used_percent`);在 82% 下清除。 | > 85 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| Ceph noout 标志左开 | Ceph`noout`标志已设置 2 小时(`dumbmonit_proxmox_ceph_flag{flag="noout"}`):重新平衡被禁用,集群读起来健康而其冗余收缩。 | > 0 | 2 小时 | 信息 (`info`) | 24 小时 |
+| Proxmox 更新待处理 | 超过 20 个包更新在节点上待处理(`dumbmonit_proxmox_node_updates_pending`)。 | > 20 | 1 小时 | 信息 (`info`) | 7 天 |
+| Proxmox 安全更新待处理 | 至少一个待处理更新来自安全档案(`dumbmonit_proxmox_node_updates_security_pending`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
+| Proxmox 包已更改 | Proxmox 包的已安装版本在两个探针之间更改 — 有人运行了`apt upgrade`(`dumbmonit_proxmox_node_packages_changed`,发布一小时以其变化细节在其`changes`标签:`pve1 · pve-manager 8.2.4→8.2.7`)。一小时后自行解决。 | > 0 | 1 分钟 | 信息 (`info`) | 24 小时 |
+| 节点证书即将过期 | Proxmox 节点证书在少于 14 天内过期(`dumbmonit_proxmox_node_certificate_expiry_days`)。 | < 14 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Proxmox 存储未激活 | 某个已启用的存储在某个节点上未激活（共享不可达、磁盘未挂载、备份服务器宕机）：向它做的备份和它上面的磁盘都会出错(`dumbmonit_proxmox_storage_active`)。 | < 1 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| Proxmox 节点需要重启 | 某个节点上安装了较新的内核已有三天却未重启：节点仍在运行旧内核(`dumbmonit_proxmox_node_reboot_required`)。 | > 0 | 3 天 | 信息 (`info`) | 7 天 |
+| Proxmox 订阅已过期 | 某个节点的订阅已过期、无效或被暂停：enterprise 仓库不再提供更新(`dumbmonit_proxmox_node_subscription_info`)。 | > 0 | 1 小时 | 通知 (`warning`) | 7 天 |
+| Proxmox 复制滞后 | 某个存储复制作业落后其计划超过六小时：另一节点上的副本越来越旧(`dumbmonit_proxmox_replication_job_next_sync_seconds`)。 | > 6 小时 | 15 分钟 | 通知 (`warning`) | 12 小时 |
+| Proxmox 备份作业已停止运行 | 某个已启用的备份作业已超过八天没有运行(`dumbmonit_proxmox_backup_job_last_run_age_seconds`)。 | > 8 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
+| Proxmox 客户机不在任何备份作业中 | 某个虚拟机或容器已有一天不在任何备份作业中(`dumbmonit_proxmox_backup_covered`)。 | < 1 | 24 小时 | 信息 (`info`) | 7 天 |
+| Proxmox 任务失败 | 过去六小时内某个节点上有任务失败（客户机启动、迁移、恢复……）。备份有自己的规则(`dumbmonit_proxmox_node_tasks_failed`)。 | > 0 | 5 分钟 | 信息 (`info`) | 24 小时 |
+
+## 已知限制
+
+- 主板温度不可用：Proxmox VE 的 API 只给出磁盘的 SMART 温度。其他传感器请在节点上安装 DumbMonit 代理。
+- 虚拟机内部的磁盘使用量需要 QEMU 客户机代理。没有它，虚拟机只有大小，没有使用量。
+- 客户机的操作系统和地址每小时最多查询一次。
+- 每次探测最多为 200 个客户机清点快照（选项 `max_snapshot_guests`）；其余的计为已跳过。
+- 缺少权限、Proxmox VE 版本较旧或功能未安装都不会引发错误：对应的序列不存在，监控项页面会指出缺少的权限。
+
 ## 常见错误 {#common-errors}
 
 | 症状 | 可能原因 |

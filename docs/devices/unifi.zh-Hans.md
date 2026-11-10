@@ -47,7 +47,23 @@ WAN、互联网和告警状态仅存在于经典API中。使用密钥时，DumbM
 | `port_rx_bytes_total`、`port_tx_bytes_total`、`port_rx_errors_total`、`port_tx_errors_total` | 每端口计数器，由交换机面板绘制 | 同上 |
 | `port_neighbor_info` | 值为 1，端口的 LLDP 邻居（`lldp_table`） | 同上，`remote_chassis`、`remote_port` |
 
-适用的[内置规则](../alerting/rules.md#unifi-network)：UniFi设备离线、UniFi互联网宕机、UniFi WAN链路宕机、UniFi网关CPU高、UniFi设备待采纳、UniFi固件更新可用、UniFi告警，加上设备不可达。
+适用的[内置规则](../alerting/rules.md#unifi-network)：
+
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| UniFi 监控项离线 | UniFi 监控项由控制器采纳离线、隔离或未能采纳(`dumbmonit_unifi_device_up`)。 | < 1 | 5 分钟 | 通知 (`warning`),1 小时后升级 | 6 小时 |
+| UniFi 互联网关闭 | UniFi 网关报告没有互联网连接(`dumbmonit_unifi_internet_up`)。没有 UniFi 网关系列不存在规则保持沉默。 | < 1 | 3 分钟 | 警告 (`critical`) | 1 小时 |
+| UniFi WAN 链接关闭 | WAN UniFi 网关的链接关闭(`dumbmonit_unifi_wan_link_up`):带两个链接,冗余丧失而没什么看起来破损。禁用的端口没有系列。 | < 1 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi 网关 CPU 高 | UniFi 网关的处理器已在 90% 以上 15 分钟(`dumbmonit_unifi_device_cpu_percent{type="gateway"}`);在 80% 下清除。 | > 90 % | 15 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi 监控项等待采纳 | 监控项出现在网络并等待在 UniFi 中采纳(`dumbmonit_unifi_devices{state="pending"}`)。 | > 0 | 30 分钟 | 信息 (`info`) | 24 小时 |
+| UniFi 固件更新可用 | 固件更新对 UniFi 监控项可用(`dumbmonit_unifi_devices_upgradable`)。 | > 0 | 1 小时 | 信息 (`info`) | 7 天 |
+| UniFi 告警 | UniFi 在最后 24 小时内记录了关键事件或提升告警(`dumbmonit_unifi_alarms`)。仅用视图唯一账户读取。 | > 0 | 5 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi 子系统出错 | 某个 UniFi 子系统（Wi-Fi、LAN 或 VPN）在控制器的健康视图中报告错误。互联网和 WAN 链路有各自的规则(`dumbmonit_unifi_subsystem_status`: 2)。 | ≥ 2 | 10 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi 设备过热 | 某台 UniFi 设备报告自己过热(`dumbmonit_unifi_device_overheating`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 6 小时 |
+| UniFi PoE 预算几乎用尽 | 某台交换机消耗了超过 90 % 的 PoE 预算：下一台接入的设备可能得不到供电。低于 80 % 时解除(`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`)。 | > 90 % | 15 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi Wi-Fi 信道拥塞 | 某个接入点射频的信道在三十分钟内有超过 80 % 的时间处于繁忙：该信道上所有人的 Wi-Fi 都很慢。低于 65 % 时解除(`dumbmonit_unifi_radio_channel_utilization_percent`)。 | > 80 % | 30 分钟 | 通知 (`warning`) | 24 小时 |
+| UniFi Wi-Fi 客户端信号弱 | 在至少有五个客户端连接时，超过 40 % 的 Wi-Fi 客户端信号弱于 -75 dBm：接入点位置不佳或数量太少(`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`)。 | > 40 % | 1 小时 | 信息 (`info`) | 7 天 |
+| UniFi 端口错误 | 某个交换机端口在十五分钟内记录了超过 100 个接收或发送错误：请检查网线和接头(`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`)。 | > 100 | 15 分钟 | 通知 (`warning`) | 24 小时 |
 
 ## 设备 {#devices}
 
@@ -97,3 +113,10 @@ WAN、互联网和告警状态仅存在于经典API中。使用密钥时，DumbM
 | 仅查看账户 | 本地仅查看账户的用户名和密码。 |
 
 地址：主机名或IP（`unifi.lan`）、`host:port`（自托管服务器为`unifi.lan:8443`）或完整URL；从浏览器复制的地址，带`/manage/…`或`/network/…`被接受。选项：站点（`default`）、端口（443）、证书检查、请求超时（15秒）、除标记外要监控的客户端（空或`all`）以及设备陈旧性（`device_stale_days`，默认3天）。
+
+## 已知限制
+
+- 互联网和 WAN 状态、告警、PoE 以及 Wi-Fi 详情只存在于经典 API 中。有些控制器拒绝 API 密钥访问它：这些序列此时不存在，也不报错。View Only 账户可以读取全部内容。
+- 在 UniFi Network 8 及更高版本上，告警是系统日志中过去 24 小时的严重条目；更早的版本上则是未归档的告警。
+- 只有您在 UniFi 中标记过的客户端（已命名、固定 IP 或带备注）才会被逐个跟踪，除非 `watched_clients` 选项另有设定。
+- 绝不发送任何命令：不重启、不采纳、不升级固件。

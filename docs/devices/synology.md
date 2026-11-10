@@ -132,20 +132,20 @@ the NAS.
 | Synology volume almost full | advisory | A volume is 90 % full or more, for 15 minutes. |
 | Synology temperature high | advisory | A disk is above 55 °C, or DSM raised its temperature warning, for 15 minutes. |
 | Synology memory high | advisory | Memory usage above 95 % for 15 minutes. |
-| Synology system partition crashed | critical | DSM reports `system_crashed`, for 5 minutes. |
-| Synology system partition needs repair | warning | DSM reports `system_need_repair`, for 30 minutes. |
-| Synology CPU sustained high | warning | CPU above 90 % for 15 minutes. |
-| Synology swap heavily used | advisory | More than 60 % of the swap in use for an hour. |
-| Synology DSM update available | advisory | `update_available` is 1 for an hour. |
-| Synology Hyper Backup failed | warning | The last run of a task failed (unreachable destination, checksum error…), for 10 minutes. A run in progress, a cancelled or a never-run task do not fire it. |
-| Synology Hyper Backup success too old | advisory | No successful run of a task for more than 8 days. A monthly task needs a longer limit: edit the rule or silence it for that task. |
-| Synology volume read-only | critical | A volume is read-only, for 5 minutes. |
-| Synology volume locked | warning | An encrypted volume is locked, for 10 minutes: its shares are unavailable. |
-| Synology volume out of inodes | warning | A volume has no free inode left, for 10 minutes. |
-| Synology data scrubbing overdue | advisory | The last data scrubbing of a pool ended more than 200 days ago. |
-| Synology certificate expiring | warning | A DSM certificate expires in less than 14 days (an automatic Let's Encrypt renewal normally happens at 30). |
-| Synology certificate about to expire | critical | A DSM certificate expires in less than 3 days, or already has. |
-| Synology certificate broken | warning | DSM marks a certificate as broken, for an hour. |
+| Synology system partition crashed | warning | DSM reports `system_crashed`, for 5 minutes. |
+| Synology system partition needs repair | advisory | DSM reports `system_need_repair`, for 30 minutes. |
+| Synology CPU sustained high | advisory | CPU above 90 % for 15 minutes. |
+| Synology swap heavily used | info | More than 60 % of the swap in use for an hour. |
+| Synology DSM update available | info | `update_available` is 1 for an hour. |
+| Synology Hyper Backup failed | advisory | The last run of a task failed (unreachable destination, checksum error…), for 10 minutes. A run in progress, a cancelled or a never-run task do not fire it. |
+| Synology Hyper Backup success too old | info | No successful run of a task for more than 8 days. A monthly task needs a longer limit: edit the rule or silence it for that task. |
+| Synology volume read-only | warning | A volume is read-only, for 5 minutes. |
+| Synology volume locked | advisory | An encrypted volume is locked, for 10 minutes: its shares are unavailable. |
+| Synology volume out of inodes | advisory | A volume has no free inode left, for 10 minutes. |
+| Synology data scrubbing overdue | info | The last data scrubbing of a pool ended more than 200 days ago. |
+| Synology certificate expiring | advisory | A DSM certificate expires in less than 14 days (an automatic Let's Encrypt renewal normally happens at 30). |
+| Synology certificate about to expire | warning | A DSM certificate expires in less than 3 days, or already has. |
+| Synology certificate broken | advisory | DSM marks a certificate as broken, for an hour. |
 
 !!! note "Certificates, packages and connections"
     These come from three DSM APIs that Synology does not document
@@ -419,6 +419,13 @@ used over HTTPS and 5000 over HTTP.
 | `abb` | Watch Active Backup for Business | `true` | Reads the Active Backup for Business tasks. Needs the package installed and an account allowed to use it; a NAS without the package is simply skipped. |
 | `drive` | Watch Synology Drive | `true` | Reads whether the Synology Drive service responds, its team folders and its active connection count. A NAS without the package is simply skipped. |
 | `photos` | Watch Synology Photos | `true` | Shows whether the Synology Photos package is installed, with no extra request to the NAS. Synology does not expose a list of mobile backup devices through any API. |
+
+## Known limits
+
+- The account has to be in the administrators group: DSM's storage API answers no other account. Take its shared folders and applications away, as described above.
+- Two-step verification has to stay off for this account.
+- Certificates, packages and current connections come from DSM APIs that Synology does not document. They are read as optional and have not been checked on a real NAS yet.
+- A Hyper Backup task that runs monthly trips the eight-day rule: raise the threshold for that task, or silence it.
 
 ## Common errors
 

@@ -55,6 +55,8 @@ Toutes les métriques sont préfixées `dumbmonit_pfsense_`.
 | `service_running`, `service_enabled` | `service`, `description` | Comme Status > Services les montre. |
 | `service_stopped` | `service`, `description` | 1 quand le service est activé et ne tourne pas. |
 | `services_stopped` | | Compteur. |
+| `states`, `states_max`, `states_used_percent` | | Connexions que pf suit, la limite, et la part utilisée. Demande le privilège `/api/v2/firewall/states/size GET`. |
+| `carp_enabled`, `carp_maintenance_mode` | | 1 quand CARP est activé ; 1 quand il a été mis en mode maintenance persistant. Demande le privilège `/api/v2/status/carp GET`. |
 | `restapi_update_available` | | Avec le privilège `/api/v2/system/restapi/version` : 1 quand le paquet d'API REST a une release plus récente. |
 | `restapi_version_info` | `version`, `latest` | Valeur 1 : release installée et dernière release du paquet. |
 
@@ -63,20 +65,25 @@ disponible : la seule route qui touche aux mises à jour système
 (`/api/v2/system/update`) en démarre une. DumbMonit rapporte seulement les
 propres mises à jour du paquet.
 
+La table d'états et CARP sont des lectures facultatives. Chacune demande un privilège de plus sur l'utilisateur `dumbmonit` : `/api/v2/firewall/states/size GET` et `/api/v2/status/carp GET`. Sans le privilège, pfSense refuse cette lecture et les chiffres correspondants sont simplement absents : ni erreur, ni alerte.
+
 Les [règles intégrées](../alerting/rules.md#pfsense) qui s'appliquent :
 
-- **Passerelle pfSense en panne** : une passerelle est marquée en panne
-  depuis trois minutes (Avertissement).
-- **Passerelle pfSense perd des paquets** : plus de 10 % de perte pendant
-  dix minutes, sur une passerelle qui n'est pas déjà en panne (Avis).
-- **Passerelle pfSense lente** : aller-retour au-dessus de 500 ms pendant
-  quinze minutes (Avis). Augmentez-le pour une liaison satellite.
-- **Interface pfSense sans lien** : une interface activée sans lien depuis
-  cinq minutes (Avis).
-- **Service pfSense arrêté** : un service activé qui ne tourne pas depuis
-  cinq minutes (Avis).
-- **Disque pfSense presque plein** : plus de 90 % pendant trente minutes
-  (Avis).
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Passerelle pfSense en panne | Une passerelle pfSense est en panne : son adresse de surveillance ne répond plus, et le trafic qu'elle porte s'arrête ou bascule (`dumbmonit_pfsense_gateway_up`). | < 1 | 3 min | Avertissement (`critical`) | 6 h |
+| Passerelle pfSense perd des paquets | Une passerelle pfSense perd plus de 10 % des sondes vers son adresse de surveillance : la ligne est dégradée (`dumbmonit_pfsense_gateway_loss_percent unless on (target, gateway) dumbmonit_pfsense_gateway_up == 0`). | > 10 % | 10 min | Avis (`warning`) | 6 h |
+| Passerelle pfSense lente | L'aller-retour vers l'adresse de surveillance d'une passerelle pfSense est resté au-dessus de 500 ms pendant quinze minutes (`dumbmonit_pfsense_gateway_delay_milliseconds`). | > 500 ms | 15 min | Avis (`warning`) | 6 h |
+| Interface pfSense sans lien | Une interface pfSense activée n'a pas de lien : câble, port de commutateur ou carte réseau (`dumbmonit_pfsense_interface_down`). | > 0 | 5 min | Avis (`warning`) | 6 h |
+| Service pfSense arrêté | Un service pfSense activé ne tourne pas : résolveur DNS, VPN, NTP… (`dumbmonit_pfsense_service_stopped`). | > 0 | 5 min | Avis (`warning`) | 6 h |
+| Disque pfSense presque plein | Le disque pfSense est plein à plus de 90 % : les logs, rapports et mises à jour de paquet arrêtent de s'écrire (`dumbmonit_pfsense_disk_used_percent`). | > 90 % | 30 min | Avis (`warning`) | 1 j |
+| Table d'états pfSense presque pleine | pf suit plus de 80 % des connexions auxquelles il a droit : passé la limite, le pare-feu rejette les nouvelles connexions sans autre symptôme. Se lève sous 70 % (`dumbmonit_pfsense_states_used_percent`). | > 80 % | 10 min | Avis (`warning`) | 6 h |
+| Buffers réseau pfSense presque épuisés | Plus de 90 % des buffers réseau sont utilisés : un pare-feu qui n'en a plus cesse de transmettre alors que son processeur est au repos. Se lève sous 80 % (`dumbmonit_pfsense_mbuf_used_percent`). | > 90 % | 10 min | Avis (`warning`) | 6 h |
+| Température pfSense élevée | La température que pfSense lit est restée au-dessus de 85 °C pendant dix minutes : le boîtier va se brider lui-même. Se lève à 78 °C (`dumbmonit_pfsense_temperature_celsius`). | > 85 °C | 10 min | Avis (`warning`) | 6 h |
+| CPU pfSense élevé | Le processeur est resté au-dessus de 90 % pendant quinze minutes. Se lève sous 80 % (`dumbmonit_pfsense_cpu_usage_percent`). | > 90 % | 15 min | Avis (`warning`) | 6 h |
+| Swap pfSense utilisé | pfSense utilise plus de la moitié de son swap depuis une heure : il manque de mémoire (`dumbmonit_pfsense_swap_used_percent`). | > 50 % | 1 h | Avis (`warning`) | 24 h |
+| Erreurs d'interface pfSense | Une interface a enregistré plus de 100 erreurs de réception ou d'émission en quinze minutes : vérifiez le câble, le module SFP et le réglage duplex (`dumbmonit_pfsense_interface_errors_in_total` + `dumbmonit_pfsense_interface_errors_out_total`). | > 100 | 15 min | Avis (`warning`) | 24 h |
+| Mode maintenance CARP pfSense laissé actif | CARP est resté en mode maintenance persistant pendant une heure : ce pare-feu a cédé ses adresses virtuelles à son partenaire et ne les reprendra pas de lui-même (`dumbmonit_pfsense_carp_maintenance_mode`). | > 0 | 1 h | Info (`info`) | 24 h |
 
 ## La page de la surveillance
 
@@ -115,6 +122,8 @@ mise à jour disponible du paquet d'API REST.
 - **/api/v2/status/services GET** — Services arrêtés
 - **/api/v2/system/version GET** — Version de pfSense
 - **/api/v2/system/restapi/version GET** — Facultatif : mises à jour du paquet REST API
+- **/api/v2/firewall/states/size GET** — Facultatif : remplissage de la table d'états
+- **/api/v2/status/carp GET** — Facultatif : mode maintenance CARP
 - **/api/v2/auth/key POST** — Seulement pour créer la clé, puis retirez-le
 
 !!! warning
@@ -149,6 +158,13 @@ Options :
 - **Accepter un certificat non vérifiable** : le propre certificat de
   pfSense est autosigné.
 - **Délai par requête** (15 s).
+
+## Limites connues
+
+- Les certificats ne sont pas lus : le paquet renvoie leurs clés privées avec eux, et DumbMonit refuse de les demander. Suivez une date d'expiration avec une [surveillance TLS](services.md#tls) sur l'adresse qui sert le certificat.
+- Les tunnels VPN (IPsec, OpenVPN, WireGuard) ne sont pas suivis un par un. Leurs services le sont, par « Service pfSense arrêté ».
+- Les mises à jour de pfSense ne sont pas signalées : la seule route de l'API qui y touche en lance une.
+- La mémoire n'a pas de règle : pfSense compte le cache ZFS comme mémoire utilisée, un chiffre élevé est donc normal. Le swap utilisé est le signe fiable d'un pare-feu à court de mémoire.
 
 ## Dépannage
 

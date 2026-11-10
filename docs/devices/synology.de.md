@@ -117,6 +117,20 @@ Seite fragt das NAS nie ab.
 | Synology volume almost full | advisory | Ein Volume ist seit 15 Minuten zu 90 % oder mehr voll. |
 | Synology temperature high | advisory | Eine Platte ist seit 15 Minuten über 55 °C, oder DSM hat seine Temperaturwarnung gehoben. |
 | Synology memory high | advisory | Speichernutzung seit 15 Minuten über 95 %. |
+| Synology system partition crashed | warning | DSM meldet seine Systempartition als abgestürzt: Das NAS übersteht einen Neustart womöglich nicht. Prüfen Sie den Speicher-Manager. |
+| Synology system partition needs repair | advisory | DSM meldet, dass seine Systempartition repariert werden muss; der Speicher-Manager bietet die Reparatur an. |
+| Synology CPU sustained high | advisory | Der Prozessor des NAS lag fünfzehn Minuten lang über 90 %; eine Datenbereinigung oder ein Indexlauf endet in der Regel lange davor. Endet unter 85 %. |
+| Synology swap heavily used | info | Seit einer Stunde sind mehr als 60 % des Swap belegt: Dem NAS fehlt Arbeitsspeicher. |
+| Synology DSM update available | info | Ein DSM-Update ist verfügbar. |
+| Synology Hyper Backup failed | advisory | Der letzte Lauf einer Hyper-Backup-Aufgabe ist fehlgeschlagen (Ziel nicht erreichbar, Prüfsummenfehler…). Ein laufender Lauf, ein abgebrochener Lauf oder eine nie gelaufene Aufgabe löst nichts aus. |
+| Synology Hyper Backup success too old | info | Seit mehr als acht Tagen kein erfolgreicher Lauf einer Hyper-Backup-Aufgabe: Sie ist deaktiviert, angehalten oder kommt nie zum Laufen. Eine monatliche Aufgabe braucht eine längere Grenze. |
+| Synology volume read-only | warning | Ein Volume ist schreibgeschützt: Nichts kann mehr darauf schreiben (Dateisystemfehler oder degradiertes Volume). Prüfen Sie den Speicher-Manager. |
+| Synology volume locked | advisory | Ein verschlüsseltes Volume ist gesperrt: Seine freigegebenen Ordner sind nicht verfügbar, bis der Schlüssel eingegeben oder der Schlüsseltresor eingehängt ist. |
+| Synology volume out of inodes | advisory | Ein Volume hat keinen freien Inode mehr: Es lässt sich keine Datei anlegen, selbst bei freiem Platz. |
+| Synology data scrubbing overdue | info | Die letzte Datenbereinigung eines Speicherpools endete vor mehr als 200 Tagen: Planen Sie im Speicher-Manager eine regelmäßige. |
+| Synology certificate expiring | advisory | Ein DSM-Zertifikat läuft in weniger als 14 Tagen ab: Seine automatische Erneuerung schlägt vermutlich fehl. |
+| Synology certificate about to expire | warning | Ein DSM-Zertifikat läuft in weniger als 3 Tagen ab oder ist bereits abgelaufen. |
+| Synology certificate broken | advisory | DSM markiert ein Zertifikat als defekt: Sein Schlüssel oder seine Kette lässt sich nicht lesen. |
 
 ## Active Backup for Business
 
@@ -397,6 +411,13 @@ wird 5001 über HTTPS und 5000 über HTTP genutzt.
 | `abb` | Watch Active Backup for Business | `true` | Liest die Active-Backup-for-Business-Tasks. Braucht das installierte Paket und ein Konto, das es nutzen darf; ein NAS ohne das Paket wird einfach übersprungen. |
 | `drive` | Watch Synology Drive | `true` | Liest, ob der Synology-Drive-Dienst antwortet, seine Team-Ordner und seine aktive Verbindungszählung. Ein NAS ohne das Paket wird einfach übersprungen. |
 | `photos` | Watch Synology Photos | `true` | Zeigt, ob das Synology-Photos-Paket installiert ist, ohne zusätzlichen Request an das NAS. Synology exponiert keine Liste von Mobile-Backup-Geräten über irgendeine API. |
+
+## Bekannte Grenzen
+
+- Das Konto muss in der Gruppe der Administratoren sein: Die Speicher-API von DSM antwortet keinem anderen Konto. Nehmen Sie ihm seine freigegebenen Ordner und Anwendungen weg, wie oben beschrieben.
+- Die Bestätigung in zwei Schritten muss für dieses Konto ausgeschaltet bleiben.
+- Zertifikate, Pakete und aktuelle Verbindungen stammen aus DSM-APIs, die Synology nicht dokumentiert. Sie werden als optional gelesen und sind noch nicht an einem echten NAS überprüft worden.
+- Eine monatlich laufende Hyper-Backup-Aufgabe löst die Acht-Tage-Regel aus: Heben Sie die Schwelle für diese Aufgabe an oder schalten Sie sie stumm.
 
 ## Häufige Fehler
 

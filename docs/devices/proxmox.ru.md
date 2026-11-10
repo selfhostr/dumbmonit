@@ -434,6 +434,60 @@ API принимает токен из двух частей (`token_id` + `secr
 | `packages` | Detect package changes | `true` | `apt/versions` в сравнении с предыдущим опросом; изменение сообщается в течение часа в `node_packages_changed`. |
 | `subscription` | Watch subscription and repositories | `true` | `subscription` и `apt/repositories`: статус, предупреждения, включённые стандартные репозитории. |
 
+## Встроенные правила оповещений
+
+Эти правила поставляются вместе с DumbMonit и включены с самого начала. Каждое можно изменить или отключить в разделе «Оповещения»; [справочник встроенных правил](../alerting/rules.md#proxmox-ve) перечисляет все правила всех интеграций.
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| Backup too old | Нет успешной резервной копии Proxmox VE более семи дней (`dumbmonit_proxmox_backup_last_age_seconds`). | > 7 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| VM or container stopped | Гость работал в последние два часа и остановлен пять минут (`1 - dumbmonit_proxmox_guest_running`, объединено через and с `max_over_time(…[2h]) == 1`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| VM or container CPU high | Гость использовал более 90 % выделенных ему ядер в течение пятнадцати минут (`dumbmonit_proxmox_guest_cpu_percent`). Уведомление называет гостя, `nextcloud (202)`. | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| VM or container memory high | Гость использовал более 95 % своей памяти в течение десяти минут (`dumbmonit_proxmox_guest_memory_percent`). | > 95 % | 10 мин | Advisory (`warning`) | 6 ч |
+| VM or container disk almost full | Корневой диск гостя заполнен более чем на 90 % (`dumbmonit_proxmox_guest_disk_used_percent`): у контейнеров всегда, у ВМ только когда гостевой агент QEMU сообщает об использовании. | > 90 % | 15 мин | Advisory (`warning`) | 24 ч |
+| Guest locked | ВМ или контейнер заблокирован шесть часов (`dumbmonit_proxmox_guest_locked`, метка `lock`): прерванная резервная копия или миграция оставила блокировку, и ни одна операция не может выполняться на госте, даже следующая резервная копия. | > 0 | 6 ч | Advisory (`warning`) | 24 ч |
+| Old snapshot | Самому старому снимку гостя более тридцати дней (`dumbmonit_proxmox_guest_snapshot_oldest_age_seconds`). | > 30 дн | 1 ч | Info (`info`) | 7 дн |
+| HA resource in error | Ресурс Proxmox HA находится в состоянии error или fenced (`dumbmonit_proxmox_ha_resource_error`). | > 0 | 2 мин | Warning (`critical`) | 1 ч |
+| HA manager not reporting | Локальный менеджер ресурсов HA узла перестал записывать своё состояние (`dumbmonit_proxmox_ha_lrm_stale`): гости HA этого узла не будут ни перезапущены, ни перемещены. | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| Cluster lost quorum | Кластер Proxmox не имеет кворума (`1 - dumbmonit_proxmox_cluster_quorate`): гостей больше нельзя запускать. | > 0 | 1 мин | Warning (`critical`) | 30 мин |
+| Proxmox node offline | Узел кластера сообщается как офлайн (`1 - dumbmonit_proxmox_node_up`). | > 0 | 2 мин | Warning (`critical`) | 30 мин |
+| Proxmox service down | Основной демон Proxmox не запущен на узле (`dumbmonit_proxmox_node_core_services_down`: `pve-cluster`, `pvedaemon`, `pveproxy`, `pvestatd`, `pve-firewall`, `corosync`, `watchdog-mux`, каждый учитывается только там, где узел его включает). | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| Node network interface down | Интерфейс, настроенный на запуск при загрузке, не поднят на узле (`dumbmonit_proxmox_node_interface_offline`). Интерфейс, поднимаемый по требованию, никогда не сообщается. | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| Proxmox storage almost full | Хранилище Proxmox заполнено более чем на 85% (`dumbmonit_proxmox_storage_used_percent`); при 90% подключается "Disk almost full". | > 85 % | 15 мин | Advisory (`warning`) | 24 ч |
+| Thin pool almost full | Thin-пул LVM заполнен более чем на 90 %: при заполнении каждый гость, хранящийся на нём, переходит в режим только для чтения (`dumbmonit_proxmox_node_thinpool_used_percent`); сбрасывается ниже 88 %. | > 90 % | 15 мин | Warning (`critical`) | 6 ч |
+| Thin pool metadata almost full | Том метаданных thin-пула LVM заполнен более чем на 80 % (`dumbmonit_proxmox_node_thinpool_metadata_used_percent`). Он намного меньше тома данных и часто переполняется первым, с теми же последствиями. | > 80 % | 15 мин | Warning (`critical`) | 6 ч |
+| Proxmox disk wearing out | SSD или NVMe узла израсходовал более 90 % своего номинального ресурса (`dumbmonit_proxmox_node_disk_wearout_percent`). Уведомление выглядит как `pve1 · /dev/nvme0n1`. | > 90 % | 1 ч | Advisory (`warning`) | 7 дн |
+| Proxmox disk SMART failure | Диск узла сообщает состояние SMART `FAILED` (`dumbmonit_proxmox_node_disk_smart_failed`). | > 0 | 5 мин | Warning (`critical`) | 24 ч |
+| Proxmox ZFS pool degraded | Пул ZFS узла не в состоянии `ONLINE` (`dumbmonit_proxmox_node_zfs_pool_degraded`). Уведомление выглядит как `pve2 · tank`. | > 0 | 5 мин | Warning (`critical`) | 6 ч |
+| Backup job failed | Последнее задание vzdump на узле или плановое задание резервного копирования завершилось неудачей (`1 - dumbmonit_proxmox_backup_job_last_ok`). | > 0 | 10 мин | Warning (`critical`) | 24 ч |
+| Backup job excludes a disk | Плановое задание резервного копирования пропускает диск одного из охватываемых им гостей (`dumbmonit_proxmox_backup_job_guest_excluded_volumes`): задание каждую ночь завершается успешно, а этих данных в копии нет. Приводы CD-ROM и образы cloudinit исключены по замыслу и никогда не учитываются. | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
+| Replication failed | Задание репликации сообщает об ошибке или ненулевом счётчике сбоев (`dumbmonit_proxmox_replication_job_error`): резервная копия устарела. | > 0 | 10 мин | Warning (`critical`) | 6 ч |
+| Ceph health error | Ceph сообщает `HEALTH_ERR` (`dumbmonit_proxmox_ceph_health`, 0 OK, 1 WARN, 2 ERR). | ≥ 2 | 2 мин | Warning (`critical`) | 30 мин |
+| Ceph health warning | Ceph сообщает `HEALTH_WARN` более пятнадцати минут (`dumbmonit_proxmox_ceph_health == 1`). | > 0 | 15 мин | Advisory (`warning`) | 6 ч |
+| Ceph OSD down | OSD Ceph не работает пять минут (`1 - dumbmonit_proxmox_ceph_osd_up`). Уведомление называет OSD и его хост. | > 0 | 5 мин | Warning (`critical`) | 1 ч |
+| Ceph OSD nearly full | Один OSD Ceph заполнен более чем на 85 % (`dumbmonit_proxmox_ceph_osd_used_percent`): запись прекращается, когда он достигает своего предела, что бы ни говорило среднее по кластеру; сбрасывается ниже 82 %. | > 85 % | 15 мин | Advisory (`warning`) | 24 ч |
+| Ceph pool almost full | Пул Ceph заполнен более чем на 85 % (`dumbmonit_proxmox_ceph_pool_used_percent`); сбрасывается ниже 82 %. | > 85 % | 15 мин | Advisory (`warning`) | 24 ч |
+| Ceph noout flag left on | Флаг Ceph `noout` установлен два часа (`dumbmonit_proxmox_ceph_flag{flag="noout"}`): ребалансировка отключена, и кластер выглядит здоровым, пока его избыточность сокращается. | > 0 | 2 ч | Info (`info`) | 24 ч |
+| Proxmox updates pending | На узле ожидает более двадцати обновлений пакетов (`dumbmonit_proxmox_node_updates_pending`). | > 20 | 1 ч | Info (`info`) | 7 дн |
+| Proxmox security updates pending | Хотя бы одно ожидающее обновление приходит из архива безопасности (`dumbmonit_proxmox_node_updates_security_pending`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
+| Proxmox packages changed | Установленная версия пакета Proxmox изменилась между двумя опросами — кто-то выполнил `apt upgrade` (`dumbmonit_proxmox_node_packages_changed`, публикуется в течение одного часа, подробности в его метке `changes`: `pve1 · pve-manager 8.2.4→8.2.7`). Разрешается само через час. | > 0 | 1 мин | Info (`info`) | 24 ч |
+| Node certificate expiring | Сертификат узла Proxmox истекает менее чем через четырнадцать дней (`dumbmonit_proxmox_node_certificate_expiry_days`). | < 14 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Proxmox storage inactive | Включённое хранилище не активно на узле (недоступный общий ресурс, несмонтированный диск, выключенный сервер резервного копирования): резервное копирование в него и диски на нём не работают (`dumbmonit_proxmox_storage_active`). | < 1 | 10 мин | Advisory (`warning`) | 6 ч |
+| Proxmox node needs a reboot | На узле уже три дня установлено более новое ядро без перезагрузки: узел по-прежнему работает на старом (`dumbmonit_proxmox_node_reboot_required`). | > 0 | 3 дн | Info (`info`) | 7 дн |
+| Proxmox subscription expired | Подписка узла истекла, недействительна или приостановлена: репозиторий enterprise перестаёт отдавать обновления (`dumbmonit_proxmox_node_subscription_info`). | > 0 | 1 ч | Advisory (`warning`) | 7 дн |
+| Proxmox replication overdue | Задание репликации хранилища отстаёт от расписания более чем на шесть часов: копия на другом узле устаревает (`dumbmonit_proxmox_replication_job_next_sync_seconds`). | > 6 ч | 15 мин | Advisory (`warning`) | 12 ч |
+| Proxmox backup job not running | Включённое задание резервного копирования не запускалось более восьми дней (`dumbmonit_proxmox_backup_job_last_run_age_seconds`). | > 8 дн | 1 ч | Advisory (`warning`) | 24 ч |
+| Proxmox guest not in any backup job | ВМ или контейнер уже сутки не входит ни в одно задание резервного копирования (`dumbmonit_proxmox_backup_covered`). | < 1 | 24 ч | Info (`info`) | 7 дн |
+| Proxmox tasks failed | За последние шесть часов на узле завершились ошибкой задачи (запуск гостя, миграция, восстановление…). У резервных копий своё правило (`dumbmonit_proxmox_node_tasks_failed`). | > 0 | 5 мин | Info (`info`) | 24 ч |
+
+## Известные ограничения
+
+- Температуры материнской платы недоступны: API Proxmox VE отдаёт только температуру дисков по SMART. Для остальных датчиков установите на узел агент DumbMonit.
+- Для заполненности диска внутри ВМ нужен гостевой агент QEMU. Без него у ВМ есть размер, но нет заполненности.
+- Операционная система и адреса гостя запрашиваются не чаще раза в час.
+- Снимки учитываются не более чем для 200 гостей за опрос (опция `max_snapshot_guests`); остальные считаются пропущенными.
+- Отсутствующая привилегия, более старый Proxmox VE или неустановленная функция никогда не вызывают ошибку: соответствующие ряды отсутствуют, а страница монитора называет недостающую привилегию.
+
 ## Типичные ошибки {#common-errors}
 
 | Симптом | Вероятная причина |

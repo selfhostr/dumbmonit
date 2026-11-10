@@ -25,19 +25,31 @@ DumbMonit使用仅持有Veeam Backup Viewer角色的Windows账户登录（`/api/
 | `jobs`、`jobs_failed`、`jobs_warning`、`jobs_running`、`jobs_disabled` | | 计数；最多200个作业逐一描述。 |
 | `sessions_24h`、`sessions_failed_24h`、`sessions_warning_24h` | | 过去24小时内创建的会话，按结果。 |
 | `repository_capacity_bytes`、`repository_free_bytes`、`repository_used_bytes`、`repository_used_percent` | `repository`、`type` | 每个仓库。对象存储仓库没有容量：仅其已用空间被发布。 |
+| `repository_online` | `repository`, `type` | 存储库在线时为 1，Veeam 无法连接它时为 0。仅从 API 修订版 `1.2-rev0` 起提供：参见 API 版本选项。 |
 | `license_valid` | | 许可证状态为`Valid`时为1。 |
 | `license_info` | `status`、`type`、`edition` | 值为1。 |
 | `license_expiry_seconds`、`support_expiry_seconds` | | 直到许可证和支持合同过期；永久许可证无此指标。 |
 | `license_instances_licensed`、`license_instances_used` | | 实例许可证使用情况。 |
-| `section_readable` | `section`：`sessions`、`repositories`、`license`、`restore_points` | 账户可能读取时为1，Veeam拒绝时为0。 |
+| `config_backup_enabled`, `config_backup_encrypted` | | Veeam 自身配置的备份已启用时为 1；已加密时为 1。仅限 Backup Administrator 角色。 |
+| `config_backup_last_success_age_seconds` | | 自上一次成功的配置备份以来。仅限 Backup Administrator 角色。 |
+| `section_readable` | `section`：`sessions`、`repositories`、`license`、`restore_points`、`config_backup` | 账户可能读取时为1，Veeam拒绝时为0。 |
+
+有两项读取取决于服务器和账户。存储库的在线状态只从 API 修订版 `1.2-rev0` 起才存在：请把 API 版本选项设为该修订版，或设为您的服务器列出的更高修订版；否则该序列不存在，“Veeam 存储库离线”也就无法触发。配置备份与许可证一样，仅限 Backup Administrator 角色读取：使用 Viewer 角色时它显示为“不可读”，它的两条规则保持沉默。
 
 适用的[内置规则](../alerting/rules.md#veeam-backup--replication)：
 
-- **Veeam作业失败**：启用的作业的上次运行失败（警告，每日提醒）。
-- **Veeam作业以警告结束**（建议，每日提醒）。
-- **Veeam仓库几乎满**：超过90%持续30分钟（建议）。
-- **Veeam许可证过期**：剩余不足30天（建议，每日提醒）。仅当账户可以读取许可证时。
-- **客户端设备陈旧**：受保护的计算机或VM已超过`device_stale_days`而不成功备份（建议，每日提醒）；见下面[监控项](#devices)。
+| 规则 | 什么 | 默认阈值 | 保持 | 严重级别 | 提醒 |
+|---|---|---|---|---|---|
+| Veeam 作业失败 | 已启用的 Veeam 作业上一次运行失败:它保护的对象没有新的还原点(`dumbmonit_veeam_job_failed`)。 | > 0 | 5 分钟 | 警告 (`critical`) | 1 天 |
+| Veeam 作业以警告结束 | 已启用的 Veeam 作业上一次运行以警告结束:部分对象可能未受保护(`dumbmonit_veeam_job_warning`)。 | > 0 | 5 分钟 | 通知 (`warning`) | 1 天 |
+| Veeam 备份过旧 | 至少每天计划运行的作业超过两天没有成功运行（`dumbmonit_veeam_job_last_success_age_seconds`）。 | > 2 天 | 1 小时 | 通知 (`warning`) | 1 天 |
+| Veeam 存储库几乎已满 | Veeam 备份存储库已满超过 90 %:接下来的作业将因空间不足而失败(`dumbmonit_veeam_repository_used_percent`)。 | > 90 % | 30 分钟 | 通知 (`warning`) | 1 天 |
+| Veeam 许可证即将到期 | Veeam 许可证将在 30 天内到期:宽限期结束后作业将停止(`dumbmonit_veeam_license_expiry_seconds`)。 | < 30 d | 1 小时 | 通知 (`warning`) | 1 天 |
+| Veeam 支持即将到期 | Veeam 支持合同将在 30 天内到期：到期之后，服务器不再获得更新，也得不到厂商支持(`dumbmonit_veeam_support_expiry_seconds`)。 | < 30 天 | 1 小时 | 信息 (`info`) | 24 小时 |
+| Veeam 存储库离线 | 某个备份存储库离线：写入它的作业会失败，它的还原点也无法读取。需要 API 修订版 `1.2-rev0` 或更高(`dumbmonit_veeam_repository_online`)。 | < 1 | 10 分钟 | 警告 (`critical`) | 6 小时 |
+| Veeam 许可证已过期或无效 | Veeam 许可证已不再有效：宽限期结束后作业就会停止。仅当账户可以读取许可证时(`dumbmonit_veeam_license_valid`)。 | < 1 | 30 分钟 | 警告 (`critical`) | 24 小时 |
+| Veeam 配置备份已禁用 | Veeam 自身配置的备份已禁用：没有它，丢失的备份服务器只能手工重建(`dumbmonit_veeam_config_backup_enabled`)。 | < 1 | 24 小时 | 信息 (`info`) | 7 天 |
+| Veeam 配置备份过旧 | 配置备份已启用，但已超过七天没有成功(`dumbmonit_veeam_config_backup_last_success_age_seconds`)。 | > 7 天 | 1 小时 | 通知 (`warning`) | 24 小时 |
 
 ## 设备 {#devices}
 
@@ -82,6 +94,14 @@ DumbMonit使用仅持有Veeam Backup Viewer角色的Windows账户登录（`/api/
 - **接受无法验证的证书**：REST API自己的证书是自签名的。
 - **每个请求的超时**（15秒）。
 - **设备陈旧性**（`device_stale_days`，默认3天）：见上面[监控项](#devices)。
+
+## 已知限制
+
+- 使用 Viewer 角色时，许可证和配置备份不可读。它们的规则需要一个具有 Backup Administrator 角色的账户，而该角色也能更改服务器：请在知情的前提下选择。
+- 存储库的在线状态需要 API 修订版 `1.2-rev0` 或更高。
+- 不读取恶意软件检测事件。
+- 最多逐个描述 200 个作业；超出部分只保留总数。
+- 对象存储存储库不报告容量，因此“Veeam 存储库几乎已满”无法对它触发。
 
 ## 故障排除 {#troubleshooting}
 

@@ -221,6 +221,41 @@ de l'API WebSocket. Jusque là, REST est ce que chaque release jusqu'à
 | `tasks` | Surveiller les tâches de réplication et de snapshot | `true` | État, dernière exécution et dernier snapshot de chaque tâche. |
 | `services` | Surveiller les services | `true` | Services réglés pour démarrer avec le NAS, et s'ils tournent. |
 
+## Règles d'alerte intégrées
+
+Ces règles sont livrées avec DumbMonit et actives dès le départ. Chacune se modifie ou se désactive dans Alertes ; la [référence des règles intégrées](../alerting/rules.md#truenas) liste toutes les règles de toutes les intégrations.
+
+| Règle | Quoi | Seuil par défaut | Maintien | Gravité | Rappel |
+|---|---|---|---|---|---|
+| Pool NAS dégradé | ZFS n'appelle plus un pool sain (`dumbmonit_truenas_pool_healthy`). Un pool dégradé sert toujours ses données, c'est exactement pour ça que personne ne le remarque jusqu'à ce que le disque suivant tombe. La page de la surveillance nomme le disque. | < 1 | 5 min | Avertissement (`critical`) | 6 h |
+| Erreurs de disque NAS | Des disques d'un pool ont rapporté des erreurs de lecture, d'écriture ou de checksum depuis le dernier `zpool clear` (`dumbmonit_truenas_pool_device_errors`, une série par type). | > 0 | 15 min | Avis (`warning`) | 24 h |
+| Pool NAS presque plein | Un pool est plein à plus de 85 % (`dumbmonit_truenas_pool_used_percent`). ZFS ralentit bien avant d'être plein. Se résout à 80 %. | > 85 % | 30 min | Avis (`warning`), escalade après 7 j | 24 h |
+| Scrub NAS a trouvé des erreurs | Le dernier scrub d'un pool a trouvé des données endommagées (`dumbmonit_truenas_pool_last_scrub_errors`). | > 0 | 5 min | Avertissement (`critical`) | 24 h |
+| Scrub NAS en retard | Un pool n'a pas terminé de scrub depuis plus de 45 jours (`dumbmonit_truenas_pool_last_scrub_age_seconds`). Absent après un resilver, qui efface l'enregistrement du dernier scrub. | > 45 j | 1 h | Info (`info`) | 7 j |
+| Disque NAS a échoué son test SMART | Un autotest SMART dans le journal d'un disque a échoué (`dumbmonit_truenas_disk_smart_failed`). Un disque jamais testé n'a aucune série. | > 0 | 5 min | Avertissement (`critical`) | 24 h |
+| Disque NAS trop chaud | Un disque est au-dessus de 55 °C (`dumbmonit_truenas_disk_temperature_celsius`, lu depuis le cache de TrueNAS). Se résout à 50 °C. | > 55 °C | 15 min | Avis (`warning`) | 6 h |
+| Dataset NAS proche de son quota | Un dataset a utilisé plus de 90 % de son quota (`dumbmonit_truenas_dataset_quota_used_percent`) : à 100 % ses écritures échouent tandis que le pool a encore de la place. Pas de quota, pas de série. | > 90 % | 30 min | Avis (`warning`) | 24 h |
+| Réplication NAS échouée | Une tâche de réplication activée est en erreur (`dumbmonit_truenas_replication_error`) : la copie de l'autre côté devient plus vieille. | > 0 | 10 min | Avis (`warning`) | 12 h |
+| Tâche de snapshot NAS échouée | Une tâche de snapshot périodique activée est en erreur (`dumbmonit_truenas_snapshot_task_error`). | > 0 | 10 min | Avis (`warning`) | 12 h |
+| Snapshots NAS périmés | Une tâche de snapshot périodique activée n'a pas tourné depuis plus de huit jours (`dumbmonit_truenas_snapshot_task_last_run_age_seconds`) : une tâche qui arrête de tourner n'échoue pas, elle devient silencieuse. | > 8 j | 1 h | Avis (`warning`) | 24 h |
+| Alerte TrueNAS levée | TrueNAS lui-même a levé une alerte de niveau ERROR ou plus (`dumbmonit_truenas_alerts`). Sa propre phrase est sur la page de la surveillance. | > 0 | 10 min | Avis (`warning`) | 12 h |
+| Service NAS arrêté | Un service réglé pour démarrer avec le NAS est arrêté (`dumbmonit_truenas_service_running`). Un service éteint volontairement n'a aucune série. | < 1 | 10 min | Avis (`warning`) | 6 h |
+| Certificat du NAS bientôt expiré | Le certificat qui sert l'interface web de TrueNAS expire dans moins de 14 jours : les navigateurs, les applications et les pairs de réplication vont le refuser (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 14 j | 1 h | Avis (`warning`) | 24 h |
+| Certificat du NAS expiré | Le certificat qui sert l'interface web de TrueNAS expire dans moins de 2 jours, ou a déjà expiré (`dumbmonit_truenas_certificate_expiry_days{in_use="1"}`). | < 2 j | 15 min | Avertissement (`critical`) | 12 h |
+| Pool de démarrage du NAS dégradé | Le pool de démarrage n'est plus sain : le NAS démarre encore sur le périphérique restant, jusqu'à ce que celui-ci lâche à son tour (`dumbmonit_truenas_boot_pool_healthy`). | < 1 | 10 min | Avis (`warning`) | 12 h |
+| Pool de démarrage du NAS presque plein | Le pool de démarrage est plein à plus de 85 % : les anciens environnements de démarrage s'accumulent à chaque mise à jour et bloquent la suivante. Se lève sous 80 % (`dumbmonit_truenas_boot_pool_used_percent`). | > 85 % | 1 h | Avis (`warning`) | 24 h |
+| Tâche de sauvegarde distante du NAS en échec | La dernière exécution d'une tâche de synchronisation cloud, rsync ou de sauvegarde cloud a échoué : la copie distante vieillit (`dumbmonit_truenas_backup_task_failed`). | > 0 | 10 min | Avis (`warning`) | 12 h |
+| Application du NAS plantée | Une application est dans l'état planté (crashed) (`dumbmonit_truenas_app_crashed`). | > 0 | 10 min | Avis (`warning`) | 6 h |
+| Machine virtuelle du NAS arrêtée | Une machine virtuelle réglée pour démarrer avec le NAS ne tourne pas (`dumbmonit_truenas_vm_running`). | < 1 | 10 min | Avis (`warning`) | 6 h |
+
+## Limites connues
+
+- Par l'API REST que DumbMonit utilise, TrueNAS n'a pas de clé en lecture seule : la clé appartient à un administrateur complet. DumbMonit ne fait que lire, et ne lance jamais de scrub, de test SMART ni de réplication.
+- L'âge du snapshot le plus récent d'un dataset est la dernière exécution de la tâche de snapshot qui le couvre. Un dataset qu'aucune tâche ne couvre n'a pas d'âge.
+- Les températures viennent du cache de TrueNAS, rafraîchi environ toutes les cinq minutes. Un disque en veille n'est jamais réveillé.
+- Les résultats des tests SMART ont quitté l'API dans TrueNAS 25.10 et sont ignorés à partir de cette version.
+- Les règles de certificat ne surveillent que le certificat qui sert l'interface web.
+
 ## Erreurs courantes
 
 | Symptôme | Cause probable |

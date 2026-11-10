@@ -66,10 +66,23 @@ DumbMonit также запрашивает у классического API с
 | `port_rx_bytes_total`, `port_tx_bytes_total`, `port_rx_errors_total`, `port_tx_errors_total` | счётчики по портам, их рисует панель коммутатора | те же |
 | `port_neighbor_info` | значение 1, LLDP-сосед порта (`lldp_table`) | те же, `remote_chassis`, `remote_port` |
 
-Применяемые [встроенные правила](../alerting/rules.md#unifi-network): UniFi device
-offline, UniFi Internet down, UniFi WAN link down, UniFi gateway CPU high, UniFi
-device waiting for adoption, UniFi firmware update available, UniFi alarms, а
-также Monitor unreachable.
+Применяемые [встроенные правила](../alerting/rules.md#unifi-network):
+
+| Правило | Что | Порог по умолчанию | Выдержка | Важность | Напоминание |
+|---|---|---|---|---|---|
+| UniFi device offline | Устройство UniFi, принятое контроллером, офлайн, изолировано или не удалось принять (`dumbmonit_unifi_device_up`). | < 1 | 5 мин | Advisory (`warning`), эскалируется через 1 ч | 6 ч |
+| UniFi Internet down | Шлюз UniFi сообщает об отсутствии подключения к Интернету (`dumbmonit_unifi_internet_up`). Без шлюза UniFi ряда не существует, и правило молчит. | < 1 | 3 мин | Warning (`critical`) | 1 ч |
+| UniFi WAN link down | WAN-линк шлюза UniFi не работает (`dumbmonit_unifi_wan_link_up`): при двух линках резервирование утрачено, хотя ничего не кажется сломанным. У отключённого порта ряда нет. | < 1 | 5 мин | Advisory (`warning`) | 6 ч |
+| UniFi gateway CPU high | Процессор шлюза UniFi выше 90% в течение пятнадцати минут (`dumbmonit_unifi_device_cpu_percent{type="gateway"}`); сбрасывается ниже 80 %. | > 90 % | 15 мин | Advisory (`warning`) | 6 ч |
+| UniFi device waiting for adoption | В сети появилось устройство, которое ждёт принятия в UniFi (`dumbmonit_unifi_devices{state="pending"}`). | > 0 | 30 мин | Info (`info`) | 24 ч |
+| UniFi firmware update available | Для устройств UniFi доступно обновление прошивки (`dumbmonit_unifi_devices_upgradable`). | > 0 | 1 ч | Info (`info`) | 7 дн |
+| UniFi alarms | UniFi зафиксировал критические события или поднял тревоги за последние 24 часа (`dumbmonit_unifi_alarms`). Читается только с учётной записью View Only. | > 0 | 5 мин | Advisory (`warning`) | 24 ч |
+| UniFi subsystem in error | Подсистема UniFi (Wi-Fi, LAN или VPN) сообщает об ошибке в обзоре состояния контроллера. У Интернета и WAN-каналов свои правила (`dumbmonit_unifi_subsystem_status`: 2). | ≥ 2 | 10 мин | Advisory (`warning`) | 6 ч |
+| UniFi device overheating | Устройство UniFi сообщает о перегреве (`dumbmonit_unifi_device_overheating`). | > 0 | 5 мин | Advisory (`warning`) | 6 ч |
+| UniFi PoE budget nearly used | Коммутатор потребляет более 90 % своего бюджета PoE: следующее подключённое устройство может остаться без питания. Снимается ниже 80 % (`dumbmonit_unifi_device_poe_used_watts` / `dumbmonit_unifi_device_poe_budget_watts`). | > 90 % | 15 мин | Advisory (`warning`) | 24 ч |
+| UniFi Wi-Fi channel saturated | Канал радиомодуля точки доступа уже тридцать минут занят более 80 % времени: Wi-Fi медленный у всех, кто на нём работает. Снимается ниже 65 % (`dumbmonit_unifi_radio_channel_utilization_percent`). | > 80 % | 30 мин | Advisory (`warning`) | 24 ч |
+| UniFi Wi-Fi clients with a weak signal | Более чем у 40 % клиентов Wi-Fi, при не менее чем пяти подключённых, сигнал слабее -75 дБм: точки доступа неудачно расположены или их слишком мало (`dumbmonit_unifi_wifi_clients_weak_signal` / `dumbmonit_unifi_wifi_clients`). | > 40 % | 1 ч | Info (`info`) | 7 дн |
+| UniFi port errors | Порт коммутатора зарегистрировал более 100 ошибок приёма или передачи за пятнадцать минут: проверьте кабель и разъёмы (`dumbmonit_unifi_port_rx_errors_total` + `dumbmonit_unifi_port_tx_errors_total`). | > 100 | 15 мин | Advisory (`warning`) | 24 ч |
 
 ## Устройства
 
@@ -146,3 +159,10 @@ device waiting for adoption, UniFi firmware update available, UniFi alarms, а
 (`default`), порт (443), проверка сертификата, тайм-аут запроса (15 с), клиенты
 для отслеживания помимо отмеченных (пусто или `all`) и устаревание устройства
 (`device_stale_days`, по умолчанию 3 дня).
+
+## Известные ограничения
+
+- Состояние Интернета и WAN, тревоги, PoE и подробности Wi-Fi существуют только в классическом API. Некоторые контроллеры отказывают в нём ключу API: тогда эти ряды отсутствуют, без ошибки. Учётная запись View Only читает всё.
+- Тревоги — это критические записи системного журнала за последние 24 часа в UniFi Network 8 и новее, а до этого — неархивированные тревоги.
+- По одному отслеживаются только клиенты, которых вы отметили в UniFi (с именем, с фиксированным IP или с заметкой), если опция `watched_clients` не задаёт иное.
+- Никакие команды никогда не отправляются: ни перезапуск, ни принятие устройства, ни обновление прошивки.
