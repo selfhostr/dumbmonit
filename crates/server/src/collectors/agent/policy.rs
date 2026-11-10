@@ -122,7 +122,7 @@ pub async fn run_once(state: &AppState) -> anyhow::Result<usize> {
     let docker_devices: BTreeMap<TargetId, TargetId> =
         hosts.iter().map(|(child, host)| (*host, *child)).collect();
     let observations = observe(state, &hosts).await?;
-    let silences = db::alerts::list_silences(&state.pool).await?;
+    let silences = db::alerts::list_maintenance_silences(&state.pool).await?;
     let now = Utc::now();
     let mut queued = 0;
 

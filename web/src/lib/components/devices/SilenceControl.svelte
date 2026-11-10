@@ -58,6 +58,7 @@
 	});
 
 	function untilLabel(silence: Silence): string {
+		if (silence.schedule.kind === 'recovery') return m.devices_silence_until_recovery();
 		return silence.schedule.kind === 'once'
 			? m.devices_silence_until({ when: formatDateTime(silence.schedule.ends_at) })
 			: `· ${scheduleLabel(silence.schedule)}`;

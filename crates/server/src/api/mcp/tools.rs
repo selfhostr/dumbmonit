@@ -2031,6 +2031,9 @@ fn schedule_text(schedule: &Schedule) -> String {
         Schedule::Once { starts_at, ends_at } => {
             format!("once, {} → {}", rfc3339(*starts_at), rfc3339(*ends_at))
         }
+        Schedule::Recovery { starts_at } => {
+            format!("until the device is reachable again, from {}", rfc3339(*starts_at))
+        }
         Schedule::Weekly { days, start_minute, end_minute, utc_offset_minutes, timezone } => {
             let days: Vec<&str> =
                 days.iter().filter_map(|d| WEEKDAYS.get(*d as usize).copied()).collect();

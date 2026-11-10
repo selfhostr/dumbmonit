@@ -2048,7 +2048,7 @@ async fn build_public(state: &AppState, page: &StatusPage) -> ApiResult<PublicSt
     // vaut annonce publique. Sans cela, la page montre du rouge pendant que
     // l'opérateur est sciemment en train de redémarrer la machine, et les
     // lecteurs apprennent à ignorer la page.
-    let silences = db::alerts::list_silences(&state.pool).await?;
+    let silences = db::alerts::list_maintenance_silences(&state.pool).await?;
     let planned: HashSet<TargetId> = shown
         .iter()
         .filter(|target| {

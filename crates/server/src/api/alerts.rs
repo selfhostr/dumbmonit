@@ -322,7 +322,9 @@ pub struct SilenceView {
 impl SilenceView {
     fn new(silence: Silence, now: DateTime<Utc>) -> Self {
         let window = silence.schedule.window_containing(now);
-        let active_now = silence.enabled && window.is_some();
+        // `covers` plutôt que la fenêtre : un silence « jusqu'au rétablissement »
+        // est actif sans avoir de fin à annoncer.
+        let active_now = silence.enabled && silence.schedule.covers(now);
         let next_start_at = silence.schedule.next_start(now).map(|at| at.to_rfc3339());
         Self {
             id: silence.id,
@@ -1718,13 +1720,22 @@ impl SilencePayload {
             }
         }
 
+        let schedule = parse_schedule(self.schedule)?;
+        // « Jusqu'au rétablissement » se lève quand une cible répond de nouveau : sans
+        // cible, rien ne le lèverait jamais, ce serait un silence permanent.
+        if matches!(schedule, Schedule::Recovery { .. }) && self.target_id.is_none() {
+            return Err(ApiError::BadRequest(
+                "A silence until recovery needs a monitor (\"target_id\").".into(),
+            ));
+        }
+
         Ok(Silence {
             id: 0,
             name,
             comment: self.comment.unwrap_or_default(),
             target_id: self.target_id,
             matchers: self.matchers,
-            schedule: parse_schedule(self.schedule)?,
+            schedule,
             enabled: self.enabled.unwrap_or(true),
         })
     }
@@ -1736,6 +1747,7 @@ pub(crate) fn parse_schedule(raw: Value) -> ApiResult<Schedule> {
             "Invalid schedule. Accepted forms: \
              {\"kind\":\"once\",\"starts_at\":\"2026-01-01T00:00:00Z\",\
              \"ends_at\":\"2026-01-01T02:00:00Z\"}, \
+             {\"kind\":\"recovery\",\"starts_at\":\"2026-01-01T00:00:00Z\"}, \
              {\"kind\":\"weekly\",\"days\":[6],\"start_minute\":120,\"end_minute\":240,\
              \"timezone\":\"Europe/Paris\"} or \
              {\"kind\":\"monthly\",\"nth_weekdays\":[{\"nth\":1,\"weekday\":6}],\
@@ -1752,6 +1764,9 @@ pub(crate) fn parse_schedule(raw: Value) -> ApiResult<Schedule> {
                 ));
             }
         }
+        // Rien à vérifier ici : `starts_at` est celui du client, et la cible est exigée
+        // à la création (voir `SilenceInput::into_silence`).
+        Schedule::Recovery { .. } => {}
         Schedule::Weekly { days, start_minute, end_minute, utc_offset_minutes, .. } => {
             if days.is_empty() {
                 return Err(ApiError::BadRequest(
@@ -2071,6 +2086,12 @@ mod tests {
             "ends_at": "2026-01-01T01:00:00Z"
         });
         assert!(refus(parse_schedule(raw)).contains("after its start"));
+    }
+
+    #[test]
+    fn la_planification_jusqu_au_retablissement_est_acceptee() {
+        let raw = json!({"kind": "recovery", "starts_at": "2026-03-01T10:00:00Z"});
+        assert!(matches!(accepte(parse_schedule(raw)), Schedule::Recovery { .. }));
     }
 
     #[test]

@@ -179,6 +179,7 @@ export function scheduleLabel(schedule: SilenceSchedule): string {
 	if (schedule.kind === 'once') {
 		return `${formatDateTime(schedule.starts_at)} → ${formatDateTime(schedule.ends_at)}`;
 	}
+	if (schedule.kind === 'recovery') return m.alerts_schedule_recovery();
 	if (schedule.kind === 'monthly') {
 		const when = [
 			...schedule.days
@@ -304,6 +305,15 @@ export function silenceScope(silence: Silence, targets: Map<number, Target>): st
  * Used from the device page and the Overview: the whole device should stop
  * shouting for a while, not just one alert.
  */
+/** "Seen, I am on it": a silence on one monitor that the server lifts when it answers again. */
+export function recoverySilencePayload(target: Target) {
+	return {
+		name: m.alerts_acknowledged_silence_name({ name: target.name }),
+		target_id: target.id,
+		schedule: { kind: 'recovery' as const, starts_at: new Date().toISOString() }
+	};
+}
+
 export function quickSilencePayload(target: Target, endsAt?: Date) {
 	const now = new Date();
 	const end = endsAt ?? new Date(now.getTime() + 3600_000);

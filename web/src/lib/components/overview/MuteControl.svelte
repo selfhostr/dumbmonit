@@ -13,9 +13,9 @@
 	 * unmute back to the cross.
 	 */
 	import { tick } from 'svelte';
-	import { Undo2, X } from 'lucide-svelte';
+	import { Check, Undo2, X } from 'lucide-svelte';
 	import { createSilence, deleteSilence, toApiError, type Silence, type Target } from '#lib/api/index.js';
-	import { datetimeLocalIn, quickSilencePayload } from '#lib/components/alerts/helpers.js';
+	import { datetimeLocalIn, quickSilencePayload, recoverySilencePayload } from '#lib/components/alerts/helpers.js';
 	import { formatDateTime } from '#lib/format.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { Button, Menu, Plate } from '#lib/ui/index.js';
@@ -27,11 +27,13 @@
 		muted: Silence | null;
 		onmuted: (silence: Silence) => void;
 		onunmuted: (silence: Silence) => void;
+		/** "Seen, I am on it": the silence until the monitor answers again was created. */
+		onacknowledged: (silence: Silence) => void;
 		/** A mute or an unmute failed (the page shows it on the row); `null` clears it. */
 		onfail: (message: string | null) => void;
 	}
 
-	let { target, muted, onmuted, onunmuted, onfail }: Props = $props();
+	let { target, muted, onmuted, onunmuted, onacknowledged, onfail }: Props = $props();
 
 	const crossId = $derived(`mute-open-${target.id}`);
 	const unmuteId = $derived(`mute-lift-${target.id}`);
@@ -125,6 +127,23 @@
 		}
 	}
 
+	async function acknowledge() {
+		if (busy) return;
+		busy = true;
+		onfail(null);
+		try {
+			const created = await createSilence(recoverySilencePayload(target));
+			open = false;
+			onacknowledged(created);
+		} catch (cause) {
+			open = false;
+			restoreFocus = true;
+			onfail(toApiError(cause).message || m.overview_ack_err());
+		} finally {
+			busy = false;
+		}
+	}
+
 	function submitUntil(event: SubmitEvent) {
 		event.preventDefault();
 		const check = checkUntil(until);
@@ -212,6 +231,12 @@
 					{/each}
 					<button type="button" role="menuitem" class={item} disabled={busy} onclick={openPicker}>{m.overview_mute_until()}</button>
 					<p class="m-0 px-2.5 pt-1 pb-1.5 text-xs text-ink-3">{m.overview_mute_hint()}</p>
+					<div class="mt-1 border-t border-line pt-1">
+						<button type="button" role="menuitem" class={item} disabled={busy} onclick={() => void acknowledge()}>
+							<Check class="mr-2 size-4 shrink-0" aria-hidden="true" />{m.overview_ack_item()}
+						</button>
+						<p class="m-0 px-2.5 pt-0.5 pb-1.5 text-xs text-ink-3">{m.overview_ack_hint()}</p>
+					</div>
 				{/if}
 			</div>
 		{/snippet}

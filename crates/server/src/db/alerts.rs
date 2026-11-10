@@ -23,7 +23,7 @@ use crate::alerting::model::{
     Operator, Rule, RuleKind, Severity, TargetId, TargetNode, TargetSelector,
 };
 use crate::alerting::rules;
-use crate::alerting::silence::Silence;
+use crate::alerting::silence::{Schedule, Silence, recovered};
 use crate::crypto::Cipher;
 use crate::notify::{ChannelConfig, DeliveryReport};
 
@@ -880,6 +880,16 @@ pub async fn list_silences(pool: &SqlitePool) -> Result<Vec<Silence>> {
         .collect())
 }
 
+/// Les fenêtres de maintenance au sens strict : sans les silences « jusqu'au
+/// rétablissement », qui disent « je m'en occupe » et non « maintenance prévue ».
+/// Pages d'état publiques, mises à jour d'agents et remédiation automatique ne
+/// doivent pas les prendre pour une maintenance.
+pub async fn list_maintenance_silences(pool: &SqlitePool) -> Result<Vec<Silence>> {
+    let mut silences = list_silences(pool).await?;
+    silences.retain(|silence| !matches!(silence.schedule, Schedule::Recovery { .. }));
+    Ok(silences)
+}
+
 pub async fn create_silence(pool: &SqlitePool, silence: &Silence) -> Result<i64> {
     let row = sqlx::query(
         "INSERT INTO silences (name, comment, target_id, matchers, schedule, enabled)
@@ -912,6 +922,32 @@ pub async fn purge_expired_silences(pool: &SqlitePool, now: DateTime<Utc>) -> Re
         }
     }
     Ok(removed)
+}
+
+/// Lève les silences « jusqu'au rétablissement » dont l'équipement répond de nouveau.
+///
+/// Appelé à chaque cycle d'alerte : la panne suivante notifie alors comme à
+/// l'ordinaire. Renvoie le nombre de silences levés.
+pub async fn lift_recovered_silences(pool: &SqlitePool) -> Result<u64> {
+    let mut lifted = 0;
+    for silence in list_silences(pool).await? {
+        let Schedule::Recovery { starts_at } = &silence.schedule else { continue };
+        let Some(target_id) = silence.target_id else { continue };
+        let row = sqlx::query("SELECT last_probe_at, last_error FROM targets WHERE id = ?")
+            .bind(target_id)
+            .fetch_optional(pool)
+            .await
+            .context("lecture de l'état de l'équipement")?;
+        let Some(row) = row else { continue };
+        let last_error: Option<String> = row.try_get("last_error")?;
+        let last_probe_at: Option<String> = row.try_get("last_probe_at")?;
+        if recovered(last_error.as_deref(), last_probe_at.as_deref(), *starts_at)
+            && delete_silence(pool, silence.id).await?
+        {
+            lifted += 1;
+        }
+    }
+    Ok(lifted)
 }
 
 // --------------------------------------------------------------------------
@@ -1308,5 +1344,48 @@ mod tests {
         assert!(service_down(failing), "un ping sans réponse, c'est une panne");
         assert!(!unreachable(failing), "la cible n'étouffe pas ses propres alertes");
         assert!(![silent, broken, paused, fine].into_iter().any(service_down));
+    }
+
+    #[tokio::test]
+    async fn un_silence_jusqu_au_retablissement_est_leve_au_retour_de_l_equipement() {
+        let dir = tempfile::tempdir().unwrap();
+        let pool = crate::db::open(&dir.path().join("t.db")).await.unwrap();
+        let cipher =
+            crate::db::init_cipher(&pool, "secret-de-test-suffisamment-long").await.unwrap();
+        let input = crate::db::targets::TargetInput {
+            name: "nas".into(),
+            address: "nas.lan".into(),
+            kind: "agent".into(),
+            profile_id: None,
+            parent_id: None,
+            via_agent: None,
+            interval: std::time::Duration::from_secs(30),
+            enabled: true,
+            tags: Default::default(),
+            credential: None,
+            group_name: String::new(),
+        };
+        let id = crate::db::targets::create(&pool, &cipher, &input).await.unwrap();
+        let silence = Silence {
+            id: 0,
+            name: "Acknowledged: nas".into(),
+            comment: String::new(),
+            target_id: Some(id),
+            matchers: Default::default(),
+            schedule: Schedule::Recovery { starts_at: Utc::now() - chrono::TimeDelta::hours(1) },
+            enabled: true,
+        };
+        create_silence(&pool, &silence).await.unwrap();
+
+        // Toujours en panne : le silence reste, et rien ne le fait expirer.
+        crate::db::targets::record_probe(&pool, id, Some("Monitor unreachable")).await.unwrap();
+        assert_eq!(lift_recovered_silences(&pool).await.unwrap(), 0);
+        assert_eq!(list_silences(&pool).await.unwrap().len(), 1);
+        assert_eq!(purge_expired_silences(&pool, Utc::now()).await.unwrap(), 0);
+
+        // L'équipement répond : le silence est levé, la panne suivante notifiera.
+        crate::db::targets::record_probe(&pool, id, None).await.unwrap();
+        assert_eq!(lift_recovered_silences(&pool).await.unwrap(), 1);
+        assert!(list_silences(&pool).await.unwrap().is_empty());
     }
 }

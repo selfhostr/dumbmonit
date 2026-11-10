@@ -12721,6 +12721,14 @@ components:
             starts_at: { type: string, format: date-time }
             ends_at: { type: string, format: date-time }
         - type: object
+          description: >-
+            Silence with no end of its own ("seen, I am on it"): open from `starts_at`, lifted by
+            the server when the monitor answers again. Requires `target_id`.
+          required: [kind, starts_at]
+          properties:
+            kind: { const: recovery }
+            starts_at: { type: string, format: date-time }
+        - type: object
           required: [kind, days, start_minute, end_minute]
           properties:
             kind: { const: weekly }

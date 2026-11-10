@@ -116,6 +116,10 @@ impl Clock {
 pub enum Schedule {
     /// Fenêtre ponctuelle : bornes absolues, inclusive à gauche, exclusive à droite.
     Once { starts_at: DateTime<Utc>, ends_at: DateTime<Utc> },
+    /// « J'ai vu » : silence sans date de fin, ouvert dès `starts_at` et levé par le
+    /// serveur lui-même quand l'équipement visé répond de nouveau (voir
+    /// [`recovered`] et `db::alerts::lift_recovered_silences`). Il exige une cible.
+    Recovery { starts_at: DateTime<Utc> },
     /// Fenêtre hebdomadaire, exprimée dans le fuseau de l'utilisateur.
     ///
     /// Le fuseau est porté par le silence lui-même plutôt que par une configuration
@@ -168,7 +172,7 @@ impl Schedule {
     /// Horloge de la fenêtre, `None` pour une fenêtre ponctuelle (déjà absolue).
     fn clock(&self) -> Option<Clock> {
         match self {
-            Self::Once { .. } => None,
+            Self::Once { .. } | Self::Recovery { .. } => None,
             Self::Weekly { utc_offset_minutes, timezone, .. }
             | Self::Monthly { utc_offset_minutes, timezone, .. } => {
                 Some(Clock::resolve(timezone.as_deref(), *utc_offset_minutes))
@@ -179,7 +183,7 @@ impl Schedule {
     /// Nom du fuseau tel qu'il a été saisi, s'il est valide.
     pub fn timezone(&self) -> Option<&str> {
         match self {
-            Self::Once { .. } => None,
+            Self::Once { .. } | Self::Recovery { .. } => None,
             Self::Weekly { timezone, .. } | Self::Monthly { timezone, .. } => timezone.as_deref(),
         }
     }
@@ -192,6 +196,7 @@ impl Schedule {
     pub fn duration(&self) -> TimeDelta {
         match self {
             Self::Once { starts_at, ends_at } => *ends_at - *starts_at,
+            Self::Recovery { .. } => TimeDelta::zero(),
             Self::Weekly { start_minute, end_minute, .. } => {
                 let start = start_minute % MINUTES_PER_DAY;
                 let end = end_minute % MINUTES_PER_DAY;
@@ -207,7 +212,7 @@ impl Schedule {
     /// Minute locale d'ouverture, pour les fenêtres récurrentes.
     fn start_minute(&self) -> u32 {
         match self {
-            Self::Once { .. } => 0,
+            Self::Once { .. } | Self::Recovery { .. } => 0,
             Self::Weekly { start_minute, .. } | Self::Monthly { start_minute, .. } => {
                 start_minute % MINUTES_PER_DAY
             }
@@ -217,7 +222,7 @@ impl Schedule {
     /// Vrai si la récurrence retient cette date locale.
     fn selects(&self, date: NaiveDate) -> bool {
         match self {
-            Self::Once { .. } => false,
+            Self::Once { .. } | Self::Recovery { .. } => false,
             Self::Weekly { days, .. } => {
                 days.contains(&(date.weekday().num_days_from_monday() as u8))
             }
@@ -231,6 +236,10 @@ impl Schedule {
 
     /// Vrai si `now` tombe dans la fenêtre.
     pub fn covers(&self, now: DateTime<Utc>) -> bool {
+        // Sans fin : couvre tout ce qui suit son début, jusqu'à ce que le serveur le lève.
+        if let Self::Recovery { starts_at } = self {
+            return now >= *starts_at;
+        }
         self.window_containing(now).is_some()
     }
 
@@ -290,9 +299,26 @@ impl Schedule {
     pub fn is_expired(&self, now: DateTime<Utc>) -> bool {
         match self {
             Self::Once { ends_at, .. } => now >= *ends_at,
-            Self::Weekly { .. } | Self::Monthly { .. } => false,
+            Self::Recovery { .. } | Self::Weekly { .. } | Self::Monthly { .. } => false,
         }
     }
+}
+
+/// Vrai si l'équipement répond de nouveau depuis que le silence « jusqu'au
+/// rétablissement » a été posé : une interrogation postérieure au début, sans
+/// erreur. Une interrogation antérieure ne compte pas, sans quoi un silence posé
+/// sur un équipement tombé serait levé par le dernier succès d'avant la panne.
+pub fn recovered(
+    last_error: Option<&str>,
+    last_probe_at: Option<&str>,
+    since: DateTime<Utc>,
+) -> bool {
+    if last_error.is_some_and(|error| !error.trim().is_empty()) {
+        return false;
+    }
+    last_probe_at
+        .and_then(|at| DateTime::parse_from_rfc3339(at).ok())
+        .is_some_and(|at| at.with_timezone(&Utc) > since)
 }
 
 /// Vrai si `date` est le n-ième jour de la semaine demandé, dans son mois.
@@ -698,5 +724,29 @@ mod tests {
         };
         assert!(!recurrente.is_expired(at("2030-01-01T00:00:00Z")));
         assert!(!monthly(&[1], &[], 0, 60).is_expired(at("2030-01-01T00:00:00Z")));
+    }
+
+    #[test]
+    fn un_silence_jusqu_au_retablissement_n_a_pas_de_fin() {
+        let schedule = Schedule::Recovery { starts_at: at("2026-03-01T10:00:00Z") };
+        assert!(!schedule.covers(at("2026-03-01T09:59:59Z")), "not yet open");
+        assert!(schedule.covers(at("2026-03-01T10:00:00Z")));
+        assert!(schedule.covers(at("2030-01-01T00:00:00Z")), "no end of its own");
+        assert!(!schedule.is_expired(at("2030-01-01T00:00:00Z")), "only recovery lifts it");
+        assert!(schedule.next_start(at("2026-03-01T09:00:00Z")).is_none());
+        let json = serde_json::to_string(&schedule).unwrap();
+        assert!(json.contains("\"kind\":\"recovery\""), "{json}");
+        assert_eq!(serde_json::from_str::<Schedule>(&json).unwrap(), schedule);
+    }
+
+    #[test]
+    fn le_retablissement_exige_une_interrogation_reussie_posterieure() {
+        let since = at("2026-03-01T10:00:00Z");
+        assert!(!recovered(Some("unreachable"), Some("2026-03-01T10:05:00Z"), since));
+        assert!(!recovered(Some("Service down: the http check failed"), None, since));
+        assert!(!recovered(None, Some("2026-03-01T09:59:00Z"), since), "success from before");
+        assert!(!recovered(None, None, since), "never probed");
+        assert!(recovered(None, Some("2026-03-01T10:00:30Z"), since));
+        assert!(recovered(Some("  "), Some("2026-03-01T10:00:30Z"), since));
     }
 }

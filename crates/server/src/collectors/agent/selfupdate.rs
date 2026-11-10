@@ -578,7 +578,7 @@ pub async fn offer_for(state: &AppState, target_id: TargetId) -> Result<Option<A
     }
     let settings = settings(pool).await?;
     if settings.window == Window::Maintenance && host.state.requested_ms.is_none() {
-        let silences = db::alerts::list_silences(pool).await?;
+        let silences = db::alerts::list_maintenance_silences(pool).await?;
         host.state.in_maintenance = in_maintenance(&silences, target_id);
     }
     let gate = if host.state.canary || host.state.requested_ms.is_some() {
@@ -775,7 +775,7 @@ pub async fn overview(state: &AppState) -> Result<Overview> {
     let binaries = binaries(&state.config.agent_dir).await;
     let mut hosts = hosts(pool).await?;
     let silences = if settings.window == Window::Maintenance {
-        db::alerts::list_silences(pool).await?
+        db::alerts::list_maintenance_silences(pool).await?
     } else {
         Vec::new()
     };

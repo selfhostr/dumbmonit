@@ -274,6 +274,11 @@ pub async fn evaluate_once(
     http: &reqwest::Client,
     now: DateTime<Utc>,
 ) -> Result<EvalReport> {
+    // Un équipement revenu lève son silence « jusqu'au rétablissement » avant que le
+    // cycle ne décide de notifier.
+    if let Err(error) = db::alerts::lift_recovered_silences(pool).await {
+        warn!(?error, "silences until recovery not lifted");
+    }
     let rules = db::alerts::list_enabled_rules(pool).await?;
     if rules.is_empty() {
         // Plus aucune règle : ce qui reste dans la table ne sera plus jamais

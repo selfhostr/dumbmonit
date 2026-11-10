@@ -674,6 +674,8 @@ export interface NthWeekday {
 /** Maintenance-window schedule: one-off, weekly or monthly. */
 export type SilenceSchedule =
 	| { kind: 'once'; starts_at: string; ends_at: string }
+	/** "Seen, I am on it": no end; the server lifts it when the monitor answers again. */
+	| { kind: 'recovery'; starts_at: string }
 	| {
 			kind: 'weekly';
 			/** Days it covers, 0 = Monday … 6 = Sunday. */

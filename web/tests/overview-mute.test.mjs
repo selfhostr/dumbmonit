@@ -57,3 +57,22 @@ test('the end is the occurrence in progress, else the one-off end', () => {
 	assert.equal(muteEnd(silence(1)), '2026-11-02T11:00:00Z');
 	assert.equal(muteEnd(silence(1, { schedule: weekly })), null);
 });
+
+test('a recovery silence marks the monitor acknowledged, and is not a timed mute', async () => {
+	const { acknowledgedBy } = await import('../src/lib/components/overview/mute.ts');
+	const recovery = (id, over = {}) => ({
+		id,
+		target_id: 7,
+		enabled: true,
+		matchers: {},
+		active_now: true,
+		active_until: null,
+		schedule: { kind: 'recovery', starts_at: '2026-03-01T10:00:00Z' },
+		...over
+	});
+	assert.equal(acknowledgedBy([recovery(1)], 7)?.id, 1);
+	assert.equal(acknowledgedBy([recovery(1)], 8), null);
+	assert.equal(acknowledgedBy([recovery(1, { active_now: false })], 7), null);
+	assert.equal(acknowledgedBy([recovery(1, { active_now: false })], 7, [1])?.id, 1);
+	assert.equal(mutedBy([recovery(1)], 7), null, 'not a one-off mute: no "Unmute" for it');
+});

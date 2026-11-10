@@ -46,6 +46,22 @@ export function mutedBy(silences: readonly Silence[], targetId: number, justCrea
 	);
 }
 
+/**
+ * The "seen, I am on it" silence on this monitor, if any: open-ended, lifted by
+ * the server when the monitor answers again. Its row leaves "Needs attention".
+ */
+export function acknowledgedBy(silences: readonly Silence[], targetId: number, justCreated: readonly number[] = []): Silence | null {
+	return (
+		silences.find(
+			(s) =>
+				s.target_id === targetId &&
+				s.enabled &&
+				s.schedule.kind === 'recovery' &&
+				(s.active_now || justCreated.includes(s.id))
+		) ?? null
+	);
+}
+
 /** When the window ends, as the server wrote it (parsed by the formatters). */
 export function muteEnd(silence: Silence): string | null {
 	if (silence.active_until) return silence.active_until;
