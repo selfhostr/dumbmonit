@@ -31,9 +31,11 @@
 		floating?: boolean;
 		/** Icon-only check: one click acknowledges (4 h), a click on a checked one lifts it. */
 		iconOnly?: boolean;
+	/** Labelled button ("Acknowledge" / "Un-ack"): one click acknowledges until the alert resolves. */
+		labelled?: boolean;
 	}
 
-	let { alert, onchanged, floating = false, iconOnly = false }: Props = $props();
+	let { alert, onchanged, floating = false, iconOnly = false, labelled = false }: Props = $props();
 
 	const DURATIONS: { label: string; secs: number }[] = $derived([
 		{ label: m.alerts_ack_hours({ hours: 1 }), secs: 3600 },
@@ -111,7 +113,24 @@
 
 {#if auth.canOperate}
 	<div class={floating ? 'relative' : 'flex flex-col items-start gap-1 sm:items-end'} bind:this={root} onkeydown={onkeydown} role="presentation">
-		{#if iconOnly}
+		{#if labelled}
+			<Button
+				size="sm"
+				variant={alert.acked ? 'ghost' : 'secondary'}
+				loading={busy}
+				aria-pressed={alert.acked}
+				title={alert.acked ? m.alerts_ack_unack() : m.alerts_actions_ack_title()}
+				class="max-sm:!w-10 max-sm:!px-0"
+				onclick={alert.acked ? unack : () => void ack(UNTIL_RESOLVED_SECS)}
+			>
+				{#if alert.acked}
+					<CircleCheck class="size-4" aria-hidden="true" />
+				{:else}
+					<Check class="size-4" aria-hidden="true" />
+				{/if}
+				<span class="max-sm:sr-only">{alert.acked ? m.alerts_ack_unack() : m.alerts_actions_ack()}</span>
+			</Button>
+		{:else if iconOnly}
 			<Button
 				size="sm"
 				variant="ghost"

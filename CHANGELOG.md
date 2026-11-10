@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- **Overview, "Needs attention".** Ages read "3d ago", "2h ago" (number glued to the unit, spaced
+  with a non-breaking space where the language does so) and are larger and darker. An alert row has
+  a labelled "Acknowledge" button: it stops the reminders until the alert resolves and takes the row
+  out of the list; the alert stays on the Alerts page, where it can be un-acknowledged.
+- **The health river fills its card:** strips take the available height, and more of them show when
+  there is room, at any width.
+- The monitor-count lines ("reporting, unreachable, suppressed by parent" and the severity
+  breakdown) are gone from the wall header, next to the problem total; the "suppressed by parent"
+  counter no longer appears anywhere.
+- The "Scan my network" descriptions no longer say it only finds SNMP devices: the scan finds live
+  devices, checks their open ports and recognises products.
+
 - **One typeface family everywhere: Inter and JetBrains Mono.** The console, the status pages, the
   topology exports and the documentation now use Inter (headings in semibold) and JetBrains Mono
   for code and figures, replacing Geist and Bricolage Grotesque. Both are open source (SIL OFL 1.1)

@@ -121,7 +121,7 @@
 						<div class="flex min-w-0 items-center gap-2">
 							<Plate tone={row.tone} size="sm" class="max-w-full min-w-0 truncate">{row.plate}</Plate>
 							{#if row.since}
-								<span class="ml-auto shrink-0 font-mono text-xs text-ink-3 tabular-nums md:hidden">{formatRelative(row.since)}</span>
+								<span class="ml-auto shrink-0 font-mono text-sm font-medium text-ink-2 tabular-nums md:hidden">{formatRelative(row.since)}</span>
 							{/if}
 						</div>
 						<a href={withBase(href(row))} class="mt-1 flex min-w-0 items-baseline gap-1.5 text-sm font-semibold text-ink hover:underline md:mt-0">
@@ -138,11 +138,11 @@
 						{/if}
 					</div>
 					{#if row.since}
-						<span class="w-16 shrink-0 whitespace-nowrap text-right font-mono text-xs text-ink-3 tabular-nums max-md:hidden">{formatRelative(row.since)}</span>
+						<span class="w-20 shrink-0 whitespace-nowrap text-right font-mono text-sm font-medium text-ink-2 tabular-nums max-md:hidden">{formatRelative(row.since)}</span>
 					{/if}
 					<div class="flex shrink-0 items-center">
 						{#if row.kind === 'alert'}
-							<AlertActions alert={row.alert} target={row.target} onchanged={() => void alertsStore.refresh()} />
+							<AlertActions alert={row.alert} target={row.target} labelled onchanged={() => void alertsStore.refresh()} />
 						{:else if auth.canOperate}
 							<MuteControl
 								target={row.target}

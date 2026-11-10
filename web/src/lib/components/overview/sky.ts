@@ -51,17 +51,9 @@ export type SkyRow =
 			since: string | null;
 	  };
 
-export interface SkyPlate {
-	tone: Tone;
-	label: string;
-	bare?: boolean;
-}
-
 export interface Sky {
 	/** The bulletin headline: "Clear skies." / "1 unreachable, 5 building up." */
 	sentence: string;
-	/** The small plates under the sentence: reporting / unreachable / waiting / suppressed. */
-	plates: SkyPlate[];
 	/** Everything worth a row, in reading order. */
 	needsYou: SkyRow[];
 	/** Readout "Needs you": warnings + advisories + unreachable, one per device at most. */
@@ -243,31 +235,8 @@ export function readSky({ targets, probes, alerts, rules }: SkyInput): Sky {
 		else sentence = m.overview_sky_clear();
 	}
 
-	const plates: SkyPlate[] = [
-		{ tone: 'signal', label: m.overview_sky_n_reporting({ count: counts.reporting }), bare: true }
-	];
-	if (counts.unreachable > 0) {
-		plates.push({ tone: 'warning', label: m.overview_sky_n_unreachable({ count: counts.unreachable }) });
-	}
-	if (counts.misconfigured > 0) {
-		plates.push({ tone: 'advisory', label: m.overview_sky_n_misconfigured({ count: counts.misconfigured }) });
-	}
-	if (counts.waiting > 0) {
-		plates.push({ tone: 'ghost', label: m.overview_sky_n_waiting({ count: counts.waiting }) });
-	}
-	if (counts.suppressed > 0) {
-		plates.push({ tone: 'muted', label: m.overview_sky_n_suppressed({ count: counts.suppressed }) });
-	}
-	if (counts.acked > 0) {
-		plates.push({ tone: 'muted', label: m.overview_sky_n_acked({ count: counts.acked }) });
-	}
-	if (counts.snoozed > 0) {
-		plates.push({ tone: 'muted', label: m.overview_sky_n_snoozed({ count: counts.snoozed }) });
-	}
-
 	return {
 		sentence,
-		plates,
 		needsYou: rows,
 		// Info alerts are listed, never counted as problems (see `alerts-attention`).
 		attention: attentionCount({

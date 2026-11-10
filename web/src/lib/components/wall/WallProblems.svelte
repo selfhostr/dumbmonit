@@ -89,7 +89,6 @@
 		if (level < 2 || quiet.length === 0) return null;
 		const counts = quietCounts(quiet);
 		const parts: string[] = [];
-		if (counts.suppressed > 0) parts.push(m.overview_sky_n_suppressed({ count: counts.suppressed }));
 		if (counts.snoozed > 0) parts.push(m.overview_sky_n_snoozed({ count: counts.snoozed }));
 		if (counts.acked > 0) parts.push(m.overview_sky_n_acked({ count: counts.acked }));
 		return parts.join(' · ');

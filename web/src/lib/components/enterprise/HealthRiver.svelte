@@ -21,8 +21,19 @@
 		moreHref?: string;
 		/** The scan line sweeping the strips (the wall); off where nothing should move at rest. */
 		scan?: boolean;
+		/**
+		 * Fill the card: the strips share the height the card has (a taller card gets
+		 * taller strips, then more of them, up to `limit`), instead of sitting at the top.
+		 */
+		fit?: boolean;
 	}
-	let { rows, limit = 10, moreHref, scan = true }: Props = $props();
+	let { rows, limit = 10, moreHref, scan = true, fit = false }: Props = $props();
+
+	/** Fit mode: least and most a strip may take, in px, and the gap between two. */
+	const MIN_STRIP = 18;
+	const MAX_STRIP = 34;
+	const STRIP_GAP = 3;
+	let room = $state(0);
 
 	const CELL: Record<RiverCell, string> = {
 		up: 'bg-river-up',
@@ -39,7 +50,10 @@
 					? m.console_status_down()
 					: m.console_river_no_data();
 
-	const shown = $derived(rows.slice(0, limit));
+	const capacity = $derived(Math.max(1, Math.floor((room + STRIP_GAP) / (MIN_STRIP + STRIP_GAP))));
+	const shown = $derived(rows.slice(0, fit ? Math.min(limit, room > 0 ? capacity : limit) : limit));
+	// What the card needs at least, before it is stretched: every strip at its minimum.
+	const natural = $derived(Math.min(rows.length, limit) * (MIN_STRIP + STRIP_GAP) - STRIP_GAP);
 	const slot = $derived(formatDuration(consoleState.rangeSeconds / RIVER_SLOTS));
 	const rangeLabel = $derived(formatDuration(consoleState.rangeSeconds));
 	const ticks = $derived(
@@ -49,7 +63,7 @@
 	const animate = !calmMotion();
 </script>
 
-<section class="min-w-0 rounded-xl border border-line bg-surface px-4 pt-3.5 pb-4" aria-labelledby="river-title">
+<section class={`min-w-0 rounded-xl border border-line bg-surface px-4 pt-3.5 pb-4 ${fit ? 'flex flex-col' : ''}`} aria-labelledby="river-title">
 	<div class="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
 		<h2 id="river-title" class="m-0 text-base font-semibold text-ink">{m.console_river_title()}</h2>
 		<span class="text-xs text-ink-2">{m.console_river_hint({ slot, range: rangeLabel })}</span>
@@ -63,15 +77,19 @@
 	{#if shown.length === 0}
 		<p class="mt-3 text-xs text-ink-2">{m.console_river_empty()}</p>
 	{:else}
-		<div class="relative mt-2.5 overflow-hidden">
-			<ul class="flex flex-col gap-[3px]">
+		<div
+			class={`relative mt-2.5 overflow-hidden ${fit ? 'min-h-0 flex-1' : ''}`}
+			style={fit ? `min-height: ${natural}px` : undefined}
+			bind:clientHeight={room}
+		>
+			<ul class={`flex flex-col ${fit ? 'absolute inset-0 h-full' : ''}`} style={`gap: ${STRIP_GAP}px`}>
 				{#each shown as row, ri (row.id)}
-					<li class="grid grid-cols-[minmax(0,7.5rem)_1fr] items-center gap-2.5 max-sm:grid-cols-[minmax(0,5rem)_1fr]">
+					<li class={`grid grid-cols-[minmax(0,7.5rem)_1fr] items-center gap-2.5 max-sm:grid-cols-[minmax(0,5rem)_1fr] ${fit ? 'min-h-0 flex-1' : ''}`} style={fit ? `max-height: ${MAX_STRIP}px` : undefined}>
 						<span class="truncate font-mono text-[0.6875rem] text-ink-2" title={row.name}>{row.name}</span>
-						<div class="grid gap-[2px] max-sm:gap-px" style={`grid-template-columns: repeat(${RIVER_SLOTS}, minmax(0, 1fr))`}>
+						<div class={`grid gap-[2px] max-sm:gap-px ${fit ? 'h-full py-px' : ''}`} style={`grid-template-columns: repeat(${RIVER_SLOTS}, minmax(0, 1fr))`}>
 							{#each row.cells as cell, c (c)}
 								<span
-									class={`h-2.5 rounded-[2px] ${CELL[cell]} ${animate ? 'ob-cell' : ''}`}
+									class={`${fit ? 'h-full min-h-2.5' : 'h-2.5'} rounded-[2px] ${CELL[cell]} ${animate ? 'ob-cell' : ''}`}
 									style={animate ? `animation-delay: ${(c * 0.006 + ri * 0.02).toFixed(3)}s` : undefined}
 									title={cellWord(cell)}
 								></span>

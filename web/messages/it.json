@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "Annulla conferma",
 	"alerts_ack_until_resolved": "Fino alla risoluzione",
 	"alerts_actions_ack": "Prendi in carico",
+	"alerts_actions_ack_title": "Prendi in carico: lo sai e te ne occupi. Nessun promemoria fino alla risoluzione.",
 	"alerts_bulk_ack": "Conferma",
 	"alerts_bulk_done": "Fatto: {count}.",
 	"alerts_bulk_ignore": "Ignora per questo monitor",
@@ -1260,7 +1261,7 @@
 	"deviceform_new_desc_relay": "Un agente nell'altro sito, e i suoi monitor riportano tramite lui.",
 	"deviceform_new_desc_scan": "Trova dispositivi e servizi in un intervallo di rete e li aggiunge con un clic.",
 	"deviceform_new_devices": "Monitor",
-	"deviceform_new_door_scan_desc": "Indica un intervallo come 192.168.1.0/24: ogni dispositivo che risponde a SNMP viene elencato, pronto da aggiungere.",
+	"deviceform_new_door_scan_desc": "Indica un intervallo come 192.168.1.0/24: vengono trovati i dispositivi attivi, controllate le porte aperte e riconosciuti i prodotti (pagine web, banner, SNMP), pronti da aggiungere. Nessun accesso viene tentato.",
 	"deviceform_new_empty_lead": "Quasi tutto rientra ancora in una di queste:",
 	"deviceform_new_guide_hide": "Nascondi la guida alla configurazione",
 	"deviceform_new_guide_label": "Guida alla configurazione",
@@ -4872,10 +4873,10 @@
 	"misc_device_tablet": "un tablet",
 	"misc_device_this": "questo display",
 	"misc_device_tv": "una TV",
-	"misc_dur_d": "{n} g",
-	"misc_dur_h": "{n} h",
-	"misc_dur_min": "{n} min",
-	"misc_dur_s": "{n} s",
+	"misc_dur_d": "{n}g",
+	"misc_dur_h": "{n}h",
+	"misc_dur_min": "{n}min",
+	"misc_dur_s": "{n}s",
 	"misc_just_now": "adesso",
 	"misc_music_deezer_cut": "Questo link di Deezer sembra troncato.",
 	"misc_music_deezer_kinds": "I link Deezer a un brano, album o playlist possono essere riprodotti sulla parete.",
@@ -5528,7 +5529,7 @@
 	"overview_first_done": "Fatto",
 	"overview_first_error": "Impossibile salvare. Riprova tra un attimo.",
 	"overview_first_error_detail": "Impossibile salvare: {message}",
-	"overview_first_hurry": "Hai fretta? Scansiona un intervallo di rete e aggiungi in un colpo tutto ciò che risponde via SNMP.",
+	"overview_first_hurry": "Hai fretta? Scansiona un intervallo di rete: i dispositivi attivi vengono trovati e i loro prodotti riconosciuti, da aggiungere in un colpo.",
 	"overview_first_intro": "Tre passaggi e il piccione ha qualcosa da tenere d'occhio.",
 	"overview_first_scan": "Scansiona la mia rete",
 	"overview_first_skip_guide": "Salta la guida",
@@ -5689,21 +5690,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} attivo",
-				"countPlural=other": "{count} attivi"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5719,21 +5705,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} soppresso dal genitore",
-				"countPlural=other": "{count} soppressi dal genitore"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5746,21 +5717,6 @@
 			"match": {
 				"countPlural=one": "{count} irraggiungibile",
 				"countPlural=other": "{count} irraggiungibili"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} in attesa",
-				"countPlural=other": "{count} in attesa"
 			}
 		}
 	],

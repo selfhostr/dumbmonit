@@ -53,7 +53,7 @@
 	import { consoleState } from '#lib/stores/console.svelte.js';
 	import { viewport } from '#lib/stores/viewport.svelte.js';
 	import { useSceneLive } from '#lib/scene/live.svelte.js';
-	import { Button, Plate, Skeleton, calmMotion } from '#lib/ui/index.js';
+	import { Button, Skeleton, calmMotion } from '#lib/ui/index.js';
 	import WallBand, { type BandFigure } from '#lib/components/wall/WallBand.svelte';
 	import WallDevices from '#lib/components/wall/WallDevices.svelte';
 	import WallProblems from '#lib/components/wall/WallProblems.svelte';
@@ -623,13 +623,6 @@
 							<h1 class="headline min-w-0" aria-live="polite">{verdict.text}</h1>
 						</header>
 					{/key}
-					<p class="sentence mt-3 lg:mt-4" data-wall-info>{sky.sentence}</p>
-					<div class="mt-4 flex flex-wrap items-center gap-2.5" data-wall-info>
-						{#each sky.plates as plate (plate.label)}
-							<Plate tone={plate.tone} label={plate.label} bare={plate.bare} size="md" />
-						{/each}
-					</div>
-
 					<div class="board-list mt-7 flex min-h-0 flex-1 flex-col gap-4 lg:mt-9" bind:clientHeight={leftRoom}>
 						<WallProblems {sky} {now} room={problemsRoom} bind:listed={problemListed} />
 						<WallDevices {targets} {probes} {sky} skip={problemListed} />
@@ -870,12 +863,6 @@
 	.status-mark--ghost {
 		color: var(--c-ink-2);
 	}
-	.sentence {
-		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 500;
-		color: var(--c-ink-2);
-	}
 	.clock {
 		font-size: 3.25rem;
 		font-weight: 600;
@@ -1006,9 +993,6 @@
 			width: clamp(4rem, 4.8vw, 5.75rem);
 			border-width: 3px;
 		}
-		.sentence {
-			font-size: 1.75rem;
-		}
 		.clock {
 			font-size: 6.5rem;
 		}
@@ -1026,7 +1010,6 @@
 	.has-world .headline,
 	.has-world .clock,
 	.has-world .date,
-	.has-world .sentence,
 	.has-world .updated,
 	.has-world .instance {
 		text-shadow: 0 0 14px color-mix(in srgb, var(--c-canvas) 85%, transparent);
@@ -1060,10 +1043,6 @@
 		.date {
 			font-size: 1.25rem;
 			margin-top: 0.125rem;
-		}
-		.sentence {
-			font-size: 1.25rem;
-			margin-top: 0.5rem;
 		}
 		.board-list {
 			margin-top: 1.25rem;

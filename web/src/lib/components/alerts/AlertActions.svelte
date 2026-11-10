@@ -25,14 +25,16 @@
 		menu?: boolean;
 		/** Something changed (ack, snooze). */
 		onchanged?: (alert: Alert) => void;
+		/** A labelled "Acknowledge" button instead of the bare check. */
+		labelled?: boolean;
 	}
 
-	let { alert, target, silences = [], onchanged }: Props = $props();
+	let { alert, target, silences = [], onchanged, labelled = false }: Props = $props();
 </script>
 
 {#if auth.canOperate}
 	<div class="flex shrink-0 items-center gap-0.5">
-		<AckControl {alert} iconOnly floating onchanged={(a) => onchanged?.(a)} />
+		<AckControl {alert} iconOnly={!labelled} {labelled} floating onchanged={(a) => onchanged?.(a)} />
 		<SnoozeControl {alert} {target} {silences} iconOnly onchanged={() => onchanged?.(alert)} />
 	</div>
 {/if}

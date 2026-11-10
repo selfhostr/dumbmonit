@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "Снять подтверждение",
 	"alerts_ack_until_resolved": "До устранения",
 	"alerts_actions_ack": "Подтвердить",
+	"alerts_actions_ack_title": "Подтвердить: вы в курсе и занимаетесь этим. Напоминаний больше не будет до устранения.",
 	"alerts_bulk_ack": "Подтвердить",
 	"alerts_bulk_done": "Готово: {count}.",
 	"alerts_bulk_ignore": "Игнорировать для этого монитора",
@@ -1280,7 +1281,7 @@
 	"deviceform_new_desc_relay": "Один агент на другой площадке, а мониторы этой площадки отчитываются через него.",
 	"deviceform_new_desc_scan": "Находит устройства и сервисы в диапазоне сети и добавляет их в один клик.",
 	"deviceform_new_devices": "Мониторы",
-	"deviceform_new_door_scan_desc": "Укажите диапазон вроде 192.168.1.0/24: все устройства, отвечающие по SNMP, будут перечислены и готовы к добавлению.",
+	"deviceform_new_door_scan_desc": "Укажите диапазон вроде 192.168.1.0/24: найдутся работающие устройства, будут проверены их открытые порты и распознаны продукты (веб-страницы, баннеры, SNMP), которые можно сразу добавить. Вход в устройства не выполняется.",
 	"deviceform_new_empty_lead": "Чаще всего подойдёт один из этих вариантов:",
 	"deviceform_new_guide_hide": "Скрыть руководство по настройке",
 	"deviceform_new_guide_label": "Руководство по настройке",
@@ -4938,10 +4939,10 @@
 	"misc_device_tablet": "планшете",
 	"misc_device_this": "этом экране",
 	"misc_device_tv": "телевизоре",
-	"misc_dur_d": "{n} дн.",
-	"misc_dur_h": "{n} ч",
-	"misc_dur_min": "{n} мин",
-	"misc_dur_s": "{n} с",
+	"misc_dur_d": "{n} дн.",
+	"misc_dur_h": "{n} ч",
+	"misc_dur_min": "{n} мин",
+	"misc_dur_s": "{n} с",
 	"misc_just_now": "только что",
 	"misc_music_deezer_cut": "Эта ссылка Deezer, похоже, обрезана.",
 	"misc_music_deezer_kinds": "На стене можно воспроизводить ссылки Deezer на трек, альбом или плейлист.",
@@ -5610,7 +5611,7 @@
 	"overview_first_done": "Готово",
 	"overview_first_error": "Не удалось сохранить. Повторите попытку чуть позже.",
 	"overview_first_error_detail": "Не удалось сохранить: {message}",
-	"overview_first_hurry": "Спешите? Просканируйте диапазон сети и разом добавьте всё, что отвечает по SNMP.",
+	"overview_first_hurry": "Спешите? Просканируйте диапазон сети: найдутся работающие устройства и будут распознаны их продукты, всё можно добавить разом.",
 	"overview_first_intro": "Три шага, и у голубя появится за чем следить.",
 	"overview_first_scan": "Просканировать мою сеть",
 	"overview_first_skip_guide": "Пропустить руководство",
@@ -5787,23 +5788,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} на связи",
-				"countPlural=few": "{count} на связи",
-				"countPlural=many": "{count} на связи",
-				"countPlural=other": "{count} на связи"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5821,23 +5805,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} подавлено родителем",
-				"countPlural=few": "{count} подавлено родителем",
-				"countPlural=many": "{count} подавлено родителем",
-				"countPlural=other": "{count} подавлено родителем"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5852,23 +5819,6 @@
 				"countPlural=few": "{count} недоступно",
 				"countPlural=many": "{count} недоступно",
 				"countPlural=other": "{count} недоступно"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} в ожидании",
-				"countPlural=few": "{count} в ожидании",
-				"countPlural=many": "{count} в ожидании",
-				"countPlural=other": "{count} в ожидании"
 			}
 		}
 	],

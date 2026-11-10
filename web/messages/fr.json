@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "Retirer l’acquittement",
 	"alerts_ack_until_resolved": "Jusqu’à résolution",
 	"alerts_actions_ack": "Acquitter",
+	"alerts_actions_ack_title": "Acquitter : vous êtes au courant et vous vous en occupez. Plus de rappel jusqu’à la résolution.",
 	"alerts_bulk_ack": "Acquitter",
 	"alerts_bulk_done": "Terminé : {count}.",
 	"alerts_bulk_ignore": "Ignorer pour cette surveillance",
@@ -1260,7 +1261,7 @@
 	"deviceform_new_desc_relay": "Un agent sur l’autre site, et ses surveillances remontent par lui.",
 	"deviceform_new_desc_scan": "Trouve les appareils et services d’une plage réseau et les ajoute en un clic.",
 	"deviceform_new_devices": "Surveillances",
-	"deviceform_new_door_scan_desc": "Donnez une plage comme 192.168.1.0/24 : chaque appareil qui répond en SNMP est listé, prêt à être ajouté.",
+	"deviceform_new_door_scan_desc": "Donnez une plage comme 192.168.1.0/24 : les appareils présents sont trouvés, leurs ports ouverts examinés et les produits reconnus (pages web, bannières, SNMP), prêts à être ajoutés. Aucune connexion n’est tentée.",
 	"deviceform_new_empty_lead": "La plupart des choses entrent encore dans l’une de ces cases :",
 	"deviceform_new_guide_hide": "Masquer le guide de configuration",
 	"deviceform_new_guide_label": "Guide de configuration",
@@ -4872,10 +4873,10 @@
 	"misc_device_tablet": "une tablette",
 	"misc_device_this": "cet écran",
 	"misc_device_tv": "une télé",
-	"misc_dur_d": "{n} j",
-	"misc_dur_h": "{n} h",
-	"misc_dur_min": "{n} min",
-	"misc_dur_s": "{n} s",
+	"misc_dur_d": "{n} j",
+	"misc_dur_h": "{n} h",
+	"misc_dur_min": "{n} min",
+	"misc_dur_s": "{n} s",
 	"misc_just_now": "à l’instant",
 	"misc_music_deezer_cut": "Ce lien Deezer semble tronqué.",
 	"misc_music_deezer_kinds": "Les liens Deezer vers un titre, un album ou une playlist peuvent être lus sur le mur.",
@@ -5528,7 +5529,7 @@
 	"overview_first_done": "Fait",
 	"overview_first_error": "Enregistrement impossible. Réessayez dans un instant.",
 	"overview_first_error_detail": "Enregistrement impossible : {message}",
-	"overview_first_hurry": "Pressé ? Scannez une plage réseau et ajoutez d’un coup tout ce qui répond en SNMP.",
+	"overview_first_hurry": "Pressé ? Scannez une plage réseau : les appareils présents sont trouvés et leurs produits reconnus, à ajouter d’un coup.",
 	"overview_first_intro": "Trois étapes, et le pigeon a de quoi surveiller.",
 	"overview_first_scan": "Scanner mon réseau",
 	"overview_first_skip_guide": "Passer le guide",
@@ -5689,21 +5690,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} remonte des données",
-				"countPlural=other": "{count} remontent des données"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5719,21 +5705,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} masquée par le parent",
-				"countPlural=other": "{count} masquées par le parent"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5746,21 +5717,6 @@
 			"match": {
 				"countPlural=one": "{count} injoignable",
 				"countPlural=other": "{count} injoignables"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} en attente",
-				"countPlural=other": "{count} en attente"
 			}
 		}
 	],

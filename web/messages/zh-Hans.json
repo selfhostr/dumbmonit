@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "取消确认",
 	"alerts_ack_until_resolved": "直到解决",
 	"alerts_actions_ack": "确认",
+	"alerts_actions_ack_title": "确认：您已知晓并正在处理。问题解决前不再提醒。",
 	"alerts_bulk_ack": "确认",
 	"alerts_bulk_done": "完成：{count}。",
 	"alerts_bulk_ignore": "对此监控项忽略",
@@ -1229,7 +1230,7 @@
 	"deviceform_new_desc_relay": "在另一个站点放一个代理，该站点的监控项都通过它上报。",
 	"deviceform_new_desc_scan": "在网段中查找设备和服务，并一键添加。",
 	"deviceform_new_devices": "监控项",
-	"deviceform_new_door_scan_desc": "给出类似 192.168.1.0/24 的网段：所有应答 SNMP 的设备都会列出，随时可添加。",
+	"deviceform_new_door_scan_desc": "给出类似 192.168.1.0/24 的网段：会找出在线设备、检查开放端口并识别产品（网页、横幅、SNMP），随时可添加。不会登录任何设备。",
 	"deviceform_new_empty_lead": "大多数东西仍然可以归入以下几类：",
 	"deviceform_new_guide_hide": "隐藏设置指南",
 	"deviceform_new_guide_label": "设置指南",
@@ -4818,10 +4819,10 @@
 	"misc_device_tablet": "平板电脑",
 	"misc_device_this": "此显示器",
 	"misc_device_tv": "电视",
-	"misc_dur_d": "{n} 天",
-	"misc_dur_h": "{n} 小时",
-	"misc_dur_min": "{n} 分钟",
-	"misc_dur_s": "{n} 秒",
+	"misc_dur_d": "{n}天",
+	"misc_dur_h": "{n}小时",
+	"misc_dur_min": "{n}分钟",
+	"misc_dur_s": "{n}秒",
 	"misc_just_now": "刚刚",
 	"misc_music_deezer_cut": "此 Deezer 链接似乎不完整。",
 	"misc_music_deezer_kinds": "指向单曲、专辑或播放列表的 Deezer 链接可在墙屏上播放。",
@@ -5473,7 +5474,7 @@
 	"overview_first_done": "已完成",
 	"overview_first_error": "无法保存，请稍后重试。",
 	"overview_first_error_detail": "无法保存：{message}",
-	"overview_first_hurry": "赶时间？扫描一个网段，一次添加所有响应 SNMP 的监控项。",
+	"overview_first_hurry": "赶时间？扫描一个网段：会找出在线设备并识别其产品，一次全部添加。",
 	"overview_first_intro": "三步之后，鸽子就有东西可看了。",
 	"overview_first_scan": "扫描我的网络",
 	"overview_first_skip_guide": "跳过向导",
@@ -5626,20 +5627,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=other": "{count} 个在上报"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5654,20 +5641,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=other": "{count} 个被上级抑制"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5679,20 +5652,6 @@
 			],
 			"match": {
 				"countPlural=other": "{count} 个无法访问"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=other": "{count} 个在等待"
 			}
 		}
 	],

@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "Un-ack",
 	"alerts_ack_until_resolved": "Until resolved",
 	"alerts_actions_ack": "Acknowledge",
+	"alerts_actions_ack_title": "Acknowledge: you know about it and are handling it. No more reminders until it resolves.",
 	"alerts_bulk_ack": "Acknowledge",
 	"alerts_bulk_done": "Done: {count}.",
 	"alerts_bulk_ignore": "Ignore for this monitor",
@@ -1260,7 +1261,7 @@
 	"deviceform_new_desc_relay": "One agent at the other site, and its monitors report through it.",
 	"deviceform_new_desc_scan": "Finds the devices and services on a network range and adds them in a click.",
 	"deviceform_new_devices": "Monitors",
-	"deviceform_new_door_scan_desc": "Give a range like 192.168.1.0/24: every device answering SNMP is listed, ready to add.",
+	"deviceform_new_door_scan_desc": "Give a range like 192.168.1.0/24: live devices are found, their open ports checked and the products recognised (web pages, banners, SNMP), ready to add. Nothing is logged into.",
 	"deviceform_new_empty_lead": "Most things still fit one of these:",
 	"deviceform_new_guide_hide": "Hide setup guide",
 	"deviceform_new_guide_label": "Setup guide",
@@ -4872,10 +4873,10 @@
 	"misc_device_tablet": "a tablet",
 	"misc_device_this": "this display",
 	"misc_device_tv": "a TV",
-	"misc_dur_d": "{n} d",
-	"misc_dur_h": "{n} h",
-	"misc_dur_min": "{n} min",
-	"misc_dur_s": "{n} s",
+	"misc_dur_d": "{n}d",
+	"misc_dur_h": "{n}h",
+	"misc_dur_min": "{n}min",
+	"misc_dur_s": "{n}s",
 	"misc_just_now": "just now",
 	"misc_music_deezer_cut": "This Deezer link looks cut short.",
 	"misc_music_deezer_kinds": "Deezer links to a track, album or playlist can play on the wall.",
@@ -5528,7 +5529,7 @@
 	"overview_first_done": "Done",
 	"overview_first_error": "Could not save that. Try again in a moment.",
 	"overview_first_error_detail": "Could not save that: {message}",
-	"overview_first_hurry": "In a hurry? Scan a network range and add everything that answers SNMP in one go.",
+	"overview_first_hurry": "In a hurry? Scan a network range: live devices are found and their products recognised, ready to add in one go.",
 	"overview_first_intro": "Three steps, and the pigeon has something to watch.",
 	"overview_first_scan": "Scan my network",
 	"overview_first_skip_guide": "Skip the guide",
@@ -5689,21 +5690,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} reporting",
-				"countPlural=other": "{count} reporting"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5719,21 +5705,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} suppressed by parent",
-				"countPlural=other": "{count} suppressed by parent"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5746,21 +5717,6 @@
 			"match": {
 				"countPlural=one": "{count} unreachable",
 				"countPlural=other": "{count} unreachable"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} waiting",
-				"countPlural=other": "{count} waiting"
 			}
 		}
 	],

@@ -135,6 +135,7 @@
 	"alerts_ack_unack": "Bestätigung aufheben",
 	"alerts_ack_until_resolved": "Bis zur Lösung",
 	"alerts_actions_ack": "Bestätigen",
+	"alerts_actions_ack_title": "Bestätigen: Sie wissen Bescheid und kümmern sich darum. Keine Erinnerungen mehr bis zur Lösung.",
 	"alerts_bulk_ack": "Bestätigen",
 	"alerts_bulk_done": "Erledigt: {count}.",
 	"alerts_bulk_ignore": "Für diesen Monitor ignorieren",
@@ -1260,7 +1261,7 @@
 	"deviceform_new_desc_relay": "Ein Agent am anderen Standort, und dessen Monitore melden über ihn.",
 	"deviceform_new_desc_scan": "Findet Geräte und Dienste in einem Netzwerkbereich und fügt sie mit einem Klick hinzu.",
 	"deviceform_new_devices": "Monitore",
-	"deviceform_new_door_scan_desc": "Geben Sie einen Bereich wie 192.168.1.0/24 an: Jedes Gerät, das per SNMP antwortet, wird aufgelistet und kann direkt hinzugefügt werden.",
+	"deviceform_new_door_scan_desc": "Geben Sie einen Bereich wie 192.168.1.0/24 an: Aktive Geräte werden gefunden, ihre offenen Ports geprüft und die Produkte erkannt (Webseiten, Banner, SNMP), bereit zum Hinzufügen. Es erfolgt keine Anmeldung.",
 	"deviceform_new_empty_lead": "Das meiste passt trotzdem in eine dieser Kategorien:",
 	"deviceform_new_guide_hide": "Einrichtungsanleitung ausblenden",
 	"deviceform_new_guide_label": "Einrichtungsanleitung",
@@ -4872,10 +4873,10 @@
 	"misc_device_tablet": "einem Tablet",
 	"misc_device_this": "diesem Display",
 	"misc_device_tv": "einem Fernseher",
-	"misc_dur_d": "{n} T",
-	"misc_dur_h": "{n} Std.",
-	"misc_dur_min": "{n} Min.",
-	"misc_dur_s": "{n} s",
+	"misc_dur_d": "{n} T",
+	"misc_dur_h": "{n} Std.",
+	"misc_dur_min": "{n} Min.",
+	"misc_dur_s": "{n} s",
 	"misc_just_now": "gerade eben",
 	"misc_music_deezer_cut": "Dieser Deezer-Link scheint abgeschnitten zu sein.",
 	"misc_music_deezer_kinds": "Deezer-Links zu Titeln, Alben oder Playlists können auf der Wand abgespielt werden.",
@@ -5528,7 +5529,7 @@
 	"overview_first_done": "Erledigt",
 	"overview_first_error": "Das konnte nicht gespeichert werden. Versuchen Sie es gleich noch einmal.",
 	"overview_first_error_detail": "Das konnte nicht gespeichert werden: {message}",
-	"overview_first_hurry": "Es eilig? Scannen Sie einen Netzbereich und fügen Sie alles, was auf SNMP antwortet, auf einmal hinzu.",
+	"overview_first_hurry": "Es eilig? Scannen Sie einen Netzbereich: Aktive Geräte werden gefunden und ihre Produkte erkannt, alles auf einmal hinzufügbar.",
 	"overview_first_intro": "Drei Schritte, und die Taube hat etwas zu beobachten.",
 	"overview_first_scan": "Mein Netzwerk scannen",
 	"overview_first_skip_guide": "Anleitung überspringen",
@@ -5689,21 +5690,6 @@
 			}
 		}
 	],
-	"overview_sky_n_reporting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} meldet",
-				"countPlural=other": "{count} melden"
-			}
-		}
-	],
 	"overview_sky_n_snoozed": [
 		{
 			"declarations": [
@@ -5719,21 +5705,6 @@
 			}
 		}
 	],
-	"overview_sky_n_suppressed": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} vom übergeordneten Monitor unterdrückt",
-				"countPlural=other": "{count} vom übergeordneten Monitor unterdrückt"
-			}
-		}
-	],
 	"overview_sky_n_unreachable": [
 		{
 			"declarations": [
@@ -5746,21 +5717,6 @@
 			"match": {
 				"countPlural=one": "{count} nicht erreichbar",
 				"countPlural=other": "{count} nicht erreichbar"
-			}
-		}
-	],
-	"overview_sky_n_waiting": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} wartet",
-				"countPlural=other": "{count} warten"
 			}
 		}
 	],

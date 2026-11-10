@@ -214,7 +214,7 @@
 				{/if}
 				{#if !phone || riverOpen}
 					<div id="overview-river" class="min-w-0 flex-1 [&>section]:h-full">
-						<HealthRiver rows={riverRows} limit={8} moreHref="/targets" scan={false} />
+						<HealthRiver rows={riverRows} limit={14} moreHref="/targets" scan={false} fit />
 					</div>
 				{/if}
 			</div>
