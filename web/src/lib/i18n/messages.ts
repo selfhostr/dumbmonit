@@ -24,6 +24,7 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
 	it: () => import('#lib/paraglide/messages/it.js'),
 	pt: () => import('#lib/paraglide/messages/pt.js'),
 	'pt-BR': () => import('#lib/paraglide/messages/pt-BR.js'),
+	uk: () => import('#lib/paraglide/messages/uk.js'),
 	ru: () => import('#lib/paraglide/messages/ru.js'),
 	'zh-Hans': () => import('#lib/paraglide/messages/zh-Hans.js'),
 	ja: () => import('#lib/paraglide/messages/ja.js'),
