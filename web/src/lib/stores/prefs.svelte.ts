@@ -62,10 +62,11 @@ class DisplayPrefs {
 	}
 
 	/** Puts the classes on `<html>`. Called at start-up and after each change. */
-	apply(): void {
+	apply(onWall = location.pathname.replace(/^\/demo(?=\/|$)/, '').startsWith('/wall')): void {
 		if (!browser) return;
 		const root = document.documentElement;
-		root.classList.toggle('density-compact', this.density === 'compact');
+		// The wall ignores density.
+		root.classList.toggle('density-compact', this.density === 'compact' && !onWall);
 		root.classList.toggle('reduce-motion', this.motion === 'reduce');
 	}
 }
