@@ -180,7 +180,7 @@ nav:
       - Frigate NVR (beta): devices/frigate.md
       - Keycloak (beta): devices/keycloak.md
       - authentik (beta): devices/authentik.md
-      - Vaultwarden (beta): devices/vaultwarden.md
+      - Vaultwarden: devices/vaultwarden.md
       - mailcow (beta): devices/mailcow.md
       - Linux, macOS, FreeBSD and Windows agent: devices/agent.md
       - Deploy the agent with Active Directory: devices/agent-active-directory.md

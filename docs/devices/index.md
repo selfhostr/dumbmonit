@@ -117,7 +117,7 @@ the type, fill in the form, **Add monitor**. See
 | [Frigate NVR (beta)](frigate.md) | `frigate` | none or bearer token | NVR: cameras without frames, detector hangs, frame rates, recording storage |
 | [Keycloak (beta)](keycloak.md) | `keycloak` | none, or client ID and secret | Identity: readiness and database, realms, sessions, users |
 | [authentik (beta)](authentik.md) | `authentik` | API token | Identity: readiness, workers, failed tasks, outposts, updates |
-| [Vaultwarden (beta)](vaultwarden.md) | `vaultwarden` | none, or admin token | Password vault: liveness, version, open sign-ups, account counts |
+| [Vaultwarden](vaultwarden.md) | `vaultwarden` | none, or admin token | Password vault: liveness, version, open sign-ups, account counts |
 | [mailcow (beta)](mailcow.md) | `mailcow` | read-only API key | Mail server: stopped containers, queue, mail volume, mailbox quotas |
 | [Server with agent](agent.md) | `agent` | none (enrollment token) | Linux, Windows, Raspberry Pi, [Hyper-V host](agent.md#hyper-v-hosts) |
 | [Website or web API](services.md#http) | `http` | none, username/password or token | Health page, REST API |

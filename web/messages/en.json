@@ -1079,7 +1079,6 @@
 	"deviceform_cat_media": "Media and home",
 	"deviceform_cat_network": "Network and firewalls",
 	"deviceform_cat_observability": "Metrics and logs",
-	"deviceform_cat_other": "Other",
 	"deviceform_cat_packs": "Community packs",
 	"deviceform_cat_security": "Security and identity",
 	"deviceform_cat_storage": "Storage and backups",

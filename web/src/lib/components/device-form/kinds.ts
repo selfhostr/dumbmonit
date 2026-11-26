@@ -489,8 +489,7 @@ export const CATEGORY_ICON: Record<CategoryId, typeof LucideIcon> = {
 	cloud: Cloud,
 	apps: LayoutGrid,
 	media: Tv,
-	packs: Puzzle,
-	other: Server
+	packs: Puzzle
 };
 
 /** Translated title of a category. */
@@ -524,8 +523,6 @@ export function categoryTitle(id: CategoryId): string {
 			return m.deviceform_cat_media();
 		case 'packs':
 			return m.deviceform_cat_packs();
-		case 'other':
-			return m.deviceform_cat_other();
 	}
 }
 
@@ -562,6 +559,8 @@ export function groupCollectors(collectors: CollectorInfo[]): KindGroup[] {
 	const choices: KindChoice[] = collectors
 		// A service an agent found is created by its agent, never from the form.
 		.filter((c) => c.kind !== AGENT_SERVICE_KIND)
+		// The demo kind exists for tests and demo data, never offered.
+		.filter((c) => c.kind !== 'dummy')
 		.map((c) =>
 			c.kind === AGENT_KIND
 				? {

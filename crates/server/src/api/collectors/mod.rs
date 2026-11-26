@@ -264,7 +264,6 @@ const BETA_KINDS: &[&str] = &[
     "qnap",
     "radarr",
     "sonarr",
-    "vaultwarden",
 ];
 
 pub async fn list(State(state): State<AppState>) -> Json<Vec<KindDescription>> {

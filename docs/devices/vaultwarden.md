@@ -1,9 +1,6 @@
-# Vaultwarden (beta)
+# Vaultwarden
 
 Whether the password vault answers, which version runs, whether anyone can still create an account, and, with the admin token, how many accounts exist, are disabled or have no two-step login.
-
-!!! note "Beta"
-    Written from the vendor's API documentation and tested against realistic recorded-style responses, not yet against a live instance. Tell us what you see.
 
 ## Network ports to open
 

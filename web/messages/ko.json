@@ -1061,7 +1061,6 @@
 	"deviceform_cat_media": "미디어와 홈",
 	"deviceform_cat_network": "네트워크와 방화벽",
 	"deviceform_cat_observability": "메트릭과 로그",
-	"deviceform_cat_other": "기타",
 	"deviceform_cat_packs": "커뮤니티 팩",
 	"deviceform_cat_security": "보안과 ID",
 	"deviceform_cat_storage": "스토리지와 백업",

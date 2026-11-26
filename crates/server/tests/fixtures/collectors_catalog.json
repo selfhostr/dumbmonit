@@ -31318,8 +31318,7 @@
           "vaultwarden_version_info"
         ]
       }
-    ],
-    "beta": true
+    ]
   },
   {
     "kind": "veeam",

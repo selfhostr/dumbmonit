@@ -1061,7 +1061,6 @@
 	"deviceform_cat_media": "メディアとホーム",
 	"deviceform_cat_network": "ネットワークとファイアウォール",
 	"deviceform_cat_observability": "メトリクスとログ",
-	"deviceform_cat_other": "その他",
 	"deviceform_cat_packs": "コミュニティパック",
 	"deviceform_cat_security": "セキュリティとID",
 	"deviceform_cat_storage": "ストレージとバックアップ",
