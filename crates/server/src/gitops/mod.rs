@@ -84,7 +84,7 @@ impl ConfigDoc {
 
     /// Lit un document déjà décodé (JSON envoyé par l'outil en ligne de commande).
     pub fn from_json(value: serde_json::Value) -> Result<Self, String> {
-        serde_json::from_value(value)
+        crate::untrusted::from_value(value)
             .map_err(|error| format!("The configuration could not be read: {error}"))
     }
 

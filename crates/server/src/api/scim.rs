@@ -309,7 +309,7 @@ async fn authorize(
 // ---------------------------------------------------------------------------
 
 fn json_body(bytes: &Bytes) -> ScimResult<Value> {
-    serde_json::from_slice(bytes)
+    crate::untrusted::from_slice(bytes)
         .map_err(|_| ScimError::invalid_syntax("The body is not valid JSON."))
 }
 
