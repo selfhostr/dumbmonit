@@ -178,7 +178,8 @@ pub use redis::RedisCollector;
 pub use selfhosted::{
     ArrCollector, AuthentikCollector, ForgejoCollector, FrigateCollector, GitlabCollector,
     ImmichCollector, JellyfinCollector, KeycloakCollector, MailcowCollector, NextcloudCollector,
-    PaperlessCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector,
+    PaperlessCollector, PapraCollector, PlexCollector, QbittorrentCollector,
+    VaultwardenCollector,
 };
 pub use snmp::SnmpCollector;
 pub use socket::DEFAULT_TIMEOUT as SOCKET_DEFAULT_TIMEOUT;
@@ -250,6 +251,7 @@ impl Registry {
         registry.register(Arc::new(NextcloudCollector::new()));
         registry.register(Arc::new(ImmichCollector::new()));
         registry.register(Arc::new(PaperlessCollector::new()));
+        registry.register(Arc::new(PapraCollector::new()));
         registry.register(Arc::new(JellyfinCollector::new()));
         registry.register(Arc::new(PlexCollector::new()));
         registry.register(Arc::new(GitlabCollector::new()));

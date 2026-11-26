@@ -200,6 +200,8 @@ pub(super) const KEYCLOAK_APP_OPTIONS: &[OptionView] = &[
 ];
 pub(super) const AUTHENTIK_APP_OPTIONS: &[OptionView] =
     &[app_scheme("http"), app_port("9000"), APP_TLS, APP_TIMEOUT];
+pub(super) const PAPRA_APP_OPTIONS: &[OptionView] =
+    &[app_scheme("http"), app_port("1221"), APP_TLS, APP_TIMEOUT];
 pub(super) const VAULTWARDEN_APP_OPTIONS: &[OptionView] =
     &[app_scheme("https"), app_port("443"), APP_TLS, APP_TIMEOUT];
 pub(super) const MAILCOW_APP_OPTIONS: &[OptionView] =
@@ -251,6 +253,13 @@ pub(super) const AUTHENTIK_TOKEN: CredentialView = CredentialView {
     label: "API token",
     help: "The key of an API token created for a service account, sent as \"Authorization: Bearer …\".",
     fields: &[cred_secret("token", "API token", "Stored encrypted, never shown again.", "", true)],
+};
+
+pub(super) const PAPRA_KEY: CredentialView = CredentialView {
+    kind: "api_token",
+    label: "API key",
+    help: "An API key created in Papra's settings, sent as \"Authorization: Bearer …\".",
+    fields: &[cred_secret("token", "API key", "Stored encrypted, never shown again.", "", true)],
 };
 
 pub(super) const VAULTWARDEN_NO_ADMIN: CredentialView = CredentialView {

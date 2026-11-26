@@ -167,6 +167,7 @@ nav:
       - Nextcloud: devices/nextcloud.md
       - Immich: devices/immich.md
       - Paperless-ngx: devices/paperless.md
+      - Papra (beta): devices/papra.md
       - Jellyfin: devices/jellyfin.md
       - Plex Media Server: devices/plex.md
       - GitLab (self-managed): devices/gitlab.md

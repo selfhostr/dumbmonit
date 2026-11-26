@@ -202,6 +202,7 @@ const EMBEDDED: &[(&str, &str)] = &[
     ("oracle", include_str!("../catalog/oracle.yaml")),
     ("ovh", include_str!("../catalog/ovh.yaml")),
     ("paperless", include_str!("../catalog/paperless.yaml")),
+    ("papra", include_str!("../catalog/papra.yaml")),
     ("pbs", include_str!("../catalog/pbs.yaml")),
     ("pdm", include_str!("../catalog/pdm.yaml")),
     ("pfsense", include_str!("../catalog/pfsense.yaml")),

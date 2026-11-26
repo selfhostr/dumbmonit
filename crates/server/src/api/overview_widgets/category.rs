@@ -108,6 +108,7 @@ const CATEGORIES: &[(&str, Category)] = &[
     ("plex", Category::Services),
     ("homeassistant", Category::Services),
     ("paperless", Category::Services),
+    ("papra", Category::Services),
     ("frigate", Category::Services),
     ("vaultwarden", Category::Services),
     ("gitlab", Category::Services),

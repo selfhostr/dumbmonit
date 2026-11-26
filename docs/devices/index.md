@@ -103,6 +103,7 @@ the type, fill in the form, **Add monitor**. See
 | [Infomaniak](infomaniak.md) | `infomaniak` | Infomaniak API token with the Products scope | Expiry dates, locks and maintenance of domains, hosting and other products |
 | [Nextcloud](nextcloud.md) | `nextcloud` | monitoring token (NC-Token) | File sync: maintenance mode, pending upgrade, updates, active users, OPcache |
 | [Immich](immich.md) | `immich` | API key | Photo library: job queues, updates, disk, photo counts |
+| [Papra (beta)](papra.md) | `papra` | API key | Documents: server and database health, documents and storage per organisation |
 | [Paperless-ngx](paperless.md) | `paperless` | API token or username/password | Documents: Redis, Celery, index, failed imports, updates |
 | [Jellyfin](jellyfin.md) | `jellyfin` | API key | Media server: failed scheduled tasks, plugins, streams and transcodes |
 | [Plex Media Server](plex.md) | `plex` | X-Plex-Token, or none from an allowed network | Media server: streams, transcodes, libraries, updates |

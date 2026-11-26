@@ -259,6 +259,7 @@ const BETA_KINDS: &[&str] = &[
     "mailcow",
     "minio",
     "omada",
+    "papra",
     "prowlarr",
     "qbittorrent",
     "qnap",
@@ -367,7 +368,7 @@ fn guide_url(kind: &str) -> String {
         "snmp" | "proxmox" | "pbs" | "pdm" | "pmg" | "synology" | "opnsense" | "truenas"
         | "redfish" | "loki" | "graylog" | "mdaemon" | "securitygateway" | "nextcloud"
         | "immich" | "sonarr" | "radarr" | "lidarr" | "prowlarr" | "qbittorrent" | "frigate"
-        | "keycloak" | "authentik" | "vaultwarden" | "mailcow" | "paperless" | "jellyfin"
+        | "keycloak" | "authentik" | "vaultwarden" | "mailcow" | "paperless" | "papra" | "jellyfin"
         | "plex" | "gitlab" | "forgejo" | "pihole" | "adguard" | "nut" | "mikrotik" | "unifi"
         | "homeassistant" | "vsphere" | "redis" | "mongodb" | "rabbitmq" | "crowdsec"
         | "traefik" | "caddy" | "nginx" | "apache" | "npm" | "domain" | "provider"

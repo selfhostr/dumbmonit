@@ -42,7 +42,8 @@ pub use dumbmonit_collectors::{
 pub use dumbmonit_collectors::{
     ArrCollector, AuthentikCollector, ForgejoCollector, FrigateCollector, GitlabCollector,
     ImmichCollector, JellyfinCollector, KeycloakCollector, MailcowCollector, NextcloudCollector,
-    PaperlessCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector, selfhosted,
+    PaperlessCollector, PapraCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector,
+    selfhosted,
 };
 pub use dumbmonit_collectors::{
     ArubaCentralCollector, FortigateCollector, PfsenseCollector, SophosCollector,
