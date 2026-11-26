@@ -3335,6 +3335,39 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
 
+  /api/settings/features:
+    get:
+      operationId: getFeatures
+      tags: [Onboarding]
+      summary: Which optional modules are on
+      x-token-scope: read
+      responses:
+        "200":
+          description: The modules.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Features" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    put:
+      operationId: putFeatures
+      tags: [Onboarding]
+      summary: Turn optional modules on or off
+      description: Administrators only. An omitted field keeps its value. A module that is off keeps its data, its API answers `404` and the interface hides it; with `status_pages` off the public status pages answer `404` too, and with `wall` off the wall page shows a notice.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeaturesPatch" }
+      responses:
+        "200":
+          description: The modules.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Features" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
   /api/targets:
     get:
       operationId: listTargets
@@ -15034,6 +15067,24 @@ components:
         timezone: { type: string, description: IANA time zone; empty means UTC. }
         accent: { type: string, pattern: '^(#[0-9a-fA-F]{6})?$', description: "Accent colour of the interface (solid buttons, focus ring) as `#rrggbb`, stored in lower case; empty is the default look. Status colours never change. Included in the backup." }
         oncall_enabled: { type: boolean, description: "On-call schedules are turned on. Off by default (`false` also when the field is missing); turned on at upgrade for an instance that already has a schedule, an escalation policy or an on-call channel. Off, the schedules, policies and channels are kept but inactive: the alerting engine no longer starts escalations through on-call channels and the interface hides the feature." }
+    Features:
+      type: object
+      required: [wall, sla_reports, status_pages, slo, threat_map]
+      description: Optional modules. All off on a new install; at upgrade, a module already in use (status pages, SLOs, report schedules, wall accounts) is on. Included in the backup.
+      properties:
+        wall: { type: boolean, description: Wall mode (`/wall` and wall accounts). }
+        sla_reports: { type: boolean, description: Report schedules and SLA reports. }
+        status_pages: { type: boolean, description: Status pages and incidents, public pages included. }
+        slo: { type: boolean, description: Service level objectives. }
+        threat_map: { type: boolean, description: World map of attacks in the Security area (also needs a source of attack data). }
+    FeaturesPatch:
+      type: object
+      properties:
+        wall: { type: boolean }
+        sla_reports: { type: boolean }
+        status_pages: { type: boolean }
+        slo: { type: boolean }
+        threat_map: { type: boolean }
     InstancePatch:
       type: object
       properties:

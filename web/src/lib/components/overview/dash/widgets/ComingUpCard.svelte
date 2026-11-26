@@ -18,6 +18,7 @@
 	import { formatDuration, parseServerDate } from '#lib/format.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { withBase } from '#lib/paths.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 	import { startPolling } from '#lib/poll.js';
 	import { upcomingRows } from '../../upcoming.js';
 	import WidgetCard from '../WidgetCard.svelte';
@@ -166,7 +167,7 @@
 	const loading = $derived(occurrences === null && deadlines === null && !failed);
 </script>
 
-<WidgetCard title={m.overview_upcoming_title()} href="/reports" class={cls}>
+<WidgetCard title={m.overview_upcoming_title()} href={featuresStore.on('sla_reports') ? '/reports' : undefined} class={cls}>
 	<DataState {loading} error={failed ? true : null} empty={rows.length === 0} emptyText={m.w10hybrid_coming_empty()} rows={4}>
 		<ul class="m-0 list-none p-0" aria-label={m.overview_upcoming_list_label()}>
 			{#each shown as row, i (keys[i])}

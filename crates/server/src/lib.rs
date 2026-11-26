@@ -21,6 +21,7 @@ pub mod gitops;
 pub mod ha;
 pub mod healthcheck;
 pub mod ical;
+pub mod features;
 pub mod instance;
 pub mod logs;
 pub mod multisite;

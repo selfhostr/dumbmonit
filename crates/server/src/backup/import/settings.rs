@@ -335,6 +335,46 @@ pub(super) async fn restore_instance(
     Ok(report)
 }
 
+/// Modules facultatifs (`crate::features`) : ceux du lot remplacent ceux de
+/// l'instance. Un lot d'avant cette section ne touche à rien.
+pub(super) async fn restore_features(
+    tx: &mut Transaction<'_, Sqlite>,
+    bundle: &Bundle,
+) -> Result<SectionReport> {
+    let mut report = SectionReport::new("features");
+    let Some(incoming) = &bundle.features else { return Ok(report) };
+
+    let existing = sqlx::query("SELECT value FROM settings WHERE key = ?")
+        .bind(crate::features::KEY)
+        .fetch_optional(&mut **tx)
+        .await
+        .context("lecture des modules facultatifs")?;
+    let current: Option<crate::features::Features> = match &existing {
+        Some(row) => serde_json::from_slice(&row.try_get::<Vec<u8>, _>("value")?).ok(),
+        None => None,
+    };
+    if current.as_ref() == Some(incoming) {
+        report.skipped += 1;
+        return Ok(report);
+    }
+    sqlx::query(
+        "INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')",
+    )
+    .bind(crate::features::KEY)
+    .bind(serde_json::to_vec(incoming)?)
+    .execute(&mut **tx)
+    .await
+    .context("écriture des modules facultatifs")?;
+    report.count(if existing.is_some() {
+        RestoreOutcome::Updated
+    } else {
+        RestoreOutcome::Created
+    });
+    Ok(report)
+}
+
 /// Politique d'authentification (`auth::policy`) : remplacée par celle du lot.
 /// Un réglage illisible est signalé et laissé de côté ; un lot d'avant cette
 /// section, ou qui n'en a pas, ne touche pas à celle de l'instance.

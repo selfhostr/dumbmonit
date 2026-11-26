@@ -13,6 +13,9 @@ export interface Prefs {
 	weekStart: WeekStart;
 	density: Density;
 	motion: MotionPref;
+	/** The GitHub and documentation buttons at the foot of the sidebar. */
+	showGithub: boolean;
+	showDocs: boolean;
 }
 
 export const PREFS_KEY = 'dumbmonit-display-prefs';
@@ -21,7 +24,9 @@ export const DEFAULT_PREFS: Prefs = {
 	timeFormat: 'auto',
 	weekStart: 'auto',
 	density: 'comfortable',
-	motion: 'auto'
+	motion: 'auto',
+	showGithub: true,
+	showDocs: true
 };
 
 /** What was stored, field by field; anything unknown falls back to the default. */
@@ -35,6 +40,8 @@ export function parsePrefs(raw: string | null | undefined): Prefs {
 		if (data.weekStart === 'monday' || data.weekStart === 'sunday') out.weekStart = data.weekStart;
 		if (data.density === 'compact') out.density = 'compact';
 		if (data.motion === 'reduce') out.motion = 'reduce';
+		if (data.showGithub === false) out.showGithub = false;
+		if (data.showDocs === false) out.showDocs = false;
 	} catch {
 		// Malformed: defaults.
 	}

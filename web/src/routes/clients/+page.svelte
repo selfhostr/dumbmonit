@@ -11,6 +11,7 @@
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { clientLogoUrl, getClientsOverview, toApiError, type ClientHealth, type ClientRef } from '#lib/api/index.js';
 	import { downloadSlaReport } from '#lib/api/reports.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 	import { Button, EmptyState, ErrorNotice, Led, PageHeader, Plate, Skeleton } from '#lib/ui/index.js';
 
 	const admin = $derived(auth.msp?.admin === true);
@@ -143,10 +144,10 @@
 								{/if}
 							</div>
 							<div class="flex shrink-0 flex-wrap items-center gap-2">
-								<Button variant="secondary" loading={downloading === row.id} onclick={() => void report(row.id)} title={m.msp_overview_report_title()}>
+								{#if featuresStore.on('sla_reports')}<Button variant="secondary" loading={downloading === row.id} onclick={() => void report(row.id)} title={m.msp_overview_report_title()}>
 									<FileDown class="size-4" aria-hidden="true" />
 									{m.msp_overview_report()}
-								</Button>
+								</Button>{/if}
 								<Button variant="primary" onclick={() => auth.selectClient(row.id, '/targets')}>{m.msp_overview_open()}</Button>
 							</div>
 						</div>
@@ -164,10 +165,10 @@
 				<li class="flex flex-wrap items-center gap-3 rounded-[var(--radius-card)] border border-line bg-canvas p-3">
 					{@render badge(client.id, client.name, client.has_logo)}
 					<p class="min-w-0 flex-1 font-semibold text-ink [overflow-wrap:anywhere]">{client.name}</p>
-					<Button variant="secondary" loading={downloading === client.id} onclick={() => void report(client.id)} title={m.msp_overview_report_title()}>
+					{#if featuresStore.on('sla_reports')}<Button variant="secondary" loading={downloading === client.id} onclick={() => void report(client.id)} title={m.msp_overview_report_title()}>
 						<FileDown class="size-4" aria-hidden="true" />
 						{m.msp_overview_report()}
-					</Button>
+					</Button>{/if}
 				</li>
 			{/each}
 		</ul>

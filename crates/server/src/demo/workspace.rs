@@ -163,6 +163,15 @@ pub async fn run(
     let mut instance = crate::instance::load(pool).await;
     instance.oncall_enabled = true;
     crate::instance::save(pool, &instance).await?;
+    // La démonstration montre tous les modules facultatifs.
+    let all = crate::features::Features {
+        wall: true,
+        sla_reports: true,
+        status_pages: true,
+        slo: true,
+        threat_map: true,
+    };
+    crate::features::save(pool, &all).await?;
     seed_runbooks(pool, office).await?;
     seed_reports(pool, &channels, office).await?;
     seed_vulnerabilities(pool, targets.as_slice()).await?;

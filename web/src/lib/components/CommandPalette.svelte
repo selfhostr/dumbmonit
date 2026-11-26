@@ -50,6 +50,8 @@
 	import { loadProbeStatuses } from '#lib/metrics.js';
 	import { palette } from '#lib/stores/palette.svelte.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
+	import type { Features } from '#lib/api/types.js';
 	import { queryWords, rank, pushRecent, loadRecents, saveRecents, shortcutKeys, type RecentItem } from '#lib/palette/logic.js';
 	import { ENTRY_SHORTCUT } from '#lib/palette/shortcuts.js';
 	import { searchIndex } from '#lib/components/settings/tabs.js';
@@ -80,6 +82,8 @@
 		admin?: boolean;
 		/** Left out for accounts limited by their teams or clients (the server refuses the page's API). */
 		unscoped?: boolean;
+		/** Left out while that optional module is off (Settings → System → Modules). */
+		module?: keyof Features;
 		/** Device entries carry a state LED instead of an icon. */
 		led?: { tone: 'signal' | 'advisory' | 'warning' | 'ghost'; label: string };
 		run: () => void;
@@ -109,15 +113,15 @@
 		{ id: 'page:/explore', group: 'pages', label: m.explore_title(), detail: m.explore_palette_detail(), keywords: 'metrics explorer promql metricsql query victoriametrics labels', icon: Compass, href: '/explore', run: go('/explore') },
 		{ id: 'page:/targets?tab=security', group: 'pages', label: m.misc_palette_security(), detail: m.misc_palette_security_detail(), keywords: 'security cve vulnerabilities kev nvd osv exploit patch', icon: ShieldAlert, href: '/targets?tab=security', run: go('/targets?tab=security') },
 		{ id: 'page:/settings#security-score', group: 'pages', label: m.misc_palette_security_score(), detail: m.misc_palette_security_score_detail(), keywords: 'security score grade pingcastle secure score checks audit', icon: ShieldCheck, href: '/settings/monitoring#security-score', run: go('/settings/monitoring#security-score') },
-		{ id: 'page:/status', group: 'pages', label: m.misc_palette_status_pages(), detail: m.misc_palette_status_detail(), keywords: 'public incidents maintenance announcements uptime', icon: Globe, href: '/status', run: go('/status') },
-		{ id: 'page:/status?tab=reports', group: 'pages', admin: true, label: m.reports_page_title(), detail: m.reports_palette_detail(), keywords: 'reports scheduled email history digest', icon: FileText, href: '/status?tab=reports', run: go('/status?tab=reports') },
-		{ id: 'page:/status?tab=sla', group: 'pages', admin: true, label: m.reports_sla_page_title(), detail: m.reports_sla_palette_detail(), keywords: 'sla availability uptime report export pdf csv print client', icon: FileText, href: '/status?tab=sla', run: go('/status?tab=sla') },
+		{ id: 'page:/status', module: 'status_pages', group: 'pages', label: m.misc_palette_status_pages(), detail: m.misc_palette_status_detail(), keywords: 'public incidents maintenance announcements uptime', icon: Globe, href: '/status', run: go('/status') },
+		{ id: 'page:/status?tab=reports', module: 'sla_reports', group: 'pages', admin: true, label: m.reports_page_title(), detail: m.reports_palette_detail(), keywords: 'reports scheduled email history digest', icon: FileText, href: '/status?tab=reports', run: go('/status?tab=reports') },
+		{ id: 'page:/status?tab=sla', module: 'sla_reports', group: 'pages', admin: true, label: m.reports_sla_page_title(), detail: m.reports_sla_palette_detail(), keywords: 'sla availability uptime report export pdf csv print client', icon: FileText, href: '/status?tab=sla', run: go('/status?tab=sla') },
 		{ id: 'page:/targets?tab=logs', group: 'pages', admin: true, label: m.logsearch_title(), keywords: 'logs search logsql victorialogs errors', icon: ScrollText, href: '/targets?tab=logs', run: go('/targets?tab=logs') },
 		...(visible(CLIENTS_ENTRY)
 			? [{ id: 'page:/clients', group: 'pages' as Group, label: m.msp_nav_clients(), keywords: 'msp clients customers tenants', icon: Building2, href: '/clients', run: go('/clients') }]
 			: []),
 		{ id: 'page:/settings', group: 'pages', label: m.misc_nav_settings(), keywords: 'preferences account language password users sso agents tokens assistant appearance theme backup about', icon: Settings, href: '/settings', run: go('/settings') },
-		{ id: 'page:/wall', group: 'pages', unscoped: true, label: m.misc_nav_wall(), detail: m.misc_palette_wall_detail(), keywords: 'kiosk tv screen', icon: Tv, href: '/wall', run: go('/wall') },
+		{ id: 'page:/wall', module: 'wall', group: 'pages', unscoped: true, label: m.misc_nav_wall(), detail: m.misc_palette_wall_detail(), keywords: 'kiosk tv screen', icon: Tv, href: '/wall', run: go('/wall') },
 		{ id: 'page:docs', group: 'pages', label: m.misc_palette_documentation(), keywords: 'docs help manual notifications channels', icon: BookOpen, run: () => window.open('https://dumbmonit.selfhostr.io/docs/', '_blank', 'noopener') },
 		{ id: 'action:add', group: 'actions', admin: true, label: m.misc_palette_add_device(), keywords: 'new target create host', icon: Plus, run: go('/targets/new') },
 		{ id: 'action:scan', group: 'actions', admin: true, label: m.misc_palette_scan(), keywords: 'discover cidr snmp', icon: Radar, run: go('/targets/new?scan=1') },
@@ -129,8 +133,8 @@
 		{ id: 'action:api-tokens', group: 'actions', admin: true, label: m.w2global_palette_api_tokens(), keywords: 'api tokens keys bearer revoke list manage', icon: KeyRound, run: go('/settings/system#assistant') },
 		{ id: 'action:maintenance', group: 'actions', label: m.misc_palette_maintenance(), keywords: 'silence window quiet', icon: CalendarClock, run: go('/alerts#scheduled') },
 		{ id: 'action:channel', group: 'actions', admin: true, label: m.misc_palette_channel(), keywords: 'slack discord telegram email webhook', icon: BellPlus, run: go('/settings/notifications#notifications-channels') },
-		{ id: 'action:status-page', group: 'actions', admin: true, label: m.misc_palette_status_page(), keywords: 'public status page create', icon: Globe, run: go('/status/new') },
-		{ id: 'action:incident', group: 'actions', admin: true, label: m.misc_palette_incident(), keywords: 'status page maintenance announcement outage', icon: Megaphone, run: go('/status#incidents') },
+		{ id: 'action:status-page', module: 'status_pages', group: 'actions', admin: true, label: m.misc_palette_status_page(), keywords: 'public status page create', icon: Globe, run: go('/status/new') },
+		{ id: 'action:incident', module: 'status_pages', group: 'actions', admin: true, label: m.misc_palette_incident(), keywords: 'status page maintenance announcement outage', icon: Megaphone, run: go('/status#incidents') },
 		...(auth.canOperate
 			? [{ id: 'action:silence', group: 'actions' as Group, label: m.misc_palette_silence(), keywords: 'mute quiet maintenance snooze pause alerts', icon: BellOff, run: go('/alerts#scheduled') }]
 			: []),
@@ -139,7 +143,7 @@
 		...(auth.canSignOut
 			? [{ id: 'action:logout', group: 'actions' as Group, label: m.misc_nav_sign_out(), keywords: 'logout log out sign off disconnect', icon: LogOut, run: () => void auth.logout() }]
 			: [])
-	] as Entry[]).filter((entry) => (!entry.admin || auth.isAdmin) && (!entry.unscoped || !auth.scoped));
+	] as Entry[]).filter((entry) => (!entry.admin || auth.isAdmin) && (!entry.unscoped || !auth.scoped) && (!entry.module || featuresStore.on(entry.module)));
 
 	// Settings sections a role can see, from the same index as the settings search
 	// (Team only on a protected instance for admins, reports and news for admins).
@@ -147,6 +151,7 @@
 		const accounts = auth.available && auth.configured && auth.isAdmin;
 		return searchIndex()
 			.filter((entry) => entry.id !== 'security-score')
+			.filter((entry) => (entry.tab !== 'wall' || featuresStore.on('wall')) && (entry.id !== 'modules' || auth.isAdmin))
 			.filter((entry) => entry.tab !== 'team' || accounts)
 			.filter((entry) => auth.isAdmin || (entry.id !== 'reports' && entry.id !== 'widgets' && entry.id !== 'logs' && entry.id !== 'storage'))
 			.map((entry) => ({

@@ -294,6 +294,11 @@ pub async fn require_session(
         return AuthError::Forbidden(wall::WALL_ONLY_MESSAGE.into()).into_response();
     }
 
+    // Mode mural coupé (réglage « Modules ») : ses comptes n'ont plus rien à lire.
+    if user.role.is_wall() && !crate::features::load(&state.pool).await.wall {
+        return AuthError::Forbidden("The wall module is turned off.".into()).into_response();
+    }
+
     // Politique « second facteur obligatoire » : un administrateur ou un
     // opérateur qui n'en a pas ne peut plus que l'enrôler. Le réglage n'est lu
     // que pour les comptes qu'il pourrait viser (jamais un écran mural).

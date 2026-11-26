@@ -32,6 +32,7 @@ mod geocode;
 mod gitops;
 mod health;
 mod https;
+mod features;
 mod ical;
 mod ingest;
 mod instance;
@@ -428,6 +429,8 @@ pub fn router_with_hubs(
         .merge(remediation::routes())
         // Réglages d'instance : mode produit, assistant de démarrage (`instance.rs`).
         .merge(instance::routes())
+        // Modules facultatifs (`features.rs`).
+        .merge(features::routes())
         // Mode multi-clients (MSP) : clients, appartenance, logo (`clients.rs`).
         .merge(clients::routes())
         // `route_layer` plutôt que `layer` : le garde ne s'applique qu'aux routes
@@ -552,6 +555,8 @@ pub fn router_with_hubs(
         // authentification : c'est l'application elle-même qui demande le mot de
         // passe, elle doit donc pouvoir se charger d'abord.
         .fallback(spa::serve)
+        // Modules facultatifs coupés : leur API répond 404 (`crate::features`).
+        .layer(middleware::from_fn_with_state(state.clone(), crate::features::guard))
         // `Secure` sur tous les cookies : le port ne sert que HTTPS.
         .layer(middleware::from_fn(crate::auth::cookie::always_secure))
         .layer(Extension(auth_state))

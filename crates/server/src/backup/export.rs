@@ -91,6 +91,7 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
             Vec::new()
         },
         instance: crate::instance::stored(pool).await?,
+        features: crate::features::stored(pool).await?,
         clients: clients(pool).await?,
         msp_settings: crate::auth::settings::get::<Value>(pool, crate::auth::clients::SETTINGS_KEY)
             .await?,
@@ -1219,6 +1220,7 @@ pub fn sections() -> BTreeMap<&'static str, &'static str> {
             "Network configuration versions, only when you include them: they hold device secrets.",
         ),
         ("instance", "Instance name, language, time zone and setup state."),
+        ("features", "Which optional modules are turned on."),
         ("backup_schedule", "The schedule of the local backups, when you changed it."),
         ("backup_destinations", "Off-site backup destinations and their credentials."),
         ("clients", "MSP clients, their members, branding, and what belongs to each."),

@@ -18,6 +18,7 @@ export const SECTION_TAB: Record<string, SettingsTab> = {
 	// Former anchor of the Homelab / Enterprise choice.
 	'product-mode': 'system',
 	'setup-wizard': 'system',
+	modules: 'system',
 	'oncall-schedules': 'system',
 	appearance: 'account',
 	accent: 'system',
@@ -111,6 +112,7 @@ export function searchIndex(): SearchEntry[] {
 	});
 	return [
 		entry('general', m.settings_general_instance_title(), m.settings_search_kw_instance()),
+		entry('modules', m.settings_modules_title(), m.settings_modules_search_kw()),
 		entry('oncall-schedules', m.settings_oncall_title(), m.settings_oncall_text()),
 		entry('appearance', m['settings.section.appearance'](), m.settings_search_kw_appearance()),
 		entry('security', m['settings.section.security'](), m.settings_search_kw_security()),

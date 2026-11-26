@@ -5,7 +5,7 @@
 	 * option, and "System" follows the device. The wall stays dark.
 	 *	 */
 	import { Moon, Sun, SunMoon } from 'lucide-svelte';
-	import { Panel } from '#lib/ui/index.js';
+	import { Panel, Toggle } from '#lib/ui/index.js';
 	import Segmented from '#lib/ui/Segmented.svelte';
 	import { displayPrefs } from '#lib/stores/prefs.svelte.js';
 	import { m } from '#lib/paraglide/messages.js';
@@ -96,6 +96,17 @@
 				help={m.w2global_prefs_motion_help()}
 				onchange={(v) => displayPrefs.set({ motion: v as 'auto' | 'reduce' })}
 			/>
+		</div>
+		<div class="grid gap-3 border-t border-line pt-4">
+			<div class="flex items-center gap-3">
+				<Toggle id="pref-show-github" checked={displayPrefs.showGithub} label={m.settings_appearance_show_github()} onchange={(on) => displayPrefs.set({ showGithub: on })} />
+				<label for="pref-show-github" class="text-sm font-semibold text-ink">{m.settings_appearance_show_github()}</label>
+			</div>
+			<div class="flex items-center gap-3">
+				<Toggle id="pref-show-docs" checked={displayPrefs.showDocs} label={m.settings_appearance_show_docs()} onchange={(on) => displayPrefs.set({ showDocs: on })} />
+				<label for="pref-show-docs" class="text-sm font-semibold text-ink">{m.settings_appearance_show_docs()}</label>
+			</div>
+			<p class="m-0 text-[0.8125rem] text-ink-3">{m.settings_appearance_links_help()}</p>
 		</div>
 	</div>
 </Panel>

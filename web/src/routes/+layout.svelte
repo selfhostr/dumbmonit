@@ -8,6 +8,7 @@
 	import { routePath } from '#lib/paths.js';
 	import { theme } from '#lib/stores/theme.svelte.js';
 	import { alertsStore } from '#lib/stores/alerts.svelte.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 	import { palette } from '#lib/stores/palette.svelte.js';
 	import { auth, safeDestination, isPublicRoute, isStandaloneRoute } from '#lib/stores/auth.svelte.js';
 	import EnterpriseShell from '#lib/components/shell/EnterpriseShell.svelte';
@@ -266,6 +267,12 @@
 	$effect(() => {
 		if (statusHost || !auth.canUseApi || !auth.isWall) return;
 		void instanceStore.loadSettings();
+	});
+
+	// Which optional modules are on (Settings → System → Modules), for the rail, the tabs and the pages.
+	$effect(() => {
+		if (statusHost || !auth.canUseApi || auth.totpSetupRequired) return;
+		void featuresStore.load();
 	});
 
 	// The alert count is shared by the whole app; it only polls once a session exists.

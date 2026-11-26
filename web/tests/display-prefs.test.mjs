@@ -10,8 +10,8 @@ test('defaults for nothing or garbage', () => {
 });
 
 test('valid choices are kept', () => {
-	const p = parsePrefs('{"timeFormat":"12","weekStart":"sunday","density":"compact","motion":"reduce"}');
-	assert.deepEqual(p, { timeFormat: '12', weekStart: 'sunday', density: 'compact', motion: 'reduce' });
+	const p = parsePrefs('{"timeFormat":"12","weekStart":"sunday","density":"compact","motion":"reduce","showGithub":false,"showDocs":false}');
+	assert.deepEqual(p, { timeFormat: '12', weekStart: 'sunday', density: 'compact', motion: 'reduce', showGithub: false, showDocs: false });
 });
 
 test('option mapping', () => {

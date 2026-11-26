@@ -96,6 +96,20 @@ pub async fn build_with_registry(
         .await
         .expect("initialisation du chiffrement");
     accept_enrolments(&pool).await;
+    // Les modules facultatifs sont coupés sur une base neuve : les tests des
+    // fonctions qu'ils couvrent les veulent actifs (`features_api.rs` teste le reste).
+    dumbmonit_server::features::save(
+        &pool,
+        &dumbmonit_server::features::Features {
+            wall: true,
+            sla_reports: true,
+            status_pages: true,
+            slo: true,
+            threat_map: true,
+        },
+    )
+    .await
+    .expect("modules facultatifs");
 
     // L'adresse de la configuration, pour qu'un test puisse brancher un faux
     // VictoriaMetrics ; injoignable par défaut.
