@@ -1366,10 +1366,6 @@
 	"deviceform_picker_beta_title": "Bèta: wordt nog getest op echte installaties",
 	"deviceform_picker_categories_label": "Categorieën",
 	"deviceform_picker_clear": "Filters wissen",
-	"deviceform_picker_facet_beta": "Bèta",
-	"deviceform_picker_facet_nologin": "Geen login nodig",
-	"deviceform_picker_facet_pack": "Community-packs",
-	"deviceform_picker_facets_label": "Filters",
 	"deviceform_picker_group_label": "Wat te bewaken",
 	"deviceform_picker_import": "Importeren",
 	"deviceform_picker_import_gatus_summary": "De endpoints van een Gatus-config.yaml.",
@@ -11177,5 +11173,9 @@
 	"worldmap_verdict_idle": "Niet geprobeerd",
 	"worldmap_verdict_ok": "Allemaal online",
 	"worldmap_verdict_warn": "Vraagt aandacht",
-	"worldmap_view_world": "Wereld"
+	"worldmap_view_world": "Wereld",
+	"deviceform_picker_scan_last": "Laatste scan",
+	"deviceform_picker_scan_open": "Resultaten openen",
+	"deviceform_picker_scan_start": "Scan starten",
+	"deviceform_picker_category_all": "Alle categorieën"
 }

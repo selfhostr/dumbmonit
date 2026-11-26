@@ -1366,10 +1366,6 @@
 	"deviceform_picker_beta_title": "Beta: still being tested on real installations",
 	"deviceform_picker_categories_label": "Categories",
 	"deviceform_picker_clear": "Clear filters",
-	"deviceform_picker_facet_beta": "Beta",
-	"deviceform_picker_facet_nologin": "No login needed",
-	"deviceform_picker_facet_pack": "Community packs",
-	"deviceform_picker_facets_label": "Filters",
 	"deviceform_picker_group_label": "What to monitor",
 	"deviceform_picker_import": "Import",
 	"deviceform_picker_import_gatus_summary": "The endpoints of a Gatus config.yaml.",
@@ -11177,5 +11173,9 @@
 	"worldmap_verdict_idle": "Not probed",
 	"worldmap_verdict_ok": "All up",
 	"worldmap_verdict_warn": "Needs a look",
-	"worldmap_view_world": "World"
+	"worldmap_view_world": "World",
+	"deviceform_picker_scan_last": "Last scan",
+	"deviceform_picker_scan_open": "Open results",
+	"deviceform_picker_scan_start": "Start a scan",
+	"deviceform_picker_category_all": "All categories"
 }

@@ -1348,10 +1348,6 @@
 	"deviceform_picker_beta_title": "ベータ：実際の環境でまだテスト中",
 	"deviceform_picker_categories_label": "カテゴリ",
 	"deviceform_picker_clear": "フィルターをクリア",
-	"deviceform_picker_facet_beta": "ベータ",
-	"deviceform_picker_facet_nologin": "ログイン不要",
-	"deviceform_picker_facet_pack": "コミュニティパック",
-	"deviceform_picker_facets_label": "フィルター",
 	"deviceform_picker_group_label": "監視する対象",
 	"deviceform_picker_import": "インポート",
 	"deviceform_picker_import_gatus_summary": "Gatusのconfig.yamlのエンドポイント。",
@@ -11046,5 +11042,9 @@
 	"worldmap_verdict_idle": "未プローブ",
 	"worldmap_verdict_ok": "すべて稼働中",
 	"worldmap_verdict_warn": "要確認",
-	"worldmap_view_world": "世界"
+	"worldmap_view_world": "世界",
+	"deviceform_picker_scan_last": "前回のスキャン",
+	"deviceform_picker_scan_open": "結果を開く",
+	"deviceform_picker_scan_start": "スキャンを開始",
+	"deviceform_picker_category_all": "すべてのカテゴリ"
 }

@@ -1348,10 +1348,6 @@
 	"deviceform_picker_beta_title": "베타: 실제 설치 환경에서 아직 테스트 중",
 	"deviceform_picker_categories_label": "카테고리",
 	"deviceform_picker_clear": "필터 초기화",
-	"deviceform_picker_facet_beta": "베타",
-	"deviceform_picker_facet_nologin": "로그인 불필요",
-	"deviceform_picker_facet_pack": "커뮤니티 팩",
-	"deviceform_picker_facets_label": "필터",
 	"deviceform_picker_group_label": "감시 대상",
 	"deviceform_picker_import": "가져오기",
 	"deviceform_picker_import_gatus_summary": "Gatus config.yaml의 엔드포인트.",
@@ -11046,5 +11042,9 @@
 	"worldmap_verdict_idle": "프로브 안 됨",
 	"worldmap_verdict_ok": "모두 정상",
 	"worldmap_verdict_warn": "확인 필요",
-	"worldmap_view_world": "세계"
+	"worldmap_view_world": "세계",
+	"deviceform_picker_scan_last": "마지막 스캔",
+	"deviceform_picker_scan_open": "결과 열기",
+	"deviceform_picker_scan_start": "스캔 시작",
+	"deviceform_picker_category_all": "모든 카테고리"
 }

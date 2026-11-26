@@ -1335,10 +1335,6 @@
 	"deviceform_picker_beta_title": "测试版：仍在真实安装中测试",
 	"deviceform_picker_categories_label": "分类",
 	"deviceform_picker_clear": "清除筛选",
-	"deviceform_picker_facet_beta": "测试版",
-	"deviceform_picker_facet_nologin": "无需登录",
-	"deviceform_picker_facet_pack": "社区包",
-	"deviceform_picker_facets_label": "筛选",
 	"deviceform_picker_group_label": "要监控什么",
 	"deviceform_picker_import": "导入",
 	"deviceform_picker_import_gatus_summary": "导入 Gatus config.yaml 中的端点。",
@@ -11048,5 +11044,9 @@
 	"worldmap_verdict_idle": "未探测",
 	"worldmap_verdict_ok": "全部正常",
 	"worldmap_verdict_warn": "需要检查",
-	"worldmap_view_world": "世界"
+	"worldmap_view_world": "世界",
+	"deviceform_picker_scan_last": "上次扫描",
+	"deviceform_picker_scan_open": "打开结果",
+	"deviceform_picker_scan_start": "开始扫描",
+	"deviceform_picker_category_all": "所有类别"
 }

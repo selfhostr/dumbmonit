@@ -1366,10 +1366,6 @@
 	"deviceform_picker_beta_title": "Beta: gerçek kurulumlarda hâlâ test ediliyor",
 	"deviceform_picker_categories_label": "Kategoriler",
 	"deviceform_picker_clear": "Filtreleri temizle",
-	"deviceform_picker_facet_beta": "Beta",
-	"deviceform_picker_facet_nologin": "Oturum açma gerekmez",
-	"deviceform_picker_facet_pack": "Topluluk paketleri",
-	"deviceform_picker_facets_label": "Filtreler",
 	"deviceform_picker_group_label": "Ne izlenecek",
 	"deviceform_picker_import": "İçe aktar",
 	"deviceform_picker_import_gatus_summary": "Bir Gatus config.yaml dosyasının uç noktaları.",
@@ -11177,5 +11173,9 @@
 	"worldmap_verdict_idle": "Yoklanmadı",
 	"worldmap_verdict_ok": "Tümü açık",
 	"worldmap_verdict_warn": "Göz atılmalı",
-	"worldmap_view_world": "Dünya"
+	"worldmap_view_world": "Dünya",
+	"deviceform_picker_scan_last": "Son tarama",
+	"deviceform_picker_scan_open": "Sonuçları aç",
+	"deviceform_picker_scan_start": "Taramayı başlat",
+	"deviceform_picker_category_all": "Tüm kategoriler"
 }

@@ -1386,10 +1386,6 @@
 	"deviceform_picker_beta_title": "Бета: ещё тестируется на реальных установках",
 	"deviceform_picker_categories_label": "Категории",
 	"deviceform_picker_clear": "Сбросить фильтры",
-	"deviceform_picker_facet_beta": "Бета",
-	"deviceform_picker_facet_nologin": "Без входа",
-	"deviceform_picker_facet_pack": "Пакеты сообщества",
-	"deviceform_picker_facets_label": "Фильтры",
 	"deviceform_picker_group_label": "Что мониторить",
 	"deviceform_picker_import": "Импорт",
 	"deviceform_picker_import_gatus_summary": "Эндпоинты из config.yaml Gatus.",
@@ -11423,5 +11419,9 @@
 	"worldmap_verdict_idle": "Не опрошено",
 	"worldmap_verdict_ok": "Всё работает",
 	"worldmap_verdict_warn": "Требует внимания",
-	"worldmap_view_world": "Мир"
+	"worldmap_view_world": "Мир",
+	"deviceform_picker_scan_last": "Последнее сканирование",
+	"deviceform_picker_scan_open": "Открыть результаты",
+	"deviceform_picker_scan_start": "Начать сканирование",
+	"deviceform_picker_category_all": "Все категории"
 }
