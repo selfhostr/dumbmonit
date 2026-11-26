@@ -783,7 +783,7 @@ mod tests {
         let text = explain_not_writable(dir, &diagnosis(Some((0, 0, 0o755)), bind.clone()));
         assert!(text.contains("--user 0:0"), "{text}");
         assert!(text.find("--user 0:0") < text.find("sudo chown"), "{text}");
-        assert!(text.contains("sudo chown -R 65532:65532 /home/me/dumbmonit"), "{text}");
+        assert!(text.contains("sudo chown -R 65532:65532 /home/me/dumbmonit"), "chown absent");
         assert!(text.contains(":Z"), "{text}");
         assert!(!text.contains("docker run --rm -v"), "{text}");
 
