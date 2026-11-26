@@ -34,7 +34,7 @@
 	}
 
 	const card =
-		'flex min-h-24 flex-col gap-1.5 rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left transition-colors hover:border-line-strong';
+		'flex min-h-24 min-w-0 flex-col gap-1.5 break-words rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left transition-colors hover:border-line-strong';
 </script>
 
 <!-- Site first: what the site's scans found is added in one click, the types open the form in a new tab. -->
