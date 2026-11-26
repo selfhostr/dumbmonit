@@ -453,7 +453,7 @@ pub(super) fn parse_selector(raw: Option<Value>) -> ApiResult<TargetSelector> {
     };
     // Le détail de serde est en anglais et cite des noms de variantes Rust : on lui
     // substitue les trois formes que l'utilisateur a effectivement le droit d'écrire.
-    serde_json::from_value(value).map_err(|_| {
+    crate::untrusted::from_value(value).map_err(|_| {
         ApiError::BadRequest(
             "Invalid monitor selector. Accepted forms: {\"kind\":\"all\"}, \
              {\"kind\":\"ids\",\"ids\":[1,2]} or \
@@ -518,7 +518,7 @@ pub(super) fn parse_params(raw: Option<Value>) -> ApiResult<AnomalyParams> {
         return Ok(AnomalyParams::default());
     };
 
-    let payload: AnomalyParamsPayload = serde_json::from_value(value).map_err(|_| {
+    let payload: AnomalyParamsPayload = crate::untrusted::from_value(value).map_err(|_| {
         ApiError::BadRequest(
             "Invalid anomaly settings. \"k\", \"alpha\", \"mad_floor_abs\" and \
              \"mad_floor_rel\" must be numbers, \"min_samples\" a positive integer."
@@ -606,7 +606,8 @@ pub(super) async fn validate_channels(state: &AppState, wanted: Vec<i64>) -> Api
 
     let known = channels::existing_ids(&state.pool).await?;
     let mut seen = HashSet::new();
-    let mut channels = Vec::with_capacity(wanted.len());
+    // Capacité bornée par les canaux existants : un doublon ou un fantôme n'y entre pas.
+    let mut channels = Vec::with_capacity(wanted.len().min(known.len()));
     for id in wanted {
         if !known.contains(&id) {
             return Err(ApiError::BadRequest(format!(

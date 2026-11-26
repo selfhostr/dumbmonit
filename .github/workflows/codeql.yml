@@ -46,6 +46,7 @@ jobs:
               - "**/Cargo.toml"
               - "Cargo.lock"
               - ".github/workflows/codeql.yml"
+              - ".github/codeql/**"
             js:
               - "**/*.js"
               - "**/*.mjs"
@@ -55,6 +56,7 @@ jobs:
               - "**/*.html"
               - "**/package*.json"
               - ".github/workflows/codeql.yml"
+              - ".github/codeql/**"
 
   analyze:
     name: Analyze (${{ matrix.language }})
@@ -83,6 +85,7 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
       - if: env.RUN == 'true'
         uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
         with:

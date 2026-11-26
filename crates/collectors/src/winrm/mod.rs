@@ -266,8 +266,7 @@ struct Session {
 
 impl Session {
     fn new(options: Options, username: String, password: String) -> Result<Self, ProbeError> {
-        let http = reqwest::Client::builder()
-            .danger_accept_invalid_certs(options.insecure_tls)
+        let http = crate::http::tls_policy(reqwest::Client::builder(), options.insecure_tls)
             .connect_timeout(Duration::from_secs(10))
             // L'authentification NTLM vaut pour la connexion : une seule, gardée.
             .pool_max_idle_per_host(1)

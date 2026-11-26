@@ -172,7 +172,7 @@ impl SilencePayload {
 }
 
 pub(crate) fn parse_schedule(raw: Value) -> ApiResult<Schedule> {
-    let schedule: Schedule = serde_json::from_value(raw).map_err(|_| {
+    let schedule: Schedule = crate::untrusted::from_value(raw).map_err(|_| {
         ApiError::BadRequest(
             "Invalid schedule. Accepted forms: \
              {\"kind\":\"once\",\"starts_at\":\"2026-01-01T00:00:00Z\",\
