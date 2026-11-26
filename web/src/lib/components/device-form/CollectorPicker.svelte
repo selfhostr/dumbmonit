@@ -296,7 +296,7 @@
 							<span class="min-w-0 truncate text-[0.9375rem] leading-tight font-semibold text-ink" title={choice.label}>{choice.label}</span>
 							{#if choice.beta}<Plate tone="advisory" bare label={m.deviceform_picker_beta()} title={m.deviceform_picker_beta_title()} class="ml-auto shrink-0" />{/if}
 							{#if choice.pack}
-								<span class={`${choice.beta ? '' : 'ml-auto '}inline-flex shrink-0 items-center text-info`} title={m.deviceform_picker_pack_title()}>
+								<span class={`${choice.beta ? '' : 'ml-auto '}inline-flex shrink-0 items-center text-info-ink`} title={m.deviceform_picker_pack_title()}>
 									<Package class="size-4" aria-hidden="true" />
 									<span class="sr-only">{m.deviceform_picker_pack()}</span>
 								</span>
