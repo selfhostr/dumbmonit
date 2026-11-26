@@ -195,11 +195,12 @@ pub async fn restore(
 ) -> ApiResult<Json<import::RestoreReport>> {
     let me = admin(&principal)?.username.clone();
 
-    let envelope: bundle::Envelope = crate::untrusted::from_value(payload.bundle).map_err(|_| {
-        ApiError::BadRequest(
-            "This file is not a DumbMonit backup: its header could not be read.".into(),
-        )
-    })?;
+    let envelope: bundle::Envelope =
+        crate::untrusted::from_value(payload.bundle).map_err(|_| {
+            ApiError::BadRequest(
+                "This file is not a DumbMonit backup: its header could not be read.".into(),
+            )
+        })?;
     // Format, version et algorithme d'abord : inutile de faire saisir une
     // phrase de passe pour un fichier que nous refuserons de toute façon.
     bundle::check_envelope(&envelope).map_err(|e| ApiError::BadRequest(e.to_string()))?;

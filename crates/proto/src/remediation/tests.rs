@@ -27,8 +27,7 @@ fn action_names_cannot_traverse_paths() {
 
 #[test]
 fn service_names_cannot_become_options() {
-    for good in ["nginx", "nginx.service", "getty@tty1.service", "MSSQL$SQLEXPRESS", "W32Time"]
-    {
+    for good in ["nginx", "nginx.service", "getty@tty1.service", "MSSQL$SQLEXPRESS", "W32Time"] {
         assert!(validate_service_name(good).is_ok(), "{good}");
     }
     for bad in ["", "-H", "--all", "/stop", "a b", "a;b", "a\"b", "../x", "a\nb"] {

@@ -9,10 +9,7 @@ fn hex(bytes: &[u8]) -> String {
 #[test]
 fn les_empreintes_suivent_les_vecteurs_de_la_specification() {
     assert_eq!(hex(&nt_hash("Password")), "a4f49c406510bdcab6824ee7c30fd852");
-    assert_eq!(
-        hex(&ntlmv2_hash("Password", "User", "Domain")),
-        "0c868a403bfd7a93a3001ef22ef02e3f"
-    );
+    assert_eq!(hex(&ntlmv2_hash("Password", "User", "Domain")), "0c868a403bfd7a93a3001ef22ef02e3f");
 }
 
 #[test]

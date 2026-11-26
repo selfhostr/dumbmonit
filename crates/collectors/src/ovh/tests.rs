@@ -55,8 +55,7 @@ async fn fake(
     if world.mode == "revoked" {
         return (
             StatusCode::FORBIDDEN,
-            r#"{"class":"Client::Forbidden","message":"This credential is not valid"}"#
-                .to_string(),
+            r#"{"class":"Client::Forbidden","message":"This credential is not valid"}"#.to_string(),
         );
     }
     let ok = |body: &str| (StatusCode::OK, body.to_string());
@@ -114,8 +113,7 @@ fn le_mot_de_passe_porte_secret_et_cle_de_consommateur() {
     assert_eq!((parsed.application.as_str(), parsed.secret.as_str()), ("ak", "as"));
     assert_eq!(parsed.consumer, "ck");
     for password in ["sans-deux-points", ":ck", "as:"] {
-        let bad =
-            Credential::UsernamePassword { username: "ak".into(), password: password.into() };
+        let bad = Credential::UsernamePassword { username: "ak".into(), password: password.into() };
         assert!(matches!(keys(&bad), Err(ProbeError::Config(_))), "{password}");
     }
     assert!(matches!(
@@ -137,10 +135,7 @@ async fn serveurs_vps_et_dedies() {
     assert_eq!(value(&s, "ovh_dedicated_up", &[("server", "ns200.ip-1-2-4.eu")]), 0.0);
     assert_eq!(value(&s, "ovh_dedicated_monitoring", &[("server", "ns100.ip-1-2-3.eu")]), 1.0);
     assert_eq!(value(&s, "ovh_vps_tasks_active", &[("vps", "vps-bbb222.vps.ovh.net")]), 1.0);
-    assert_eq!(
-        value(&s, "ovh_dedicated_tasks_active", &[("server", "ns100.ip-1-2-3.eu")]),
-        2.0
-    );
+    assert_eq!(value(&s, "ovh_dedicated_tasks_active", &[("server", "ns100.ip-1-2-3.eu")]), 2.0);
     assert_eq!(value(&s, "ovh_servers", &[]), 4.0);
     assert_eq!(value(&s, "ovh_servers_down", &[]), 2.0);
     assert_eq!(value(&s, "ovh_tasks_active", &[]), 3.0);
@@ -178,14 +173,11 @@ async fn les_echeances_sont_lues_et_une_lecture_refusee_est_ignoree() {
     let address = serveur("ok").await;
     let s = OvhCollector::new().probe(&cible_ovh(&address, "secret:consumer")).await.unwrap();
     let found =
-        find(&s, "ovh_service_expiry_seconds", &[("service", "vps-aaa111.vps.ovh.net")])
-            .unwrap();
+        find(&s, "ovh_service_expiry_seconds", &[("service", "vps-aaa111.vps.ovh.net")]).unwrap();
     assert!(found.value > 0.0);
     assert_eq!(found.labels["family"], "vps");
     // Les autres serveurs n'ont pas de serviceInfos (404) : pas de série, pas d'échec.
-    assert!(
-        find(&s, "ovh_service_expiry_seconds", &[("service", "ns100.ip-1-2-3.eu")]).is_none()
-    );
+    assert!(find(&s, "ovh_service_expiry_seconds", &[("service", "ns100.ip-1-2-3.eu")]).is_none());
 }
 
 #[tokio::test]

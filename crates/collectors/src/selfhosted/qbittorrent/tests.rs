@@ -138,10 +138,8 @@ fn login(user: &str, password: &str) -> Credential {
 #[tokio::test]
 async fn la_session_ouverte_par_cookie_donne_les_mesures() {
     let base = serve(app()).await;
-    let samples = QbittorrentCollector::new()
-        .probe(&target(base, login("admin", "secret")))
-        .await
-        .unwrap();
+    let samples =
+        QbittorrentCollector::new().probe(&target(base, login("admin", "secret"))).await.unwrap();
     assert_eq!(value(&samples, "qbittorrent_torrents_errored"), Some(2.0));
     let info = samples.iter().find(|s| s.metric == "qbittorrent_version_info").unwrap();
     assert_eq!(info.labels["version"], "v5.0.4");
@@ -162,10 +160,8 @@ async fn un_mauvais_mot_de_passe_n_est_pas_une_panne() {
 async fn qbittorrent_5_repond_401_a_un_mauvais_mot_de_passe_et_le_message_parle_de_compte() {
     // Observé sur qBittorrent 5.3.0 : le login échoué rend 401 (et non
     // 200 « Fails. » comme les versions 4.x).
-    let app = Router::new().route(
-        "/api/v2/auth/login",
-        post(|| async { (axum::http::StatusCode::UNAUTHORIZED, "") }),
-    );
+    let app = Router::new()
+        .route("/api/v2/auth/login", post(|| async { (axum::http::StatusCode::UNAUTHORIZED, "") }));
     let base = serve(app).await;
     let error = QbittorrentCollector::new()
         .probe(&target(base, login("admin", "mauvais")))

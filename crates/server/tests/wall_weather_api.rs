@@ -100,10 +100,7 @@ async fn harness() -> Harness {
         collectors: registry,
     });
     let hub = WeatherHub::new(Endpoints { forecast: base.clone(), geocoding: base });
-    let app = TestApp {
-        router: api::router_with(state, hub),
-        _dir: dir,
-    };
+    let app = TestApp { router: api::router_with(state, hub), _dir: dir };
     app.create_admin().await;
     let admin = app.admin_cookie().await;
     Harness { app, pool, fake, admin }

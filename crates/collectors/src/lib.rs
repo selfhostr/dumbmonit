@@ -178,8 +178,7 @@ pub use redis::RedisCollector;
 pub use selfhosted::{
     ArrCollector, AuthentikCollector, ForgejoCollector, FrigateCollector, GitlabCollector,
     ImmichCollector, JellyfinCollector, KeycloakCollector, MailcowCollector, NextcloudCollector,
-    PaperlessCollector, PapraCollector, PlexCollector, QbittorrentCollector,
-    VaultwardenCollector,
+    PaperlessCollector, PapraCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector,
 };
 pub use snmp::SnmpCollector;
 pub use socket::DEFAULT_TIMEOUT as SOCKET_DEFAULT_TIMEOUT;

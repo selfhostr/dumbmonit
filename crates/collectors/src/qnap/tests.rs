@@ -64,12 +64,8 @@ fn systeme_volumes_disques_micrologiciel() {
     assert_eq!(value(&s, "qnap_uptime_seconds", &[]), 1_053_065.0);
 
     assert_eq!(value(&s, "qnap_volumes", &[]), 2.0);
-    assert!(
-        (value(&s, "qnap_volume_used_percent", &[("volume", "DataVol1")]) - 90.0).abs() < 1e-6
-    );
-    assert!(
-        (value(&s, "qnap_volume_used_percent", &[("volume", "Backups")]) - 25.0).abs() < 1e-6
-    );
+    assert!((value(&s, "qnap_volume_used_percent", &[("volume", "DataVol1")]) - 90.0).abs() < 1e-6);
+    assert!((value(&s, "qnap_volume_used_percent", &[("volume", "Backups")]) - 25.0).abs() < 1e-6);
 
     assert_eq!(value(&s, "qnap_disks", &[]), 3.0, "the empty slot is left out");
     assert_eq!(value(&s, "qnap_disks_unhealthy", &[]), 2.0);
@@ -155,10 +151,8 @@ fn fake(logins: Arc<AtomicUsize>, logouts: Arc<AtomicUsize>, broken: bool) -> Ro
 
 fn target(address: &str, password: &str) -> Target {
     let mut target = cible("qnap", &format!("http://{address}"), &[]);
-    target.credential = Credential::UsernamePassword {
-        username: "dumbmonit".into(),
-        password: password.into(),
-    };
+    target.credential =
+        Credential::UsernamePassword { username: "dumbmonit".into(), password: password.into() };
     target
 }
 

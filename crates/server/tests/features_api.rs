@@ -5,8 +5,8 @@ mod common;
 
 use axum::http::StatusCode;
 use dumbmonit_server::backup::{ExportOptions, collect, restore};
-use dumbmonit_server::features::{self, Features};
 use dumbmonit_server::db;
+use dumbmonit_server::features::{self, Features};
 use serde_json::json;
 
 use common::TestApp;

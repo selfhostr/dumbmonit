@@ -146,10 +146,7 @@ fn target(address: String, credential: Credential, tags: &[(&str, &str)]) -> Tar
         parent_id: None,
         interval: Duration::from_secs(60),
         enabled: true,
-        tags: tags
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect::<BTreeMap<_, _>>(),
+        tags: tags.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect::<BTreeMap<_, _>>(),
         credential,
         group_name: String::new(),
         position: 0,

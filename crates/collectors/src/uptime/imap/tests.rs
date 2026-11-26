@@ -148,10 +148,7 @@ async fn preauth_dispense_de_login() {
 async fn starttls_refuse_ninterrompt_la_sonde_avant_tout_identifiant() {
     let (port, received) = faux_imap(
         "* OK ready",
-        vec![
-            ("STARTTLS", "{tag} NO TLS not available\r\n"),
-            ("LOGIN", "{tag} OK logged in\r\n"),
-        ],
+        vec![("STARTTLS", "{tag} NO TLS not available\r\n"), ("LOGIN", "{tag} OK logged in\r\n")],
     )
     .await;
     let target = avec_identifiants(cible_locale(port, &[("security", "starttls")]), "secret");

@@ -43,8 +43,7 @@ fn les_deux_seuils_de_certificat_s_emboitent() {
 
 #[test]
 fn l_age_de_sauvegarde_d_un_appareil_se_regle_en_duree() {
-    let rule =
-        rules().into_iter().find(|r| r.uid == "synology_abb_device_backup_too_old").unwrap();
+    let rule = rules().into_iter().find(|r| r.uid == "synology_abb_device_backup_too_old").unwrap();
     // Un âge en secondes, que l'éditeur montre et fait saisir en jours.
     assert_eq!(rule.query, "dumbmonit_abb_device_last_success_seconds");
     assert_eq!(rule.unit, "s");

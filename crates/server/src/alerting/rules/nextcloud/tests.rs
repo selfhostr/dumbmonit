@@ -32,8 +32,7 @@ fn la_limite_de_memoire_illimitee_ne_sonne_pas() {
 
 #[test]
 fn le_temoin_de_cron_attend_deux_semaines() {
-    let rule =
-        rules().into_iter().find(|r| r.uid == "nextcloud_background_jobs_stale").unwrap();
+    let rule = rules().into_iter().find(|r| r.uid == "nextcloud_background_jobs_stale").unwrap();
     assert_eq!(rule.threshold, 14.0 * 86400.0);
 }
 

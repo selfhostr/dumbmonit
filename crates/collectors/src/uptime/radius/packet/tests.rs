@@ -83,8 +83,7 @@ fn une_requete_invalide_est_refusee_avant_lenvoi() {
 
 #[test]
 fn une_reponse_signee_par_le_bon_secret_est_acceptee() {
-    let datagram =
-        build_response(ACCESS_ACCEPT, 9, &AUTH, SECRET, &[(18, b"Welcome".to_vec())]);
+    let datagram = build_response(ACCESS_ACCEPT, 9, &AUTH, SECRET, &[(18, b"Welcome".to_vec())]);
     let response = decode_response(&datagram, &AUTH, 9, SECRET).expect("réponse valide");
     assert_eq!(response.code, ACCESS_ACCEPT);
     assert_eq!(response.reply_message().as_deref(), Some("Welcome"));
@@ -100,10 +99,7 @@ fn une_reponse_signee_par_un_autre_secret_est_reperee() {
 #[test]
 fn une_reponse_a_une_autre_requete_est_ecartee() {
     let datagram = build_response(ACCESS_ACCEPT, 9, &AUTH, SECRET, &[]);
-    assert_eq!(
-        decode_response(&datagram, &AUTH, 10, SECRET).unwrap_err(),
-        DecodeError::IdMismatch
-    );
+    assert_eq!(decode_response(&datagram, &AUTH, 10, SECRET).unwrap_err(), DecodeError::IdMismatch);
     // Mauvais authentificateur de requête : la signature ne tient plus.
     let error = decode_response(&datagram, &[0u8; 16], 9, SECRET).unwrap_err();
     assert!(matches!(error, DecodeError::BadAuthenticator(_)));

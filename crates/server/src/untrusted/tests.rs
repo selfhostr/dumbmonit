@@ -16,7 +16,10 @@ fn un_document_ordinaire_passe() {
 #[test]
 fn la_profondeur_est_bornee() {
     assert!(from_slice::<Value>(nested(MAX_DEPTH).as_bytes()).is_ok());
-    assert!(matches!(from_slice::<Value>(nested(MAX_DEPTH + 1).as_bytes()), Err(Rejected::TooDeep)));
+    assert!(matches!(
+        from_slice::<Value>(nested(MAX_DEPTH + 1).as_bytes()),
+        Err(Rejected::TooDeep)
+    ));
     let deep: Value = serde_json::from_str(&nested(MAX_DEPTH + 1)).unwrap();
     assert!(matches!(from_value::<Value>(deep), Err(Rejected::TooDeep)));
     let ok: Value = serde_json::from_str(&nested(MAX_DEPTH)).unwrap();
