@@ -116,7 +116,7 @@ md4 = "0.11"
 #
 # `sqlite` reste hors de cette liste : ce serait la même bibliothèque C que le
 # serveur, pour une base de données qu'aucune sonde réseau ne peut atteindre.
-sqlx = { version = "0.9", default-features = false, features = [
+sqlx = { version = "0.9.1", default-features = false, features = [
     "runtime-tokio", "postgres", "mysql", "tls-rustls-ring-native-roots",
 ] }
 
@@ -155,7 +155,7 @@ tokio-util = { version = "0.7", default-features = false, features = ["compat"] 
 # l'agent. `rsa` : beaucoup d'équipements réseau n'ont qu'une clé d'hôte RSA ;
 # elle ne sert qu'à vérifier leur signature (opération publique), jamais à
 # déchiffrer ni signer avec une clé privée (voir `deny.toml`).
-russh = { version = "0.65", default-features = false, features = ["flate2", "ring", "rsa"] }
+russh = { version = "0.65.1", default-features = false, features = ["flate2", "ring", "rsa"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "test-util"] }

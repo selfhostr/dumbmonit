@@ -260,7 +260,7 @@ ENTRYPOINT ["/dumbmonit-agent"]
 # externe n'est désignée (DUMBMONIT_VM_URL) — un seul conteneur suffit.
 # Version épinglée : le serveur en connaît les options.
 # ---------------------------------------------------------------------------
-FROM victoriametrics/victoria-metrics:v1.155.0@sha256:f60dc268b54ecf87f6e09d740c2b732838aa9193090cc741417c9f6386a130df AS victoriametrics
+FROM victoriametrics/victoria-metrics:v1.157.0@sha256:322a7a92fdcc269280e9c38af94c83bc76827a31b792acbc60e44394e7f29c20 AS victoriametrics
 
 # ---------------------------------------------------------------------------
 # Signatures Ed25519 des binaires de l'agent (`<binaire>.sig`), que l'agent
@@ -279,7 +279,7 @@ FROM scratch AS agent-signatures
 # pour l'historique long (/data/vm-long), il n'y a donc rien d'autre à ajouter.
 # Version épinglée par son condensé d'index multi-architecture.
 # ---------------------------------------------------------------------------
-FROM victoriametrics/victoria-logs:v1.53.0@sha256:251121fa882af99b95ba0c230a4a2f412ea602d2698c64a96c58dc9842bb755d AS victorialogs
+FROM victoriametrics/victoria-logs:v1.54.0@sha256:ee4e820cac3721f5f5d91641b950c22439593adc4224f9655e5333d5a84c1dfe AS victorialogs
 
 # ---------------------------------------------------------------------------
 # Image finale : le serveur, VictoriaMetrics, VictoriaLogs et rien d'autre.
