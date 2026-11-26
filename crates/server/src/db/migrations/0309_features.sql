@@ -7,7 +7,6 @@
 INSERT INTO settings (key, value)
 SELECT 'features', CAST(json_object(
     'wall', json(CASE WHEN EXISTS (SELECT 1 FROM users WHERE role = 'wall')
-                        OR EXISTS (SELECT 1 FROM music_wall_link)
                       THEN 'true' ELSE 'false' END),
     'sla_reports', json(CASE WHEN EXISTS (SELECT 1 FROM report_schedules)
                              THEN 'true' ELSE 'false' END),
