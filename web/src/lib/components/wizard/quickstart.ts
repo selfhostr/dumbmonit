@@ -68,10 +68,11 @@ export function guessMonitor(input: string, kinds: Iterable<string>): TargetPayl
 
 /** A long random ntfy topic: on ntfy.sh, whoever knows the name reads the topic. */
 export function ntfyTopic(random: (bytes: Uint8Array) => Uint8Array = (b) => crypto.getRandomValues(b)): string {
+	// 32 symbols: the low 5 bits of each byte pick one, with no bias (no modulo).
 	const alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
 	const bytes = random(new Uint8Array(14));
 	let topic = '';
-	for (const byte of bytes) topic += alphabet[byte % alphabet.length];
+	for (const byte of bytes) topic += alphabet[byte & 0x1f];
 	return `dumbmonit-${topic}`;
 }
 

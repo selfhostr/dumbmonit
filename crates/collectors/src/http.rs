@@ -170,13 +170,27 @@ pub fn client(insecure_tls: bool) -> Result<reqwest::Client, ProbeError> {
     Ok(cell.get().cloned().unwrap_or(built))
 }
 
+/// Seul point du code qui peut désactiver la vérification du certificat TLS.
+///
+/// Par défaut le certificat est vérifié. `accept_self_signed` ne vaut `true` que
+/// lorsque l'administrateur l'a explicitement coché sur la cible ou le canal
+/// (`insecure_tls`, faux par défaut) : un équipement de labo (Proxmox, Synology,
+/// iDRAC, …) se présente souvent avec un certificat auto-signé. Seule exception
+/// à constante `true` : le client partagé des canaux de notification, servi aux
+/// seuls canaux où l'option est cochée (`notify::client_for`).
+pub fn tls_policy(
+    builder: reqwest::ClientBuilder,
+    accept_self_signed: bool,
+) -> reqwest::ClientBuilder {
+    if accept_self_signed { builder.danger_accept_invalid_certs(true) } else { builder }
+}
+
 fn build(accept_invalid_certs: bool) -> Result<reqwest::Client, ProbeError> {
     let mut builder = reqwest::Client::builder();
     for (host, address) in RESOLVE_OVERRIDES.get().into_iter().flatten() {
         builder = builder.resolve(host, *address);
     }
-    builder
-        .danger_accept_invalid_certs(accept_invalid_certs)
+    tls_policy(builder, accept_invalid_certs)
         .connect_timeout(CONNECT_TIMEOUT)
         .pool_idle_timeout(POOL_IDLE_TIMEOUT)
         // Un cluster de trois nœuds passe par un seul proxy : deux connexions par
