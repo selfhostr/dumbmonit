@@ -222,7 +222,9 @@
 	$effect(() => {
 		if (!auth.demo || !auth.canUseApi) return;
 		demo.install();
-		if (!demo.tourSeen && !isPublicRoute(routePath(page.url))) demo.openTour();
+		// Only from the overview: a visitor landing on /wall (or any other page) is not
+		// pulled away; the tour opens when they reach the overview.
+		if (!demo.tourSeen && routePath(page.url) === '/') demo.openTour();
 	});
 
 	// Page changes cross-fade through the View Transitions API: the bars stay,
