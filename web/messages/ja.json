@@ -10880,5 +10880,6 @@
 	"settings_modules_threat_text": "「モニター → セキュリティ」に、阻止した攻撃の世界地図を表示します。CrowdSec、ファイアウォール、Cloudflare のいずれかが情報源のときだけ表示されます。",
 	"settings_appearance_show_github": "GitHub リンクを表示",
 	"settings_appearance_show_docs": "ドキュメントへのリンクを表示",
-	"settings_appearance_links_help": "サイドバー下部のボタン。このブラウザーに保存されます。"
+	"settings_appearance_links_help": "サイドバー下部のボタン。このブラウザーに保存されます。",
+	"w2ops_audit_action_features_settings": "モジュールを変更"
 }

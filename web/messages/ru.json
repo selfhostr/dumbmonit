@@ -11257,5 +11257,6 @@
 	"settings_modules_threat_text": "Карта мира отражённых атак в разделе Мониторы → Безопасность. Показывается, только если её питает CrowdSec, межсетевой экран или Cloudflare.",
 	"settings_appearance_show_github": "Показывать ссылку на GitHub",
 	"settings_appearance_show_docs": "Показывать ссылку на документацию",
-	"settings_appearance_links_help": "Кнопки внизу боковой панели. Запоминается в этом браузере."
+	"settings_appearance_links_help": "Кнопки внизу боковой панели. Запоминается в этом браузере.",
+	"w2ops_audit_action_features_settings": "Модули изменены"
 }

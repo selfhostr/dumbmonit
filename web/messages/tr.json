@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Engellenen saldırıların dünya haritası, Monitörler → Güvenlik altında. Yalnızca CrowdSec, bir güvenlik duvarı veya Cloudflare besliyorsa görünür.",
 	"settings_appearance_show_github": "GitHub bağlantısını göster",
 	"settings_appearance_show_docs": "Belgelendirme bağlantısını göster",
-	"settings_appearance_links_help": "Kenar çubuğunun altındaki düğmeler. Bu tarayıcıda saklanır."
+	"settings_appearance_links_help": "Kenar çubuğunun altındaki düğmeler. Bu tarayıcıda saklanır.",
+	"w2ops_audit_action_features_settings": "Modüller değiştirildi"
 }

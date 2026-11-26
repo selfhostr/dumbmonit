@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Um mapa-múndi dos ataques bloqueados, em Monitores → Segurança. Só aparece se o CrowdSec, um firewall ou o Cloudflare o alimentar.",
 	"settings_appearance_show_github": "Mostrar o link do GitHub",
 	"settings_appearance_show_docs": "Mostrar o link da documentação",
-	"settings_appearance_links_help": "Os botões no rodapé da barra lateral. Guardado neste navegador."
+	"settings_appearance_links_help": "Os botões no rodapé da barra lateral. Guardado neste navegador.",
+	"w2ops_audit_action_features_settings": "Módulos alterados"
 }

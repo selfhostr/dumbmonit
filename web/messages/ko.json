@@ -10880,5 +10880,6 @@
 	"settings_modules_threat_text": "모니터 → 보안에서 차단한 공격을 세계 지도로 보여 줍니다. CrowdSec, 방화벽 또는 Cloudflare가 데이터를 제공할 때만 표시됩니다.",
 	"settings_appearance_show_github": "GitHub 링크 표시",
 	"settings_appearance_show_docs": "문서 링크 표시",
-	"settings_appearance_links_help": "사이드바 하단의 버튼입니다. 이 브라우저에 저장됩니다."
+	"settings_appearance_links_help": "사이드바 하단의 버튼입니다. 이 브라우저에 저장됩니다.",
+	"w2ops_audit_action_features_settings": "모듈 변경됨"
 }

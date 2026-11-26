@@ -63,6 +63,7 @@ export const AUDIT_ACTION_LABEL: Record<string, () => string> = {
 	'config.applied': () => m.w2ops_audit_action_config_applied(),
 	'config.released': () => m.w2ops_audit_action_config_released(),
 	'instance.settings': () => m.w2ops_audit_action_instance_settings(),
+	'features.settings': () => m.w2ops_audit_action_features_settings(),
 	'invitation.accepted': () => m.w6accounts_audit_invitation_accepted(),
 	'invitation.created': () => m.w6accounts_audit_invitation_created(),
 	'invitation.invalid_link': () => m.w6accounts_audit_invitation_invalid_link(),

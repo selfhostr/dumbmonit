@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Eine Weltkarte der abgewehrten Angriffe unter Monitore → Sicherheit. Nur sichtbar, wenn CrowdSec, eine Firewall oder Cloudflare sie speist.",
 	"settings_appearance_show_github": "GitHub-Link anzeigen",
 	"settings_appearance_show_docs": "Link zur Dokumentation anzeigen",
-	"settings_appearance_links_help": "Die Schaltflächen am unteren Rand der Seitenleiste. Wird in diesem Browser gespeichert."
+	"settings_appearance_links_help": "Die Schaltflächen am unteren Rand der Seitenleiste. Wird in diesem Browser gespeichert.",
+	"w2ops_audit_action_features_settings": "Module geändert"
 }

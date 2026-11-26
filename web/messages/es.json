@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Un mapa mundial de los ataques detenidos, en Monitores → Seguridad. Solo aparece si CrowdSec, un cortafuegos o Cloudflare lo alimenta.",
 	"settings_appearance_show_github": "Mostrar el enlace de GitHub",
 	"settings_appearance_show_docs": "Mostrar el enlace a la documentación",
-	"settings_appearance_links_help": "Los botones al pie de la barra lateral. Se guarda en este navegador."
+	"settings_appearance_links_help": "Los botones al pie de la barra lateral. Se guarda en este navegador.",
+	"w2ops_audit_action_features_settings": "Módulos modificados"
 }

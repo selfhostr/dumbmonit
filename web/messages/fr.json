@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Une carte du monde des attaques bloquées, dans Équipements → Sécurité. Affichée seulement si CrowdSec, un pare-feu ou Cloudflare l'alimente.",
 	"settings_appearance_show_github": "Afficher le lien GitHub",
 	"settings_appearance_show_docs": "Afficher le lien vers la documentation",
-	"settings_appearance_links_help": "Les boutons en bas de la barre latérale. Mémorisé dans ce navigateur."
+	"settings_appearance_links_help": "Les boutons en bas de la barre latérale. Mémorisé dans ce navigateur.",
+	"w2ops_audit_action_features_settings": "Modules modifiés"
 }

@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Een wereldkaart van de afgeslagen aanvallen, onder Monitors → Beveiliging. Alleen zichtbaar als CrowdSec, een firewall of Cloudflare haar voedt.",
 	"settings_appearance_show_github": "GitHub-link tonen",
 	"settings_appearance_show_docs": "Link naar de documentatie tonen",
-	"settings_appearance_links_help": "De knoppen onderaan de zijbalk. Wordt in deze browser bewaard."
+	"settings_appearance_links_help": "De knoppen onderaan de zijbalk. Wordt in deze browser bewaard.",
+	"w2ops_audit_action_features_settings": "Modules gewijzigd"
 }

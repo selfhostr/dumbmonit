@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "Una mappa del mondo degli attacchi fermati, in Monitor → Sicurezza. Compare solo se CrowdSec, un firewall o Cloudflare la alimentano.",
 	"settings_appearance_show_github": "Mostra il link a GitHub",
 	"settings_appearance_show_docs": "Mostra il link alla documentazione",
-	"settings_appearance_links_help": "I pulsanti in fondo alla barra laterale. Salvato in questo browser."
+	"settings_appearance_links_help": "I pulsanti in fondo alla barra laterale. Salvato in questo browser.",
+	"w2ops_audit_action_features_settings": "Moduli modificati"
 }

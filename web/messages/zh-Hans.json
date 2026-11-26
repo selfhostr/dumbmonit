@@ -10882,5 +10882,6 @@
 	"settings_modules_threat_text": "在“监控 → 安全”中显示被拦截攻击的世界地图。仅当 CrowdSec、防火墙或 Cloudflare 提供数据时才显示。",
 	"settings_appearance_show_github": "显示 GitHub 链接",
 	"settings_appearance_show_docs": "显示文档链接",
-	"settings_appearance_links_help": "侧边栏底部的按钮。保存在此浏览器中。"
+	"settings_appearance_links_help": "侧边栏底部的按钮。保存在此浏览器中。",
+	"w2ops_audit_action_features_settings": "模块已更改"
 }

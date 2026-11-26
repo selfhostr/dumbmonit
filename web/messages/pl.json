@@ -11273,5 +11273,6 @@
 	"settings_modules_threat_text": "Mapa świata z zablokowanymi atakami, w Monitory → Bezpieczeństwo. Widoczna tylko wtedy, gdy zasila ją CrowdSec, zapora sieciowa lub Cloudflare.",
 	"settings_appearance_show_github": "Pokaż link do GitHuba",
 	"settings_appearance_show_docs": "Pokaż link do dokumentacji",
-	"settings_appearance_links_help": "Przyciski u dołu paska bocznego. Zapamiętane w tej przeglądarce."
+	"settings_appearance_links_help": "Przyciski u dołu paska bocznego. Zapamiętane w tej przeglądarce.",
+	"w2ops_audit_action_features_settings": "Zmieniono moduły"
 }

@@ -11011,5 +11011,6 @@
 	"settings_modules_threat_text": "A world map of the attacks stopped, in Monitors → Security. Shown only when CrowdSec, a firewall or Cloudflare feeds it.",
 	"settings_appearance_show_github": "Show GitHub link",
 	"settings_appearance_show_docs": "Show documentation link",
-	"settings_appearance_links_help": "The buttons at the bottom of the sidebar. Kept in this browser."
+	"settings_appearance_links_help": "The buttons at the bottom of the sidebar. Kept in this browser.",
+	"w2ops_audit_action_features_settings": "Modules changed"
 }
