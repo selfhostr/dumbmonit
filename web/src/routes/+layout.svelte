@@ -97,7 +97,7 @@
 
 	// Display preferences (density, reduced motion) are classes on <html>.
 	$effect(() => {
-		displayPrefs.apply();
+		displayPrefs.apply(onWall);
 	});
 	// "Connection lost" banner: the browser's online state and the request layer's failures.
 	$effect(() => connection.watch());

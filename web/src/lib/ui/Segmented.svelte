@@ -35,7 +35,7 @@
 
 <fieldset class={`grid min-w-0 content-start gap-1.5 ${className}`} {disabled}>
 	<legend class={hideLegend ? 'sr-only' : 'mb-1.5 block text-sm font-semibold text-ink'}>{legend}</legend>
-	<div class="flex h-10 w-fit max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-line-strong bg-canvas-deep p-1">
+	<div class="flex min-h-10 w-fit max-w-full flex-wrap items-center gap-1 rounded-lg border border-line-strong bg-canvas-deep p-1">
 		{#each options as option (option.value)}
 			<label
 				class={`relative inline-flex h-8 shrink-0 cursor-pointer items-center rounded-md px-3 text-sm whitespace-nowrap transition-colors before:absolute before:inset-x-0 before:-inset-y-1 before:content-[''] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-signal has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 ${value === option.value ? 'bg-surface font-semibold text-ink shadow-lift' : 'text-ink-2 hover:text-ink'}`}

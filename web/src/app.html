@@ -48,6 +48,12 @@
 			} catch (e) {
 				/* localStorage unavailable: each look follows its default. */
 			}
+			// Compact density (Settings › Appearance), never on the wall.
+			try {
+				var dp = JSON.parse(localStorage.getItem('dumbmonit-display-prefs') || 'null');
+				if (dp && dp.density === 'compact' && route.indexOf('/wall') !== 0)
+					document.documentElement.classList.add('density-compact');
+			} catch (e) {}
 			if (dark) document.documentElement.classList.add('dark');
 			// The instance's accent, cached by src/lib/accent.ts (same key and variable
 			// names): the solid button and the focus ring, never on a public status page.
