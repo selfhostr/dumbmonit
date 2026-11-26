@@ -23,9 +23,7 @@ use crate::auth::teams;
 ///
 /// Liste blanche stricte, refus par défaut : une route ajoutée demain reste
 /// fermée au mur tant qu'on ne l'a pas inscrite ici. Toutes sont des lectures,
-/// sauf la déconnexion et les gestes de musique que le mur fait déjà sous un
-/// compte lecteur (écritures « pour soi » du garde) — rapporter l'état de son
-/// enceinte Spotify, y faire jouer le compte, mettre en pause et reprendre.
+/// sauf la déconnexion (écriture « pour soi » du garde).
 /// Les listes (équipements, alertes, règles, métriques) sont filtrées par le
 /// gestionnaire selon les équipes du compte, et le garde des équipes
 /// s'applique ensuite comme pour tout compte restreint
@@ -54,12 +52,6 @@ pub const WALL_ROUTES: &[(&str, &str)] = &[
     ("GET", "/alerts/silences"),
     // La météo du dehors, à côté de la date.
     ("GET", "/wall/weather"),
-    // La musique du mur, quand elle est réglée.
-    ("GET", "/music/now"),
-    ("GET", "/music/spotify/token"),
-    ("POST", "/music/spotify/playback"),
-    ("POST", "/music/speaker/report"),
-    ("POST", "/music/speaker/play"),
 ];
 
 /// Message du refus : l'interface d'un écran mural ne l'affiche pas, mais un
@@ -87,8 +79,6 @@ mod tests {
         yes(Method::GET, "/incidents");
         yes(Method::GET, "/metrics/query_range");
         yes(Method::GET, "/wall/weather");
-        yes(Method::GET, "/music/now");
-        yes(Method::POST, "/music/speaker/report");
         yes(Method::POST, "/api/auth/logout");
         yes(Method::GET, "/auth/me");
 
@@ -104,9 +94,6 @@ mod tests {
         no(Method::GET, "/metrics/catalog");
         no(Method::PUT, "/wall/weather");
         no(Method::GET, "/wall/weather/places");
-        no(Method::PUT, "/music/link");
-        no(Method::DELETE, "/music/link");
-        no(Method::GET, "/music/spotify");
         no(Method::POST, "/auth/password");
         no(Method::GET, "/auth/sessions");
         no(Method::POST, "/auth/totp/enroll");

@@ -23,8 +23,8 @@ test('the clock follows the format and the seconds', () => {
 
 test('address parameters', () => {
 	const p = (q) => parseWallParams(new URLSearchParams(q));
-	assert.deepEqual(p('theme=light&scene=none&music=0'), { theme: 'light', scene: 'none', music: false });
-	assert.deepEqual(p('theme=blue&scene=mars'), { theme: null, scene: null, music: null });
+	assert.deepEqual(p('theme=light&scene=none'), { theme: 'light', scene: 'none' });
+	assert.deepEqual(p('theme=blue&scene=mars'), { theme: null, scene: null });
 	assert.equal(p('scene=tokyo').scene, 'paris');
 });
 

@@ -29,8 +29,7 @@ down this page are a readable summary of the same thing.
 Left out on purpose: the agent protocol (`/api/ingest`,
 `/api/agent/commands*`, `/api/agent/relay*`), which only the
 [agent](../devices/agent.md) speaks; the browser redirects of SSO sign-in
-(`/api/auth/oidc/start`, `/api/auth/oidc/callback`) and the Spotify one
-(`/api/music/spotify/callback`); and the agent downloads
+(`/api/auth/oidc/start`, `/api/auth/oidc/callback`); and the agent downloads
 (`/install.sh`, `/install.ps1`, `/download/*`).
 
 Load it in any OpenAPI tool:
@@ -610,14 +609,6 @@ response shapes. *read* and *write* are the token scope needed; *none* means no 
 | `GET` | `/api/public/status/{slug}/components/{key}/badge.svg`, `/uptime.svg`, `/response.svg` | public | The same badges for one service of the page. |
 | `GET` | `/api/public/status/{slug}/banner.js` | public | Script of the status banner for third-party websites. |
 | `GET` | `/api/public/status/{slug}/rss` | public | Incidents as an RSS feed. |
-| `GET` | `/api/music/now` | read | What the walls play (room monitor). |
-| `PUT`, `DELETE` | `/api/music/link` | write | Every wall plays this Spotify, Deezer or YouTube link; or stops the embedded player. |
-| `GET`, `DELETE` | `/api/music/spotify` | read, write | The connected Spotify account (never a token); disconnect it and forget its tokens. |
-| `POST` | `/api/music/spotify/authorize`, `/complete` | none | Start connecting Spotify; finish a loopback connection. Session only. |
-| `GET` | `/api/music/spotify/token` | none | A short-lived Spotify access token for the wall's player. Session only. |
-| `GET`, `PUT` | `/api/music/speaker` | read, write | The wall's Spotify speaker as Settings shows it; rename it (admin). |
-| `POST` | `/api/music/speaker/report`, `/play` | none | A wall reports its speaker's state; play the account on it. Session only. |
-| `POST` | `/api/music/spotify/playback` | none | Pause or resume the account from the wall, wherever it plays. Session only. |
 
 ## Alerts
 

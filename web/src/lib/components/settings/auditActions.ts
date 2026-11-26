@@ -137,8 +137,6 @@ export const AUDIT_ACTION_LABEL: Record<string, () => string> = {
 	'settings.oidc.cleared': () => m.w2ops_audit_action_settings_oidc_cleared(),
 	'settings.saml': () => m.w2ops_audit_action_settings_saml(),
 	'setup.failed': () => m.w2ops_audit_action_setup_failed(),
-	'spotify.connected': () => m.w2ops_audit_action_spotify_connected(),
-	'spotify.disconnected': () => m.w2ops_audit_action_spotify_disconnected(),
 	'storage.settings': () => m.w2ops_audit_action_storage_settings(),
 	'targets.bulk_update': () => m.w2ops_audit_action_targets_bulk_update(),
 	'team.created': () => m.w2ops_audit_action_team_created(),

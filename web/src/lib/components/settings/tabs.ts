@@ -43,7 +43,6 @@ export const SECTION_TAB: Record<string, SettingsTab> = {
 	'email-server': 'notifications',
 	'quiet-hours': 'notifications',
 	wall: 'wall',
-	music: 'wall',
 	// Former anchors of the wall's news and widgets.
 	news: 'wall',
 	widgets: 'wall',
@@ -132,7 +131,6 @@ export function searchIndex(): SearchEntry[] {
 		entry('notifications-policy', m.notifications_policy_title(), m.settings_search_kw_policy()),
 		entry('email-server', m.settings_mail_title(), m.settings_mail_search_kw()),
 		entry('wall', m.settings_appearance_wall_title(), m.settings_search_kw_wall()),
-		entry('music', m.settings_music_title(), m.settings_search_kw_music()),
 		entry('backup', m['settings.section.backup'](), m.settings_search_kw_backup()),
 		entry('config-files', m.settings_config_title(), m.settings_config_search_kw()),
 		entry('self-monitoring', m.settings_selfmon_title(), m.settings_search_kw_selfmon()),

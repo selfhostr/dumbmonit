@@ -59,7 +59,6 @@
 	import AboutSection from '#lib/components/settings/AboutSection.svelte';
 	import WallModeSection from '#lib/components/settings/WallModeSection.svelte';
 	import WallWeatherSection from '#lib/components/settings/WallWeatherSection.svelte';
-	import MusicSection from '#lib/components/settings/MusicSection.svelte';
 	import PushSection from '#lib/components/settings/PushSection.svelte';
 	import ChannelsSection from '#lib/components/notifications/ChannelsSection.svelte';
 	import NotificationPolicySection from '#lib/components/notifications/NotificationPolicySection.svelte';
@@ -98,7 +97,7 @@
 		team: [UsersSection, ...(auth.isAdmin ? [RolesSection, InvitationsSection] : []), TeamsSection, ...(auth.isAdmin ? [ClientsSection] : []), SsoSection, SamlSection, ScimSection, LdapSection, ...(auth.isAdmin ? [AuditLogSection] : [])],
 		monitoring: [AgentsSection, PacksSection, SecurityScoreSection, ...(auth.isAdmin ? [LocationsSection] : [])],
 		notifications: [ChannelsSection, ...(auth.isAdmin ? [MailServerSection] : []), NotificationPolicySection],
-		wall: [WallModeSection, WallWeatherSection, MusicSection],
+		wall: [WallModeSection, WallWeatherSection],
 		system: [...(auth.isAdmin ? [GeneralSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection] : []), AssistantSection, AboutSection]
 	});
 

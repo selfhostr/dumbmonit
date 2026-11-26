@@ -101,7 +101,7 @@ async fn harness() -> Harness {
     });
     let hub = WeatherHub::new(Endpoints { forecast: base.clone(), geocoding: base });
     let app = TestApp {
-        router: api::router_with_hubs(state, dumbmonit_server::music::MusicHub::official(), hub),
+        router: api::router_with(state, hub),
         _dir: dir,
     };
     app.create_admin().await;
