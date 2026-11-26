@@ -26,9 +26,6 @@
 	import { page } from '$app/state';
 	import { AlertTriangle, CircleAlert, CircleCheck, CircleDashed, Maximize, Minimize, Volume2, VolumeX, X } from 'lucide-svelte';
 	import { listAlertRules, type AlertRule } from '#lib/api/index.js';
-	import { getWallWeather } from '#lib/api/weather.js';
-	import type { WallWeather as OutdoorWeather } from '#lib/api/types.js';
-	import { ApiError } from '#lib/api/client.js';
 	import { countAlertsByTarget, criticalCount, quietedOnWall, visibleOnWall } from '#lib/alerts-attention.js';
 	import { readSky } from '#lib/components/overview/sky.js';
 	import { fleetStore } from '#lib/components/enterprise/fleet.svelte.js';
@@ -43,10 +40,12 @@
 	import { viewport } from '#lib/stores/viewport.svelte.js';
 	import { useSceneLive } from '#lib/scene/live.svelte.js';
 	import { Button, Skeleton, calmMotion } from '#lib/ui/index.js';
-	import WallBand, { type BandFigure } from '#lib/components/wall/WallBand.svelte';
+	import WallBand from '#lib/components/wall/WallBand.svelte';
+	import { buildBandFigures } from '#lib/components/wall/wallFigures.js';
+	import { useOutdoorWeather, useWakeLock } from '#lib/components/wall/wallOutdoor.svelte.js';
+	import { widgetsStore } from '#lib/components/overview/dash/widgets.svelte.js';
 	import WallOutdoor from '#lib/components/wall/WallOutdoor.svelte';
 	import WallSignOut from '#lib/components/wall/WallSignOut.svelte';
-	import { OUTDOOR_REFRESH_MS, OUTDOOR_RETRY_MS } from '#lib/components/wall/outdoor.js';
 	import WallDevices from '#lib/components/wall/WallDevices.svelte';
 	import WallProblems from '#lib/components/wall/WallProblems.svelte';
 	import WallSceneControl from '#lib/components/wall/WallSceneControl.svelte';
@@ -69,6 +68,7 @@
 	// The shared stores poll from the layout; this view only asks the fleet
 	// store to keep its figures fresh, and reads the rules once.
 	$effect(() => untrack(() => fleetStore.start()));
+	$effect(() => widgetsStore.start());
 	$effect(() => {
 		const controller = new AbortController();
 		listAlertRules(controller.signal)
@@ -77,34 +77,7 @@
 		return () => controller.abort();
 	});
 
-	// The weather outside, beside the date. The server asks Open-Meteo (browsers
-	// never do) and keeps the reading ten minutes; a failure, or no place chosen
-	// in Settings, leaves the wall without it, silently, and the wall asks again
-	// after a minute rather than ten, so a city just chosen shows up quickly.
-	let outdoor = $state<OutdoorWeather | null>(null);
-	$effect(() => {
-		const controller = new AbortController();
-		let timer: ReturnType<typeof setTimeout> | undefined;
-		let stopped = false;
-		const poll = async () => {
-			if (document.visibilityState === 'visible') {
-				try {
-					outdoor = await getWallWeather(controller.signal);
-				} catch (cause) {
-					if (cause instanceof DOMException && cause.name === 'AbortError') return;
-					// Not shown: keep the last reading, if any, until the next try.
-					// A server without the route will not have one: stop asking.
-					if (cause instanceof ApiError && cause.missing) stopped = true;
-				}
-			}
-			if (!stopped && !controller.signal.aborted) timer = setTimeout(poll, outdoor?.current ? OUTDOOR_REFRESH_MS : OUTDOOR_RETRY_MS);
-		};
-		untrack(() => void poll());
-		return () => {
-			controller.abort();
-			clearTimeout(timer);
-		};
-	});
+	const outdoorRead = useOutdoorWeather();
 
 	// One tick per second drives the clock and "updated … ago".
 	$effect(() => {
@@ -112,26 +85,7 @@
 		return () => clearInterval(timer);
 	});
 
-	// Keep the screen on; browsers release the lock when the tab is hidden.
-	$effect(() => {
-		let lock: WakeLockSentinel | null = null;
-		let disposed = false;
-		const request = async () => {
-			if (disposed || document.visibilityState !== 'visible') return;
-			try {
-				lock = (await navigator.wakeLock?.request('screen')) ?? null;
-			} catch {
-				// Not permitted (battery saver, insecure context): the wall still works.
-			}
-		};
-		void request();
-		document.addEventListener('visibilitychange', request);
-		return () => {
-			disposed = true;
-			document.removeEventListener('visibilitychange', request);
-			void lock?.release().catch(() => {});
-		};
-	});
+	useWakeLock();
 
 	// A wall-display account has nowhere else to go: Exit becomes Sign out, and
 	// Escape (a remote's Back key, a stray keyboard) does nothing.
@@ -276,35 +230,18 @@
 	const paused = $derived(statuses.filter((r) => r.status === 'paused').length);
 	const availability = $derived(mean(fleetStore.figures.uptime30.values()));
 
-	const figures = $derived<BandFigure[]>([
-		{
-			id: 'up',
-			label: m.console_kpi_up(),
-			value: String(up),
-			unit: m.console_kpi_up_unit({ total }),
-			note: m.console_kpi_up_note({ down, paused }),
-			tone: down > 0 ? 'text-warning-ink' : 'text-ink-2'
-		},
-		{
-			id: 'availability',
-			label: m.console_kpi_availability(),
-			value: availability === null ? '—' : availability >= 99.9995 ? '100' : availability.toFixed(3),
-			unit: availability === null ? '' : '%',
-			note: availability === null ? m.console_kpi_none() : m.console_kpi_availability_note({ count: fleetStore.figures.uptime30.size }),
-			tone: 'text-ink-2'
-		},
-		{
-			// The headline's own number (critical alerts and monitors down): a count of
-			// open alerts alone would leave out a monitor down with no alert, and the
-			// foot of the screen would contradict its head.
-			id: 'problems',
-			label: m.wall_band_problems(),
-			value: String(critical),
-			unit: '',
-			note: m.wall_band_problems_note(),
-			tone: critical > 0 ? 'text-warning-ink' : 'text-ink-2'
-		}
-	]);
+	const figures = $derived(
+		buildBandFigures({
+			up,
+			total,
+			down,
+			paused,
+			availability,
+			availabilityCount: fleetStore.figures.uptime30.size,
+			availabilitySeries: widgetsStore.data?.availability?.days.map((d) => d.pct) ?? [],
+			opened: widgetsStore.data?.alerts_opened?.days.map((d) => d.count) ?? null
+		})
+	);
 
 	const animate = !calmMotion();
 
@@ -479,8 +416,8 @@
 				<time class="clock tnum" datetime={now.toISOString()} data-wall-info>{clock}</time>
 				<div class="dateline" data-wall-info>
 					<p class="date">{dateLabel}</p>
-					{#if outdoor?.current}
-						<WallOutdoor current={outdoor.current} unit={outdoor.unit} />
+					{#if outdoorRead.value?.current}
+						<WallOutdoor current={outdoorRead.value.current} unit={outdoorRead.value.unit} />
 					{/if}
 				</div>
 				<p class="updated tnum" aria-live="off" data-wall-info>
@@ -607,8 +544,10 @@
 	.board-right {
 		order: -1;
 	}
+	/* The band bleeds over the board's padding for its veil, its tiles keep the board's edges. */
 	.board-band {
-		margin-inline: -1rem;
+		--band-pad: 1rem;
+		margin-inline: calc(-1 * var(--band-pad));
 	}
 	.instance {
 		margin: 0 0 0.5rem;
@@ -759,7 +698,7 @@
 		.board-band {
 			grid-column: 1 / -1;
 			grid-row: 2;
-			margin-inline: -3.5rem;
+			--band-pad: 3.5rem;
 		}
 		.headline {
 			font-size: clamp(4.25rem, 5vw, 6rem);
@@ -795,7 +734,7 @@
 			padding-inline: 2.5rem;
 		}
 		.board-band {
-			margin-inline: -2.5rem;
+			--band-pad: 2.5rem;
 		}
 		.headline {
 			font-size: clamp(3.5rem, 5.4vw, 4.5rem);

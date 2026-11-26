@@ -7,6 +7,10 @@
 		note: string;
 		/** Text colour class of the note (the figure itself stays in ink). */
 		tone: string;
+		/** Small graph under the figure (null = gap). Tiles without one keep the row empty. */
+		series?: (number | null)[];
+		seriesMin?: number;
+		seriesMax?: number;
 	}
 </script>
 
@@ -20,6 +24,7 @@
 	 * Same numbers as the console (`fleetStore`); the wall computes them.
 	 */
 	import { m } from '#lib/paraglide/messages.js';
+	import Spark from '#lib/components/overview/dash/Spark.svelte';
 
 	interface Props {
 		figures: BandFigure[];
@@ -34,6 +39,11 @@
 			<li class="figure">
 				<span class="label">{figure.label}</span>
 				<span class="value tnum">{figure.value}{#if figure.unit}<span class="unit">{figure.unit}</span>{/if}</span>
+				<span class="graph">
+					{#if figure.series}
+						<Spark values={figure.series} height={28} min={figure.seriesMin} max={figure.seriesMax} color="var(--color-info)" />
+					{/if}
+				</span>
 				<span class="note {figure.tone}">{figure.note}</span>
 			</li>
 		{/each}
@@ -46,7 +56,7 @@
 		flex-direction: column;
 		gap: 1rem;
 		min-width: 0;
-		padding: 1rem;
+		padding: 1rem var(--band-pad, 1rem);
 		/* A veil, not a panel: the stone shows through and the figures stay readable. */
 		background: color-mix(in srgb, var(--c-canvas) 80%, transparent);
 		border-top: 1px solid var(--c-line);
@@ -54,15 +64,23 @@
 	.figures {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
+		align-items: start;
 		gap: 0.75rem 1rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 	.figure {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-rows: auto auto 1.75rem auto;
+		gap: 0.125rem;
 		min-width: 0;
+		align-content: start;
+	}
+	.graph {
+		display: block;
+		min-width: 0;
+		height: 1.75rem;
 	}
 	.label {
 		overflow: hidden;
@@ -99,12 +117,11 @@
 	 */
 	@media (min-width: 1024px) {
 		.band {
-			padding: 0.625rem calc(3.5rem + var(--band-reserve, 0px)) 0.625rem 3.5rem;
+			padding: 0.625rem var(--band-pad, 3.5rem);
 			border-top: 0;
 			background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--c-canvas) 78%, transparent) 38%);
 		}
 		.figures {
-			max-width: 56rem;
 			gap: 1.5rem;
 		}
 		.value {
@@ -115,6 +132,9 @@
 	@media (min-width: 1024px) and (max-height: 940px) {
 		.note {
 			display: none;
+		}
+		.figure {
+			grid-template-rows: auto auto 1.75rem;
 		}
 		.value {
 			font-size: 1.75rem;
