@@ -34,5 +34,4 @@ export * from './notify_api';
 export * from './agents_api';
 export * from './status_pages';
 export * from './onboarding';
-export * from './features';
 export * from './overview';

@@ -197,7 +197,6 @@ async fn on_the_domain_only_the_page_is_reachable() {
         // La page est encadrable comme `/s/<slug>`, sans rien de l'interface.
         let csp = root.headers["content-security-policy"].to_str().unwrap();
         assert!(!csp.contains("frame-ancestors"), "{csp}");
-        assert!(!csp.contains("spotify"), "{csp}");
     }
 
     // Ce qui appartient à la page.

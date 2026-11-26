@@ -110,7 +110,6 @@ async fn a_wall_display_reads_what_the_wall_shows() {
         "/api/incidents",
         "/api/instance/settings",
         "/api/wall/weather",
-        "/api/music/now",
     ] {
         let reply = app.get(uri, Some(&lab.wall)).await;
         assert_eq!(reply.status, StatusCode::OK, "{uri}: {}", reply.body);

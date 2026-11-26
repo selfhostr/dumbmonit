@@ -317,33 +317,10 @@ async fn responses_carry_the_protection_headers_except_on_status_pages() {
             assert!(csp.contains(directive), "{uri} : {directive} absent de {csp}");
         }
         assert!(csp.contains("script-src 'self' 'nonce-"), "{uri} : {csp}");
-        // Le mode mur intègre un lecteur de musique : exactement ces trois
-        // origines d'intégration et l'iframe du Web Playback SDK, rien de plus large.
-        let frames: Vec<&str> = csp
-            .split(';')
-            .map(str::trim)
-            .filter_map(|d| d.strip_prefix("frame-src "))
-            .flat_map(str::split_whitespace)
-            .collect();
-        assert_eq!(
-            frames,
-            [
-                "https://open.spotify.com",
-                "https://widget.deezer.com",
-                "https://www.youtube-nocookie.com",
-                "https://sdk.scdn.co"
-            ],
-            "{uri} : {csp}"
-        );
-        // Un seul script tiers, celui du SDK, par son chemin complet.
-        assert!(
-            csp.contains("script-src 'self' 'nonce-")
-                && csp.contains(" https://sdk.scdn.co/spotify-player.js"),
-            "{uri} : {csp}"
-        );
-        // Lecture automatique et DRM prêtées aux seuls lecteurs encadrés.
+        // Aucune origine tierce n'est encadrée.
+        assert!(!csp.contains("frame-src"), "{uri} : {csp}");
         let features = header(&response, "permissions-policy").expect("permissions-policy");
-        assert!(features.contains("autoplay=(self \"https://open.spotify.com\""), "{features}");
+        assert!(features.contains("autoplay=()"), "{features}");
         assert!(features.contains("camera=()"), "{features}");
         assert_eq!(header(&response, "referrer-policy").as_deref(), Some("same-origin"), "{uri}");
     }

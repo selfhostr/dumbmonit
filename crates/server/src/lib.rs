@@ -25,7 +25,6 @@ pub mod features;
 pub mod instance;
 pub mod logs;
 pub mod multisite;
-pub mod music;
 pub mod netconfig;
 pub mod netinventory;
 pub mod notify;

@@ -2,9 +2,7 @@
 //! Une instance qui les avait réglés garde ses lignes en base (réglages
 //! `wall.*`) : rien ne les lit plus, rien ne casse, leurs routes répondent 404,
 //! et une sauvegarde — y compris un lot qui porterait des sections inconnues —
-//! s'exporte et se restaure. La musique du mur, elle, est revenue : ses tables
-//! `music_*`, restées en place, sont relues telles quelles.
-
+//! s'exporte et se restaure.
 mod common;
 
 use axum::http::StatusCode;
@@ -25,11 +23,6 @@ async fn leave_old_wall_settings(pool: &sqlx::SqlitePool) {
             .await
             .expect("ancien réglage");
     }
-    sqlx::query("INSERT INTO music_wall_link (id, link, set_by) VALUES (1, ?, 'admin')")
-        .bind("https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M")
-        .execute(pool)
-        .await
-        .expect("ancien lien");
 }
 
 #[tokio::test]
@@ -51,16 +44,6 @@ async fn les_anciens_reglages_du_mur_ne_genent_rien_et_leurs_routes_ont_disparu(
         let reply = app.get(uri, Some(&admin)).await;
         assert_eq!(reply.status, StatusCode::NOT_FOUND, "{uri} : {}", reply.body);
     }
-    // La musique relit ce qu'une instance d'avant sa disparition avait laissé.
-    let reply = app.get("/api/music/now", Some(&admin)).await;
-    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
-    assert_eq!(
-        reply.body["link"]["link"],
-        "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
-    );
-    assert_eq!(reply.body["spotify"]["status"], "off");
-    let reply = app.get("/api/music/spotify", Some(&admin)).await;
-    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
     // Le reste de l'instance se charge comme avant.
     let reply = app.get("/api/instance/settings", Some(&admin)).await;
     assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
@@ -81,10 +64,8 @@ async fn une_sauvegarde_avec_d_anciennes_sections_du_mur_se_restaure() {
     // L'export ignore les lignes que plus rien ne lit.
     let lot = collect(&pool, &cipher, ExportOptions::default()).await.expect("export");
 
-    // Un lot qui porterait des sections du mur (`music`, `wall_widgets`,
-    // `wall_news`) se lit quand même : les champs inconnus sont ignorés.
+    // Un lot qui porterait des sections du mur (`wall_widgets`, `wall_news`) se lit quand même : les champs inconnus sont ignorés.
     let mut json = serde_json::to_value(&lot).expect("lot en JSON");
-    json["music"] = serde_json::json!({ "link": "https://open.spotify.com/album/x" });
     json["wall_widgets"] = serde_json::json!({ "coins": { "enabled": true } });
     json["wall_news"] = serde_json::json!({ "enabled": true });
     let old: Bundle = serde_json::from_value(json).expect("lot avec sections inconnues");

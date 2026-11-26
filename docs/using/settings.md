@@ -11,7 +11,7 @@ Settings holds what is administrative: the instance itself, your account, who ca
 | Wall display | `/settings/wall` | Wall mode: what it shows, and the way in ([Wall mode](wall.md)). Only while the Wall mode module is on |
 | System | `/settings/system` | Instance name and time zone, Modules, On-call schedules (on/off), the setup wizard ([Interface and setup wizard](product-modes.md)), Backup, Configuration files, DumbMonit itself, HTTPS and encryption, Network ports, Data & retention, Logs, API & assistants, About |
 
-Each section keeps its own anchor: `/settings#agents` forwards to `/settings/monitoring#agents`. The old links (`/alerts#notifications`) forward to the new place too. `/settings/general` forwards to the System tab. Status pages and reports are not in Settings any more: they live on the **Status** page (`/status`), whose **Reports** tab holds the reports; `/reports`, `/settings/status` and `/settings/reports` forward there. The wall's news and widgets are gone: their old links (`#news`, `#widgets`) open the Wall display tab, where **Wall music** (`#music`) is.
+Each section keeps its own anchor: `/settings#agents` forwards to `/settings/monitoring#agents`. The old links (`/alerts#notifications`) forward to the new place too. `/settings/general` forwards to the System tab. Status pages and reports are not in Settings any more: they live on the **Status** page (`/status`), whose **Reports** tab holds the reports; `/reports`, `/settings/status` and `/settings/reports` forward there. The wall's news and widgets are gone: their old links (`#news`, `#widgets`) open the Wall display tab.
 
 ## Appearance {#appearance}
 
@@ -55,10 +55,6 @@ is part of the [backup](#backup). `GET /api/settings/features` reads it,
 ++esc++ leaves it, and the command palette opens it from anywhere. The wall has
 no news or widgets any more; an optional night city can sit behind its verdict.
 See [Wall mode](wall.md).
-
-**Wall music**: connect a Spotify account (the wall becomes a Spotify Connect
-speaker and shows what plays, with play / pause), or send a Spotify, Deezer or
-YouTube link to every wall. See [Music on the wall](wall.md#music-on-the-wall).
 
 ## Account & security
 
@@ -316,8 +312,7 @@ problems on the wall are not links.
 
 The server enforces the same: the account reaches only what the wall reads
 (devices without their address, options or note, alerts, rules, metrics,
-incidents and maintenance windows, the instance name, the weather and the
-wall's music) and every other call answers `403`, reads included. Team
+incidents and maintenance windows, the instance name, and the weather) and every other call answers `403`, reads included. Team
 rights limit which monitors it shows, as for any account. It cannot create
 API tokens, and a token whose owner becomes a wall display stops working.
 
