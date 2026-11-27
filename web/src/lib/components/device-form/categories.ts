@@ -31,7 +31,7 @@ export type CategoryId = (typeof CATEGORY_IDS)[number];
  * are the agent's own entries (relay, Active Directory rollout).
  */
 export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs'>, string[]> = {
-	machines: ['agent', 'agent:relay', 'agent:ad', 'winrm', 'redfish', 'nut'],
+	machines: ['agent', 'agent:relay', 'agent:ad', 'agent_script', 'winrm', 'redfish', 'nut'],
 	network: ['snmp', 'netconfig', 'opnsense', 'pfsense', 'fortigate', 'sophos', 'mikrotik', 'unifi', 'omada', 'arubacentral', 'openvpn', 'tailscale'],
 	virtualization: ['proxmox', 'pdm', 'vsphere', 'xcpng', 'nutanix', 'kubernetes'],
 	storage: ['synology', 'truenas', 'unraid', 'qnap', 'ceph', 'minio', 'pbs', 'veeam', 'kopia', 'duplicati'],

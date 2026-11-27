@@ -53,6 +53,8 @@
 
 	/** Mail servers: their queues and services are read by the agent on the server. */
 	const needsAgent = $derived(collector?.options.some((option) => option.input === 'agent') ?? false);
+	/** A custom check runs on any machine with the agent, not only on Windows. */
+	const scriptCheck = $derived(collector?.kind === 'agent_script');
 
 	/** Ports to open, grouped by direction (the usual one first). */
 	const portGroups = $derived.by(() => {
@@ -99,10 +101,15 @@
 		{#if needsAgent}
 			<section class="mb-4 rounded-lg border border-advisory/35 bg-advisory-soft px-3 py-3" aria-labelledby="setup-agent">
 				<Plate tone="advisory" label={m.deviceform_mailagent_plate_required()} />
-				<h3 id="setup-agent" class="mt-1.5 text-sm font-semibold text-ink">{m.deviceform_mailagent_title()}</h3>
+				<h3 id="setup-agent" class="mt-1.5 text-sm font-semibold text-ink">
+					{scriptCheck ? m.deviceform_scriptagent_title() : m.deviceform_mailagent_title()}
+				</h3>
 				<div class="mt-2.5">
-					<Button variant="secondary" href={`/targets/new?kind=agent&os=windows&then=${collector.kind}`}>
-						<Download class="size-4" aria-hidden="true" />{m.deviceform_mailagent_install()}
+					<Button
+						variant="secondary"
+						href={scriptCheck ? `/targets/new?kind=agent&then=${collector.kind}` : `/targets/new?kind=agent&os=windows&then=${collector.kind}`}
+					>
+						<Download class="size-4" aria-hidden="true" />{scriptCheck ? m.deviceform_scriptagent_install() : m.deviceform_mailagent_install()}
 					</Button>
 				</div>
 			</section>
