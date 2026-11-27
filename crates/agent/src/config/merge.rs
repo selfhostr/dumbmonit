@@ -181,6 +181,34 @@ impl Config {
                 None => file.action_services.unwrap_or_default(),
             },
         };
+        // Contrôles personnalisés : refusés tant que la machine ne les a pas
+        // demandés, et seulement dans les dossiers qu'elle nomme.
+        let scripts_dirs: Vec<PathBuf> = match env.get("DUMBMONIT_AGENT_SCRIPTS_DIRS") {
+            Some(raw) => split_list(&raw),
+            None => file.scripts_dirs.unwrap_or_default(),
+        }
+        .into_iter()
+        .map(|dir| dir.trim().to_string())
+        .filter(|dir| !dir.is_empty())
+        .map(PathBuf::from)
+        .collect();
+        let scripts = crate::scripts::ScriptsConfig {
+            enabled: flag("DUMBMONIT_AGENT_SCRIPTS", file.scripts, false)?,
+            dirs: if scripts_dirs.is_empty() {
+                crate::scripts::default_dirs(config_path)
+            } else {
+                scripts_dirs
+            },
+            user: env
+                .get("DUMBMONIT_AGENT_SCRIPTS_USER")
+                .or(file.scripts_user)
+                .map(|user| user.trim().to_string())
+                .filter(|user| !user.is_empty()),
+            max_concurrent: file
+                .scripts_max_concurrent
+                .unwrap_or(crate::scripts::DEFAULT_MAX_CONCURRENT)
+                .clamp(1, 16),
+        };
         let site = env
             .get("DUMBMONIT_AGENT_SITE")
             .or(file.site)
@@ -500,6 +528,7 @@ impl Config {
             docker_max_containers,
             commands,
             actions,
+            scripts,
             relay,
             site,
             gateway,
