@@ -73,6 +73,7 @@ const kindPanelLoaders: Record<string, PanelLoader> = {
 	entra: () => import('./appliance/AppliancePanel.svelte'),
 	azure: () => import('./appliance/AppliancePanel.svelte'),
 	aws: () => import('./appliance/AppliancePanel.svelte'),
+	gcp: () => import('./appliance/AppliancePanel.svelte'),
 	cloudflare: () => import('./appliance/AppliancePanel.svelte'),
 	hetzner: () => import('./appliance/AppliancePanel.svelte'),
 	ovh: () => import('./appliance/AppliancePanel.svelte'),

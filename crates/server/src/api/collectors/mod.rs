@@ -377,7 +377,7 @@ fn guide_url(kind: &str) -> String {
         | "arubacentral" | "qnap" | "ceph" | "minio" | "kopia" | "duplicati" | "openvpn"
         | "xcpng" | "nutanix" | "mssql" | "oracle" | "elasticsearch" | "influxdb" | "kafka"
         | "push" | "webchange" | "website" | "netconfig" | "m365" | "entra" | "azure" | "aws"
-        | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus" | "otlp" => kind,
+        | "gcp" | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus" | "otlp" => kind,
         _ => return String::new(),
     };
     let anchor = match kind {

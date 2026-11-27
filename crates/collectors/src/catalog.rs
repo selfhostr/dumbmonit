@@ -161,6 +161,7 @@ const EMBEDDED: &[(&str, &str)] = &[
     ("forgejo", include_str!("../catalog/forgejo.yaml")),
     ("fortigate", include_str!("../catalog/fortigate.yaml")),
     ("frigate", include_str!("../catalog/frigate.yaml")),
+    ("gcp", include_str!("../catalog/gcp.yaml")),
     ("gitlab", include_str!("../catalog/gitlab.yaml")),
     ("graylog", include_str!("../catalog/graylog.yaml")),
     ("grpc", include_str!("../catalog/grpc.yaml")),

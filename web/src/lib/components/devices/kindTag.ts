@@ -51,6 +51,7 @@ const NAME: Record<string, string> = {
 	plex: 'Plex',
 	loki: 'Loki',
 	aws: 'AWS',
+	gcp: 'GCP',
 	apache: 'Apache',
 	frigate: 'Frigate',
 	nut: 'NUT',

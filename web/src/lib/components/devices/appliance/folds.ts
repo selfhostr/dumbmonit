@@ -1059,6 +1059,7 @@ export const FOLDS: Record<string, Fold> = {
 	m365: cloudFold('m365', 'Microsoft 365', 'Read through the Microsoft Graph API.'),
 	entra: cloudFold('entra', 'Entra ID', 'Read through the Microsoft Graph API.'),
 	azure: cloudFold('azure', 'Azure', 'Read through the Azure Resource Manager API.'),
+	gcp: cloudFold('gcp', 'Google Cloud', 'Read through the Compute Engine, Cloud SQL and Cloud Monitoring APIs.'),
 	aws: cloudFold('aws', 'AWS', 'Read through the Amazon CloudWatch API.'),
 	cloudflare: cloudFold('cloudflare', 'Cloudflare', 'Read through the Cloudflare API.'),
 	hetzner: cloudFold('hetzner', 'Hetzner Cloud', 'Read through the Hetzner Cloud API.'),

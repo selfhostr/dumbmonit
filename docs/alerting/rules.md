@@ -871,6 +871,15 @@ See [Microsoft Azure](../devices/azure.md). Rules for an Azure subscription read
 | Azure resource degraded | Resource Health reports a resource of the subscription as degraded for 15 minutes. (`dumbmonit_azure_resources_degraded`) | > 0 | 15 min | Advisory (`warning`) | 6 h |
 | Azure Monitor alert Sev0 or Sev1 | An Azure Monitor alert of severity Sev0 (critical) or Sev1 (error) is fired and not closed. (`dumbmonit_azure_alerts_high_active`) | > 0 | 5 min | Advisory (`warning`) | 6 h |
 
+### Google Cloud
+
+See [Google Cloud](../devices/gcp.md). Rules for the Compute Engine and Cloud SQL instances of a Google Cloud project.
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Google Cloud instance failed | Google reports a Compute Engine instance as repairing for 10 minutes (instances stopped by their owner are not counted). (`dumbmonit_gcp_instances_failed`) | > 0 | 10 min | Warning (`critical`) | 6 h |
+| Google Cloud SQL instance failed | A Cloud SQL instance is in the FAILED or unknown state for 10 minutes. (`dumbmonit_gcp_sql_instances_failed`) | > 0 | 10 min | Warning (`critical`) | 6 h |
+
 ### AWS CloudWatch
 
 See [AWS (CloudWatch)](../devices/aws.md). AWS alarms, EC2 instances and RDS databases read through CloudWatch.

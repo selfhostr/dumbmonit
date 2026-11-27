@@ -41,7 +41,7 @@ export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs'>, string[]> = {
 	mail: ['smtp', 'imap', 'pop3', 'mailcow', 'mdaemon', 'securitygateway', 'pmg', 'mail_blacklist'],
 	observability: ['victoriametrics', 'victorialogs', 'loki', 'graylog', 'prometheus', 'otlp'],
 	security: ['activedirectory', 'keycloak', 'authentik', 'entra', 'vaultwarden', 'crowdsec', 'pihole', 'adguard'],
-	cloud: ['m365', 'azure', 'aws', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
+	cloud: ['m365', 'azure', 'aws', 'gcp', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
 	apps: ['nextcloud', 'immich', 'paperless', 'papra', 'gitlab', 'forgejo'],
 	media: ['jellyfin', 'plex', 'sonarr', 'radarr', 'lidarr', 'prowlarr', 'qbittorrent', 'homeassistant', 'frigate']
 };

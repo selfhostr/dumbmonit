@@ -90,6 +90,7 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "entra",
     "azure",
     "aws",
+    "gcp",
     "cloudflare",
     "hetzner",
     "ovh",

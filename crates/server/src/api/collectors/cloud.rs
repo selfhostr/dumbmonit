@@ -6,6 +6,7 @@ use super::CollectorView;
 
 mod aws;
 mod azure;
+mod gcp;
 mod cloudflare;
 mod entra;
 mod hetzner;
@@ -17,6 +18,7 @@ mod ovh;
 pub(super) fn view(kind: &str) -> Option<CollectorView> {
     Some(match kind {
         "aws" => aws::view(),
+        "gcp" => gcp::view(),
         "azure" => azure::view(),
         "cloudflare" => cloudflare::view(),
         "entra" => entra::view(),
