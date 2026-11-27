@@ -31,6 +31,7 @@ fn les_regles_livrees_couvrent_les_cas_annonces() {
         "push_missed",
         "push_failed",
         "push_too_long",
+        "script_warning",
         "service_flapping",
         "service_slow",
         "tls_cert_expiring",

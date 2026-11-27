@@ -80,6 +80,8 @@ pub(super) const FLAG_RULES: &[&str] = &[
     "push_missed",
     "push_failed",
     "push_too_long",
+    // `rules/scripts.rs`
+    "script_warning",
     "container_stopped",
     "container_unhealthy",
     "container_update_available",

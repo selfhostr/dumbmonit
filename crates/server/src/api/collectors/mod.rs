@@ -115,6 +115,7 @@ mod kinds_services;
 mod options_apps;
 mod options_devices;
 mod options_probes;
+mod options_scripts;
 mod options_services;
 mod options_vendors;
 
@@ -123,6 +124,7 @@ use credentials::*;
 use options_apps::*;
 use options_devices::*;
 use options_probes::*;
+use options_scripts::*;
 use options_services::*;
 use options_vendors::*;
 
@@ -359,6 +361,7 @@ fn guide_url(kind: &str) -> String {
     let page = match kind {
         "victorialogs" | "victoriametrics" => "victoriametrics",
         "agent" | "agent_service" => "agent",
+        "agent_script" => "custom-scripts",
         "http_steps" => "http-scenario",
         "http" | "tcp" | "dns" | "ping" | "tls" | "ntp" | "smtp" | "mysql" | "mqtt"
         | "websocket" | "udp" | "ssh" | "imap" | "pop3" | "snmp_oid" | "radius" | "grpc" => {

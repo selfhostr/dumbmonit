@@ -430,6 +430,35 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
             },
             options: &[],
         },
+        // Un script ou un greffon Nagios lancé par l'agent : `collectors/agent/scripts.rs`.
+        "agent_script" => CollectorView {
+            kind: "agent_script",
+            label: "Custom check (script or Nagios plugin)",
+            summary: "Your own script or any Nagios plugin, run by the agent on its machine: status, message and performance data.",
+            examples: &["check_disk", "check_http", "Backup age script"],
+            credential_types: &["none", "api_token", "username_password"],
+            credentials: &[NO_AUTH, SCRIPT_TOKEN, SCRIPT_LOGIN],
+            address_hint: "nas01/disk",
+            default_port: 0,
+            setup: Setup {
+                title: "Allow the check on the machine",
+                steps: &[
+                    "Enable custom checks in the agent.yaml of the machine (/etc/dumbmonit on Linux, C:\\ProgramData\\DumbMonit on Windows), then restart the agent.\nscripts: true",
+                    "Put the script in the script directory (scripts.d next to agent.yaml), executable and writable by its owner only.\nsudo install -m 0755 check_backup.sh /etc/dumbmonit/scripts.d/",
+                    "For the Nagios plugins of the distribution, add their directory to scripts_dirs instead of copying them.\nscripts_dirs: [/etc/dumbmonit/scripts.d, /usr/lib/nagios/plugins]",
+                    "Here, pick that agent, enter the command and one argument per row: no shell is involved, so pipes and variables stay plain text.",
+                    "Choose the output format: nagios for plugins (exit code and performance data), json or prometheus for your own scripts.",
+                ],
+                ports: &[to_server!(
+                    8443,
+                    "tcp",
+                    "Readings and commands: the encrypted agent channel",
+                )],
+                permissions: &[],
+                warning: "The agent runs nothing until scripts: true is set on the machine, and only files of its own script directories: the server cannot make it run anything else.",
+            },
+            options: AGENT_SCRIPT_OPTIONS,
+        },
         _ => return None,
     })
 }

@@ -93,6 +93,7 @@ const CATEGORIES: &[(&str, Category)] = &[
     ("prometheus", Category::Services),
     ("otlp", Category::Services),
     ("agent_service", Category::Services),
+    ("agent_script", Category::Services),
     ("activedirectory", Category::Services),
     ("entra", Category::Services),
     ("m365", Category::Services),

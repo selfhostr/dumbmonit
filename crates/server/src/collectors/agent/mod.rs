@@ -28,6 +28,7 @@ pub mod modules;
 pub mod policy;
 mod receive;
 pub mod rollout;
+pub mod scripts;
 pub mod selfupdate;
 pub mod selfupdate_compat;
 pub mod sentinel;
@@ -45,6 +46,7 @@ use tokio::sync::OnceCell;
 
 pub use enrolment::EnrolOrigin;
 pub use modules::AgentServiceCollector;
+pub use scripts::AgentScriptCollector;
 pub use policy::spawn_policy_scheduler;
 pub use receive::{
     AGENT_TOO_OLD, BINDING_MISMATCH, IngestError, NOT_BOUND, enrol, ingest, token_client_of,

@@ -44,6 +44,8 @@ pub(crate) const PRODUITES: &[&str] = &[
     // Exécutions des moniteurs en poussée (`collectors/push/mod.rs`).
     "dumbmonit_push_run_failed",
     "dumbmonit_push_run_too_long",
+    // Contrôles personnalisés des agents (`collectors/agent/scripts.rs`).
+    "dumbmonit_script_warning",
     "dumbmonit_probe_duration_seconds",
     "dumbmonit_probe_ssl_cert_expiry_days",
     // Agent : conteneurs Docker et sauvegardes Plakar (`crates/agent`).

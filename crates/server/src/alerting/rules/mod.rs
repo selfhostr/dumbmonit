@@ -33,6 +33,7 @@ mod pihole;
 mod plex;
 mod postgres;
 mod pve;
+mod scripts;
 mod selfhosted;
 mod synology;
 mod tailscale;
@@ -169,6 +170,7 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(postgres::rules());
     rules.extend(synology::rules());
     rules.extend(selfhosted::apps_rules());
+    rules.extend(scripts::rules());
     // Les règles « tout ou rien » portent l'unité `bool` : rien à régler (`flags.rs`).
     flags::mark_flags(&mut rules);
     rules

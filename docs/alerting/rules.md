@@ -59,6 +59,7 @@ Health series are 0 (OK), 1 (Warning) or 2 (Critical). An empty slot (`Absent`) 
 |---|---|---|---|---|---|
 | Service down | The service has not responded correctly for two minutes (`dumbmonit_probe_success{probe!="push"} == bool 0`). | > 0 | 2 min | Warning (`critical`) | 30 min |
 | Heartbeat missed | The job has not called in within its expected interval plus grace period, or reported a failure itself (`dumbmonit_probe_success{probe="push"} == bool 0`; the delay is set per monitor, see [Heartbeat](../devices/push.md)). | > 0 | 2 min | Advisory (`warning`) | 6 h |
+| Custom check warning | The custom check returned WARNING (exit code 1 of a Nagios plugin, or `"status": "warning"`; `dumbmonit_script_warning`). A CRITICAL makes the monitor unreachable instead, see [Custom checks](../devices/custom-scripts.md). | > 0 | 2 min | Advisory (`warning`) | 6 h |
 | Service flapping | The service changed state more than six times in thirty minutes (`changes(dumbmonit_probe_success{probe!="push"}[30m])`). | > 6 | 5 min | Advisory (`warning`) | 1 h |
 | Slow service | The service takes more than three seconds to respond; failed checks are left out (`dumbmonit_probe_duration_seconds and dumbmonit_probe_success == 1`). | > 3 s | 10 min | Advisory (`warning`) | 6 h |
 | Certificate expiring soon | The certificate expires in less than fourteen days. | < 14 d | 1 h | Advisory (`warning`) | 24 h |
