@@ -233,8 +233,7 @@ pub fn samples(r: &Replies, ts_ms: i64) -> Vec<Sample> {
                 out.push(labelled("hyperv_vm_memory_assigned_bytes", mb * 1024.0 * 1024.0));
             }
             // 0 : service d'intégration inconnu, rien à dire ; sinon 2 = répond.
-            if is_running
-                && let Some(beat) = number(info, "Heartbeat").filter(|beat| *beat != 0.0)
+            if is_running && let Some(beat) = number(info, "Heartbeat").filter(|beat| *beat != 0.0)
             {
                 out.push(
                     flag("hyperv_vm_integration_ok", beat == HEARTBEAT_OK, ts_ms)

@@ -46,11 +46,11 @@ use tokio::sync::OnceCell;
 
 pub use enrolment::EnrolOrigin;
 pub use modules::AgentServiceCollector;
-pub use scripts::AgentScriptCollector;
 pub use policy::spawn_policy_scheduler;
 pub use receive::{
     AGENT_TOO_OLD, BINDING_MISMATCH, IngestError, NOT_BOUND, enrol, ingest, token_client_of,
 };
+pub use scripts::AgentScriptCollector;
 pub use store::{
     HostInfo, KeyAuth, MAX_SITE_LEN, REBIND_WINDOW_MINUTES, Registration, TokenMachine,
     TokenPolicy, TokenRecord, ad_folder, allow_rebind, authorise_key, clean_ad_domain,

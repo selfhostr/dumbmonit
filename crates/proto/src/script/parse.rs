@@ -9,8 +9,8 @@ use std::collections::BTreeSet;
 
 use super::{
     CheckMetric, FORMAT_JSON, FORMAT_NAGIOS, FORMAT_PROMETHEUS, MAX_CHECK_MESSAGE,
-    MAX_CHECK_METRICS, MAX_METRIC_NAME, STATUS_CRITICAL, STATUS_OK, STATUS_UNKNOWN,
-    STATUS_WARNING, status_from_exit, strip_controls, truncate_chars,
+    MAX_CHECK_METRICS, MAX_METRIC_NAME, STATUS_CRITICAL, STATUS_OK, STATUS_UNKNOWN, STATUS_WARNING,
+    status_from_exit, strip_controls, truncate_chars,
 };
 
 /// Ce qu'une sortie dit du contrôle.

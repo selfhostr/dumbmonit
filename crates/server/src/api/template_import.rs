@@ -156,8 +156,5 @@ pub async fn apply(
     tracing::info!(actor = %actor, pack = %conversion.pack_id, "template imported");
     audit::record(&state.pool, Some(&actor), "template.imported", Some(&subject), ip).await;
 
-    Ok((
-        status,
-        Json(Applied { pack_id: conversion.pack_id, kind, snmp_profiles, rules, install }),
-    ))
+    Ok((status, Json(Applied { pack_id: conversion.pack_id, kind, snmp_profiles, rules, install })))
 }

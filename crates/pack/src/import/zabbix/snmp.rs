@@ -98,8 +98,7 @@ pub(super) fn item(ctx: &mut Ctx, draft: &mut Draft, profile: &str, item: &Value
 pub(super) fn dependent(ctx: &mut Ctx, draft: &mut Draft, profile: &str, item: &Value) {
     let key = text(item, "key");
     let all = steps(item);
-    let Some((first, rest)) = all.split_first().filter(|(s, _)| s.kind == "SNMP_WALK_VALUE")
-    else {
+    let Some((first, rest)) = all.split_first().filter(|(s, _)| s.kind == "SNMP_WALK_VALUE") else {
         draft.ignored("item", &key, "depends on an SNMP walk without SNMP_WALK_VALUE");
         return;
     };

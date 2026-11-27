@@ -52,8 +52,8 @@
 //! | `server_stats` | `true` | Lit aussi la santé interne du serveur. |
 //! | `timeout_seconds` | `5` | Délai propre à la sonde (1 à 60). |
 
-pub mod options;
 mod mysqlstats;
+pub mod options;
 mod pgstats;
 pub(crate) mod verdict;
 

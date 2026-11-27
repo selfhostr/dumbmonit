@@ -299,8 +299,7 @@ mod tests {
     fn les_connexions_et_le_pourcentage_viennent_du_statut_et_des_variables() {
         let status =
             map(&[("Uptime", "86400"), ("Threads_connected", "45"), ("Questions", "1000")]);
-        let vars =
-            map(&[("max_connections", "151"), ("version", "8.0.39"), ("read_only", "OFF")]);
+        let vars = map(&[("max_connections", "151"), ("version", "8.0.39"), ("read_only", "OFF")]);
         let samples = server_samples(&status, &vars, 0);
         let used = value(&samples, "mysql_connections_used_percent").unwrap();
         assert!((used - 29.801).abs() < 0.01, "{used}");

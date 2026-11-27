@@ -227,9 +227,7 @@ pub(super) fn generator(doc: &Value, draft: &mut Draft) -> Result<(), ImportErro
         let list = |key: &str| -> Vec<String> {
             body.get(key)
                 .and_then(Value::as_array)
-                .map(|items| {
-                    items.iter().filter_map(Value::as_str).map(str::to_string).collect()
-                })
+                .map(|items| items.iter().filter_map(Value::as_str).map(str::to_string).collect())
                 .unwrap_or_default()
         };
         let gets = list("get");

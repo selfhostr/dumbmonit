@@ -6,9 +6,9 @@ use super::CollectorView;
 
 mod aws;
 mod azure;
-mod gcp;
 mod cloudflare;
 mod entra;
+mod gcp;
 mod hetzner;
 mod infomaniak;
 mod m365;

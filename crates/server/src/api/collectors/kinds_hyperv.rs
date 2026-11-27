@@ -9,7 +9,11 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
             kind: "hyperv",
             label: "Microsoft Hyper-V",
             summary: "Beta. A Hyper-V host without installing anything, through WinRM and WMI queries: host CPU, memory and uptime, and for each virtual machine its state, health, uptime, CPU, assigned memory, integration services, replication and checkpoints.",
-            examples: &["Windows Server 2019 with Hyper-V", "Windows Server 2022 with Hyper-V", "Hyper-V Server"],
+            examples: &[
+                "Windows Server 2019 with Hyper-V",
+                "Windows Server 2022 with Hyper-V",
+                "Hyper-V Server",
+            ],
             credential_types: &["username_password"],
             credentials: &[WINRM_LOGIN],
             address_hint: "hv01.corp.example.com",

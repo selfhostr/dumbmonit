@@ -17808,6 +17808,173 @@
     ]
   },
   {
+    "kind": "papra",
+    "label": "Papra",
+    "summary": "Server and database health, organisations, document count and storage used per organisation.",
+    "examples": [
+      "Papra"
+    ],
+    "credential_types": [
+      "api_token"
+    ],
+    "credentials": [
+      {
+        "kind": "api_token",
+        "label": "API key",
+        "help": "An API key created in Papra's settings, sent as \"Authorization: Bearer …\".",
+        "fields": [
+          {
+            "key": "token",
+            "label": "API key",
+            "help": "Stored encrypted, never shown again.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "papra.lan",
+    "default_port": 1221,
+    "setup": {
+      "title": "Create an API key in Papra",
+      "steps": [
+        "In Papra, open Settings → API keys → Create API key and name it as follows.\ndumbmonit",
+        "Tick only the permissions listed below, and copy the key (it starts with ppapi_).",
+        "In DumbMonit, enter Papra's address and paste the key."
+      ],
+      "ports": [
+        {
+          "port": 1221,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "API (HTTP, default)",
+          "optional": false
+        },
+        {
+          "port": 443,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "Only with the https scheme behind a reverse proxy",
+          "optional": true
+        }
+      ],
+      "permissions": [
+        "organizations:read\nList of organisations",
+        "documents:read\nDocument counts and sizes, never the documents themselves"
+      ],
+      "warning": "A Papra API key acts as its owner: keep it only in DumbMonit. DumbMonit reads counts and sizes only, never a document name or file.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/papra/"
+    },
+    "options": [
+      {
+        "key": "scheme",
+        "label": "Protocol",
+        "help": "Used when the address does not start with http:// or https://.",
+        "placeholder": "",
+        "default": "http",
+        "required": false,
+        "input": "select",
+        "choices": [
+          "http",
+          "https"
+        ],
+        "group": ""
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "help": "Used if the address does not give a port. Choosing the other protocol without a port uses 80 or 443.",
+        "placeholder": "1221",
+        "default": "1221",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "insecure_tls",
+        "label": "Accept an unverifiable certificate",
+        "help": "For a self-signed or private certificate: enable this if the connection is refused for that reason.",
+        "placeholder": "",
+        "default": "false",
+        "required": false,
+        "input": "boolean",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "request_timeout_seconds",
+        "label": "Timeout per request (seconds)",
+        "help": "Time allowed for each call, from 1 to 120. Photo and file counts are computed on every call on a large instance.",
+        "placeholder": "15",
+        "default": "15",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      }
+    ],
+    "metrics": [
+      {
+        "name": "papra_database_healthy",
+        "label": "Database healthy",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "papra_organizations",
+        "label": "Organizations",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents",
+        "label": "Documents",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_size_bytes",
+        "label": "Documents size",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_deleted",
+        "label": "Documents in trash",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_deleted_size_bytes",
+        "label": "Trash size",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_scrape_errors",
+        "label": "Scrape errors",
+        "kind": "gauge",
+        "better": "lower"
+      }
+    ],
+    "views": [
+      {
+        "view": "stat",
+        "title": "Current values",
+        "metrics": [
+          "papra_database_healthy",
+          "papra_organizations",
+          "papra_documents",
+          "papra_documents_size_bytes",
+          "papra_documents_deleted",
+          "papra_documents_deleted_size_bytes"
+        ]
+      }
+    ],
+    "beta": true
+  },
+  {
     "kind": "pbs",
     "label": "Proxmox Backup Server",
     "summary": "Backup freshness per machine, failed tasks, sync and verify jobs, datastore space.",

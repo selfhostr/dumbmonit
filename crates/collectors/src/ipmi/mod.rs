@@ -301,9 +301,8 @@ fn split_address(raw: &str) -> Result<(String, u16), ProbeError> {
         return Err(ProbeError::Config("The BMC address is required".into()));
     }
     if let Some((host, port)) = raw.rsplit_once(':').filter(|(h, _)| !h.contains(':')) {
-        let port = port
-            .parse()
-            .map_err(|_| ProbeError::Config(format!("Invalid port in \"{raw}\"")))?;
+        let port =
+            port.parse().map_err(|_| ProbeError::Config(format!("Invalid port in \"{raw}\"")))?;
         return Ok((host.to_string(), port));
     }
     Ok((raw.to_string(), DEFAULT_PORT))

@@ -514,11 +514,8 @@ fn samples(snapshot: &Snapshot, ts_ms: i64) -> Vec<Sample> {
                 .and_then(|l| text(l, "instance_name"))
                 .unwrap_or(resource);
             // Un ratio 0..1 (utilisation) s'affiche en pour cent.
-            let (value, unit) = if metric.ends_with("/utilization") {
-                (value * 100.0, "%")
-            } else {
-                (value, "")
-            };
+            let (value, unit) =
+                if metric.ends_with("/utilization") { (value * 100.0, "%") } else { (value, "") };
             out.push(
                 g("metric", value)
                     .with_label("metric", metric.as_str())

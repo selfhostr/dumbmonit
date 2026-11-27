@@ -207,9 +207,8 @@ fn unsupported(kind: &str) -> String {
 // ---------------------------------------------------------------------------
 
 pub(super) fn convert(doc: &Value, draft: &mut Draft) -> Result<(), ImportError> {
-    let export = doc
-        .get("zabbix_export")
-        .ok_or_else(|| ImportError("no zabbix_export section".into()))?;
+    let export =
+        doc.get("zabbix_export").ok_or_else(|| ImportError("no zabbix_export section".into()))?;
     let templates = list(export, "templates");
     let Some(first) = templates.first() else {
         return Err(ImportError(

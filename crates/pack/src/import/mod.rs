@@ -138,9 +138,9 @@ fn detect(text: &str) -> Result<(SourceFormat, Value), ImportError> {
         None => root,
     };
     let looks_generated = modules.values().any(|module| module.get("metrics").is_some());
-    let looks_generator = modules.values().any(|module| {
-        module.get("walk").is_some() && module.get("metrics").is_none()
-    });
+    let looks_generator = modules
+        .values()
+        .any(|module| module.get("walk").is_some() && module.get("metrics").is_none());
     if looks_generated {
         Ok((SourceFormat::SnmpExporterSnmp, document))
     } else if looks_generator {

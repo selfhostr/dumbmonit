@@ -36,7 +36,11 @@ pub(super) fn view() -> CollectorView {
             ],
             ports: &[
                 to_device!(443, "tcp", "Google Cloud REST APIs (HTTPS, *.googleapis.com)"),
-                to_device!(443, "tcp", "Google sign-in, access token (HTTPS, oauth2.googleapis.com)"),
+                to_device!(
+                    443,
+                    "tcp",
+                    "Google sign-in, access token (HTTPS, oauth2.googleapis.com)"
+                ),
             ],
             permissions: &[
                 "Compute Viewer (role on the project)\nLists the Compute Engine instances and their state.",

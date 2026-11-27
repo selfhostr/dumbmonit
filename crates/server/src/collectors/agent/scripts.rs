@@ -458,11 +458,12 @@ impl Collector for AgentScriptCollector {
     async fn probe(&self, target: &Target) -> Result<Vec<Sample>, ProbeError> {
         let check = check_from_target(target)?;
         let agent_id = agent_of(target)?;
-        let agent_kind: Option<String> = sqlx::query_scalar("SELECT kind FROM targets WHERE id = ?")
-            .bind(agent_id)
-            .fetch_optional(&self.pool)
-            .await
-            .map_err(|e| ProbeError::Other(e.into()))?;
+        let agent_kind: Option<String> =
+            sqlx::query_scalar("SELECT kind FROM targets WHERE id = ?")
+                .bind(agent_id)
+                .fetch_optional(&self.pool)
+                .await
+                .map_err(|e| ProbeError::Other(e.into()))?;
         if agent_kind.as_deref() != Some("agent") {
             return Err(ProbeError::Config(format!(
                 "the agent chosen for this check (#{agent_id}) no longer exists: choose another one"
