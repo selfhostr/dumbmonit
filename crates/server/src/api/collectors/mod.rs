@@ -110,6 +110,7 @@ mod cloud;
 mod credentials;
 mod kinds_apps;
 mod kinds_devices;
+mod kinds_ipmi;
 mod kinds_probes;
 mod kinds_services;
 mod options_apps;
@@ -249,6 +250,8 @@ fn requirements(kind: &str) -> Vec<Requirement> {
 /// catalogue). Une seule liste : sortir un type de la bêta, c'est l'en retirer.
 const BETA_KINDS: &[&str] = &[
     "arubacentral",
+    "gcp",
+    "ipmi",
     "authentik",
     "ceph",
     "duplicati",
@@ -335,6 +338,7 @@ fn describe(kind: &str, own: Option<KindDescription>) -> KindDescription {
 /// fonction par famille (`kinds_*.rs`), puis les intégrations en nuage.
 fn compiled(kind: &str) -> Option<CollectorView> {
     kinds_devices::view(kind)
+        .or_else(|| kinds_ipmi::view(kind))
         .or_else(|| kinds_probes::view(kind))
         .or_else(|| kinds_apps::view(kind))
         .or_else(|| kinds_services::view(kind))
@@ -377,7 +381,7 @@ fn guide_url(kind: &str) -> String {
         | "arubacentral" | "qnap" | "ceph" | "minio" | "kopia" | "duplicati" | "openvpn"
         | "xcpng" | "nutanix" | "mssql" | "oracle" | "elasticsearch" | "influxdb" | "kafka"
         | "push" | "webchange" | "website" | "netconfig" | "m365" | "entra" | "azure" | "aws"
-        | "gcp" | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus" | "otlp" => kind,
+        | "gcp" | "ipmi" | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus" | "otlp" => kind,
         _ => return String::new(),
     };
     let anchor = match kind {

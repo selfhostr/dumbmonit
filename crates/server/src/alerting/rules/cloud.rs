@@ -10,6 +10,7 @@ mod entra;
 mod gcp;
 mod hetzner;
 mod infomaniak;
+mod ipmi;
 mod m365;
 mod ovh;
 
@@ -23,6 +24,7 @@ pub(super) fn rules() -> Vec<Rule> {
     out.extend(gcp::rules());
     out.extend(hetzner::rules());
     out.extend(infomaniak::rules());
+    out.extend(ipmi::rules());
     out.extend(m365::rules());
     out.extend(ovh::rules());
     out
@@ -40,6 +42,7 @@ pub(super) fn produced() -> Vec<&'static str> {
     out.extend_from_slice(gcp::PRODUCED);
     out.extend_from_slice(hetzner::PRODUCED);
     out.extend_from_slice(infomaniak::PRODUCED);
+    out.extend_from_slice(ipmi::PRODUCED);
     out.extend_from_slice(m365::PRODUCED);
     out.extend_from_slice(ovh::PRODUCED);
     out

@@ -1,0 +1,47 @@
+# Mesures et vues du type « ipmi » (format : crates/collectors/src/catalog.rs).
+source: ipmi
+prefixes: [ipmi_]
+metrics:
+  - { name: ipmi_temperature_celsius, label: "Temperature", unit: "°C", better: "lower" }
+  - { name: ipmi_fan_rpm, label: "Fan speed", unit: "rpm" }
+  - { name: ipmi_voltage_volts, label: "Voltage", unit: "V" }
+  - { name: ipmi_current_amps, label: "Current" }
+  - { name: ipmi_power_watts, label: "Power", unit: "W" }
+  - { name: ipmi_sensor_value, label: "Other sensor" }
+  - { name: ipmi_sensor_ok, label: "Sensor within limits", unit: "bool", better: "higher" }
+  - { name: ipmi_sensors, label: "Sensors" }
+  - { name: ipmi_sensors_out_of_limits, label: "Sensors out of limits", better: "lower" }
+  - { name: ipmi_psu_present, label: "Power supply present", unit: "bool" }
+  - { name: ipmi_psu_ok, label: "Power supply OK", unit: "bool", better: "higher" }
+  - { name: ipmi_psus_faulty, label: "Power supplies faulty", better: "lower" }
+  - { name: ipmi_chassis_power_on, label: "Chassis power on", unit: "bool" }
+  - { name: ipmi_chassis_power_fault, label: "Chassis power fault", unit: "bool", better: "lower" }
+  - { name: ipmi_chassis_power_overload, label: "Chassis power overload", unit: "bool", better: "lower" }
+  - { name: ipmi_sel_entries, label: "Event log entries" }
+  - { name: ipmi_sel_overflow, label: "Event log overflow", unit: "bool", better: "lower" }
+  - { name: ipmi_read_truncated, label: "Read cut short", unit: "bool", better: "lower" }
+views:
+  - view: stat
+    title: "Current values"
+    metrics:
+      - ipmi_psus_faulty
+      - ipmi_sensors_out_of_limits
+      - ipmi_chassis_power_on
+      - ipmi_chassis_power_fault
+      - ipmi_chassis_power_overload
+      - ipmi_sel_entries
+      - ipmi_sel_overflow
+      - ipmi_sensors
+      - ipmi_read_truncated
+  - view: timeseries
+    title: "Temperatures"
+    metrics: [ipmi_temperature_celsius]
+  - view: timeseries
+    title: "Fans"
+    metrics: [ipmi_fan_rpm]
+  - view: timeseries
+    title: "Voltages"
+    metrics: [ipmi_voltage_volts]
+  - view: timeseries
+    title: "Power"
+    metrics: [ipmi_power_watts, ipmi_current_amps]

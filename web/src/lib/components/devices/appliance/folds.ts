@@ -1060,6 +1060,7 @@ export const FOLDS: Record<string, Fold> = {
 	entra: cloudFold('entra', 'Entra ID', 'Read through the Microsoft Graph API.'),
 	azure: cloudFold('azure', 'Azure', 'Read through the Azure Resource Manager API.'),
 	gcp: cloudFold('gcp', 'Google Cloud', 'Read through the Compute Engine, Cloud SQL and Cloud Monitoring APIs.'),
+	ipmi: cloudFold('ipmi', 'IPMI', 'Read over IPMI v2.0 (RMCP+) from the BMC.'),
 	aws: cloudFold('aws', 'AWS', 'Read through the Amazon CloudWatch API.'),
 	cloudflare: cloudFold('cloudflare', 'Cloudflare', 'Read through the Cloudflare API.'),
 	hetzner: cloudFold('hetzner', 'Hetzner Cloud', 'Read through the Hetzner Cloud API.'),

@@ -91,6 +91,7 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "azure",
     "aws",
     "gcp",
+    "ipmi",
     "cloudflare",
     "hetzner",
     "ovh",

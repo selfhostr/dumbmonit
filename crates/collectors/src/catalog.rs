@@ -172,6 +172,7 @@ const EMBEDDED: &[(&str, &str)] = &[
     ("imap", include_str!("../catalog/imap.yaml")),
     ("immich", include_str!("../catalog/immich.yaml")),
     ("influxdb", include_str!("../catalog/influxdb.yaml")),
+    ("ipmi", include_str!("../catalog/ipmi.yaml")),
     ("infomaniak", include_str!("../catalog/infomaniak.yaml")),
     ("ip_blacklist", include_str!("../catalog/ip_blacklist.yaml")),
     ("jellyfin", include_str!("../catalog/jellyfin.yaml")),

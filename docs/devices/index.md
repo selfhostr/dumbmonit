@@ -95,6 +95,7 @@ the type, fill in the form, **Add monitor**. See
 | [Tailscale](tailscale.md) | `tailscale` | OAuth client (devices:core:read) or API access token | Tailnet: servers offline, node keys expiring, devices awaiting approval |
 | [Microsoft 365](m365.md) | `m365` | Entra application (client ID and secret) | Service health, incidents, licenses, risky users |
 | [Microsoft Entra ID](entra.md) | `entra` | Entra application (client ID and secret) | Application secret expiry, directory sync, admin MFA |
+| [Server hardware (IPMI)](ipmi.md) | `ipmi` | BMC user with IPMI over LAN (UDP 623) | Temperatures, fans, voltages, power supplies, power state and event log (beta) |
 | [Google Cloud](gcp.md) | `gcp` | Service account JSON key with Compute Viewer, Cloud SQL Viewer and Monitoring Viewer roles | Compute Engine and Cloud SQL instance states and Cloud Monitoring metrics |
 | [Microsoft Azure](azure.md) | `azure` | Entra application (client ID and secret) with the Reader role on the subscription | Resource Health of every resource and active Azure Monitor alerts by severity |
 | [AWS (CloudWatch)](aws.md) | `aws` | Access key ID and secret (read-only IAM user, optional role) | CloudWatch alarms in ALARM, EC2 status checks and CPU, RDS CPU and free storage |

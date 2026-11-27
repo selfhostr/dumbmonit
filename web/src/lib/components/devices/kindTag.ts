@@ -35,6 +35,7 @@ const NAME: Record<string, string> = {
 	radius: 'RADIUS',
 	winrm: 'Windows',
 	redfish: 'Redfish',
+	ipmi: 'IPMI',
 	kubernetes: 'Kubernetes',
 	gitlab: 'GitLab',
 	forgejo: 'Forgejo',
