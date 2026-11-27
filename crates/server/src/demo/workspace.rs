@@ -214,9 +214,8 @@ async fn seed_clients(pool: &SqlitePool) -> Result<i64> {
     .fetch_one(pool)
     .await
     .context("demo office client")?;
-    for (_, names) in FOLDERS
-        .iter()
-        .filter(|(folder, _)| *folder == "Warehouse" || *folder == "Microsoft 365")
+    for (_, names) in
+        FOLDERS.iter().filter(|(folder, _)| *folder == "Warehouse" || *folder == "Microsoft 365")
     {
         for name in *names {
             sqlx::query("UPDATE targets SET client_id = ? WHERE name = ?")
