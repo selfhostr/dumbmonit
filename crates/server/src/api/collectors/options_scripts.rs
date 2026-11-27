@@ -56,7 +56,7 @@ pub(super) const AGENT_SCRIPT_OPTIONS: &[OptionView] = &[
         required: false,
         input: "rows",
         choices: &[],
-        group: "Advanced",
+        group: "",
         items: no_items,
         columns: script_env_columns,
     },
