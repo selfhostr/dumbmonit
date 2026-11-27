@@ -1,6 +1,6 @@
 //! Import de modèles par l'API : aperçu, application, droits et sauvegarde.
 
-mod common;
+use crate::common;
 
 use axum::http::StatusCode;
 use serde_json::json;

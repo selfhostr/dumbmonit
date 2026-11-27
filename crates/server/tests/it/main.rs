@@ -138,6 +138,7 @@ mod targets_bulk_api;
 mod targets_import_api;
 mod targets_test_api;
 mod teams_api;
+mod template_import_api;
 mod tickets_notify;
 mod topology_api;
 mod topology_backup;
