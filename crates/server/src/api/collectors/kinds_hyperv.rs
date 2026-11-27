@@ -24,7 +24,8 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
                     "On the host, in an elevated PowerShell, enable WinRM.\nEnable-PSRemoting -SkipNetworkProfileCheck -Force",
                     "Create the HTTPS listener with a certificate named after the host (use your own certificate instead of this self-signed one if you have one), then open its port.\n$cert = New-SelfSignedCertificate -DnsName \"hv01.corp.example.com\" -CertStoreLocation Cert:\\LocalMachine\\My\nNew-Item -Path WSMan:\\LocalHost\\Listener -Transport HTTPS -Address * -CertificateThumbPrint $cert.Thumbprint -Force\nNew-NetFirewallRule -DisplayName \"WinRM HTTPS\" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow",
                     "Create the account with a long random password, then add it to the groups listed below.\nnet user dumbmonit * /add\nnet localgroup \"Remote Management Users\" dumbmonit /add\nnet localgroup \"Performance Monitor Users\" dumbmonit /add",
-                    "Give the account read access to the Hyper-V WMI namespace: wmimgmt.msc → right-click WMI Control → Properties → Security → Root → virtualization → v2 → Security, add it and tick Enable Account and Remote Enable. Do the same on Root → CIMV2 for the host CPU and memory.",
+                    "In wmimgmt.msc, open WMI Control → Properties → Security → Root → virtualization → v2 → Security, add the account and tick Enable Account and Remote Enable.",
+                    "Do the same on Root → CIMV2, for the host CPU and memory.",
                     "In DumbMonit, enter the host name as its certificate names it (hv01.corp.example.com) and log in as dumbmonit, or DOMAIN\\dumbmonit for a domain account.",
                 ],
                 ports: &[

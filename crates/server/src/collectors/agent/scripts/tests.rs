@@ -358,6 +358,12 @@ async fn the_collector_reads_the_last_verdict_and_follows_a_change_of_agent() {
     assert_eq!(samples[0].metric, "script_last_result_age_seconds");
 
     // Confié à « web » : le verdict de « nas » est effacé.
+    sqlx::query("UPDATE targets SET tags = json_set(tags, '$.agent_id', ?) WHERE id = ?")
+        .bind(web.to_string())
+        .bind(load)
+        .execute(&db.pool)
+        .await
+        .unwrap();
     offered(&db.pool, &db.cipher, web, now).await.unwrap();
     let stored = super::stored(&db.pool, load).await.unwrap().unwrap();
     assert_eq!((stored.agent_id, stored.received_at_ms), (web, None));

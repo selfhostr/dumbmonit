@@ -1,5 +1,5 @@
 # Mesures et vues du type « hyperv » (format : crates/collectors/src/catalog.rs).
-source: hyperv
+source: winrm
 prefixes: [hyperv_, winrm_]
 metrics:
   - { name: hyperv_vms, label: "Virtual machines" }

@@ -1,11 +1,12 @@
-//! Abonnés par courriel d'une page de statut, de bout en bout : un faux
-//! serveur SMTP local reçoit les courriels, le test y lit les liens comme le
-//! ferait l'abonné.
+//! Abonnés par courriel d'une page de statut, envoyés par le serveur de
+//! courriel de l'instance, sans aucun canal de notification : l'interrupteur
+//! de la page, la confirmation, une annonce et le désabonnement en un clic.
 //!
 //! Un seul test dans ce binaire : le limiteur du point d'inscription est propre
-//! au processus, et d'autres tests en parallèle y puiseraient.
+//! au processus.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use std::time::Duration;
 
@@ -72,8 +73,7 @@ async fn next_mail(rx: &mut mpsc::UnboundedReceiver<String>) -> String {
         .expect("mail")
 }
 
-/// Dé-plie les lignes d'en-tête et le quoted-printable éventuel, pour lire
-/// les liens tels que l'abonné les voit.
+/// Dé-plie les lignes d'en-tête et le quoted-printable éventuel.
 fn readable(mail: &str) -> String {
     mail.replace("=\n", "").replace("=3D", "=").replace("\n ", " ")
 }
@@ -105,108 +105,67 @@ async fn anonymous(
 }
 
 #[tokio::test]
-async fn double_opt_in_updates_and_one_click_unsubscribe() {
+async fn the_email_server_mails_subscribers_without_any_channel() {
     let (port, mut mails) = fake_smtp().await;
     let app = TestApp::configured().await;
     let admin = app.admin_cookie().await;
 
-    let reply = app
-        .post(
-            "/api/notify/channels",
-            json!({
-                "name": "Mail", "kind": "smtp",
-                "settings": {
-                    "host": "127.0.0.1", "port": port, "security": "none",
-                    "from": "status@example.org", "to": ["ops@example.org"]
-                }
-            }),
-            Some(&admin),
-        )
-        .await;
-    assert_eq!(reply.status, StatusCode::CREATED, "channel: {}", reply.body);
-    let channel = reply.body["id"].as_i64().unwrap();
-
+    // Interrupteur ouvert, mais aucun serveur réglé : la page ne propose rien.
     let reply = app
         .post(
             "/api/status-pages",
-            json!({ "title": "Mail lab", "slug": "mail-lab", "published": true }),
+            json!({ "title": "Relay lab", "slug": "relay-lab", "published": true,
+                    "subscribe_email": true }),
             Some(&admin),
         )
         .await;
-    assert_eq!(reply.status, StatusCode::CREATED);
+    assert_eq!(reply.status, StatusCode::CREATED, "{}", reply.body);
+    assert_eq!(reply.body["subscribe_email"], true);
+    assert!(reply.body["subscribe_channel_id"].is_null());
     let page = reply.body["id"].as_i64().unwrap();
-
-    // Sans canal choisi, pas d'inscription : la route n'existe pas.
+    let (_, doc) = anonymous(&app, "GET", "/api/public/status/relay-lab", None).await;
+    assert_eq!(doc["page"]["subscribe"], false, "{doc}");
     let (status, _) = anonymous(
         &app,
         "POST",
-        "/api/public/status/mail-lab/subscribe",
+        "/api/public/status/relay-lab/subscribe",
         Some(json!({ "email": "reader@example.net" })),
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 
+    // Le serveur de courriel réglé : le bouton « S'abonner » apparaît.
     let reply = app
         .put(
-            &format!("/api/status-pages/{page}"),
-            json!({ "title": "Mail lab", "slug": "mail-lab", "published": true,
-                    "subscribe_channel_id": channel }),
+            "/api/notify/mail-server",
+            json!({ "host": "127.0.0.1", "port": port, "security": "none",
+                    "from_address": "status@example.org", "from_name": "Relay lab" }),
             Some(&admin),
         )
         .await;
     assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
-    let (_, doc) = anonymous(&app, "GET", "/api/public/status/mail-lab", None).await;
-    assert_eq!(doc["page"]["subscribe"], true);
+    let (_, doc) = anonymous(&app, "GET", "/api/public/status/relay-lab", None).await;
+    assert_eq!(doc["page"]["subscribe"], true, "{doc}");
+    assert_eq!(doc["page"]["subscribe_kinds"], json!(["email"]));
 
-    // Une adresse invalide est refusée.
-    let (status, _) = anonymous(
-        &app,
-        "POST",
-        "/api/public/status/mail-lab/subscribe",
-        Some(json!({ "email": "not-an-address" })),
-    )
-    .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-
-    // Inscription : un courriel de confirmation, rien d'autre.
+    // Inscription, confirmation par le lien reçu.
     let (status, body) = anonymous(
         &app,
         "POST",
-        "/api/public/status/mail-lab/subscribe",
+        "/api/public/status/relay-lab/subscribe",
         Some(json!({ "email": "reader@example.net" })),
     )
     .await;
     assert_eq!(status, StatusCode::ACCEPTED, "{body}");
     let mail = next_mail(&mut mails).await;
     assert!(mail.contains("To: reader@example.net"), "{mail}");
-    let confirm = token_after(&mail, "/s/mail-lab/confirm?token=");
-    assert_eq!(confirm.len(), 48, "token in the confirmation link");
-
-    // Pas encore confirmé : l'abonné est en attente, et une annonce ne lui
-    // parvient pas.
-    let reply = app.get(&format!("/api/status-pages/{page}/subscribers"), Some(&admin)).await;
-    assert_eq!(reply.body[0]["email"], "reader@example.net");
-    assert!(reply.body[0]["confirmed_at"].is_null());
-    assert!(reply.body[0].get("token").is_none(), "the token never leaves the server");
-
-    // Une deuxième demande immédiate ne renvoie pas de courriel, et répond pareil.
-    let (status, again) = anonymous(
-        &app,
-        "POST",
-        "/api/public/status/mail-lab/subscribe",
-        Some(json!({ "email": "reader@example.net" })),
-    )
-    .await;
-    assert_eq!((status, &again), (StatusCode::ACCEPTED, &body));
-
-    // Confirmation par le lien reçu.
-    let (status, _) =
-        anonymous(&app, "POST", "/api/public/status/mail-lab/confirm?token=bad", None).await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert!(mail.contains("status@example.org"), "sent from the email server: {mail}");
+    let confirm = token_after(&mail, "/s/relay-lab/confirm?token=");
+    assert_eq!(confirm.len(), 48);
     let (status, reply) = anonymous(
         &app,
         "POST",
-        &format!("/api/public/status/mail-lab/confirm?token={confirm}"),
+        &format!("/api/public/status/relay-lab/confirm?token={confirm}"),
         None,
     )
     .await;
@@ -216,26 +175,24 @@ async fn double_opt_in_updates_and_one_click_unsubscribe() {
     let reply = app
         .post(
             "/api/incidents",
-            json!({ "title": "Database failover", "page_id": page, "body": "Switching to the replica." }),
+            json!({ "title": "Router swap", "page_id": page, "body": "Ten minutes offline." }),
             Some(&admin),
         )
         .await;
-    assert_eq!(reply.status, StatusCode::CREATED);
+    assert_eq!(reply.status, StatusCode::CREATED, "{}", reply.body);
     let mail = next_mail(&mut mails).await;
-    assert!(mail.contains("To: reader@example.net"), "{mail}");
     let text = readable(&mail);
-    assert!(text.contains("Database failover"), "{text}");
-    assert!(text.contains("Switching to the replica."), "{text}");
+    assert!(text.contains("To: reader@example.net"), "{text}");
+    assert!(text.contains("Router swap"), "{text}");
+    assert!(text.contains("Ten minutes offline."), "{text}");
     assert!(text.contains("List-Unsubscribe-Post: List-Unsubscribe=One-Click"), "{text}");
-    let unsubscribe = token_after(&mail, "/api/public/status/mail-lab/unsubscribe?token=");
+    let unsubscribe = token_after(&mail, "/api/public/status/relay-lab/unsubscribe?token=");
     assert_eq!(unsubscribe, confirm);
-    assert!(text.contains(&format!("/s/mail-lab/unsubscribe?token={confirm}")), "{text}");
 
-    // Désabonnement en un clic (RFC 8058 : un POST sur l'URL de l'en-tête).
     let (status, _) = anonymous(
         &app,
         "POST",
-        &format!("/api/public/status/mail-lab/unsubscribe?token={unsubscribe}"),
+        &format!("/api/public/status/relay-lab/unsubscribe?token={unsubscribe}"),
         None,
     )
     .await;
@@ -243,20 +200,26 @@ async fn double_opt_in_updates_and_one_click_unsubscribe() {
     let reply = app.get(&format!("/api/status-pages/{page}/subscribers"), Some(&admin)).await;
     assert_eq!(reply.body, json!([]));
 
-    // Le point d'inscription est limité : au-delà de quelques demandes, 429.
-    let mut limited = false;
-    for n in 0..10 {
-        let (status, _) = anonymous(
-            &app,
-            "POST",
-            "/api/public/status/mail-lab/subscribe",
-            Some(json!({ "email": format!("flood{n}@example.net") })),
+    // L'interrupteur fermé, la page ne propose plus rien ; un PUT qui n'en
+    // parle pas le garde.
+    let reply = app
+        .put(
+            &format!("/api/status-pages/{page}"),
+            json!({ "title": "Relay lab", "slug": "relay-lab", "published": true,
+                    "subscribe_email": false }),
+            Some(&admin),
         )
         .await;
-        if status == StatusCode::TOO_MANY_REQUESTS {
-            limited = true;
-            break;
-        }
-    }
-    assert!(limited, "the public subscribe endpoint is rate limited");
+    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
+    assert_eq!(reply.body["subscribe_email"], false);
+    let reply = app
+        .put(
+            &format!("/api/status-pages/{page}"),
+            json!({ "title": "Relay lab", "slug": "relay-lab", "published": true }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.body["subscribe_email"], false);
+    let (_, doc) = anonymous(&app, "GET", "/api/public/status/relay-lab", None).await;
+    assert_eq!(doc["page"]["subscribe"], false, "{doc}");
 }

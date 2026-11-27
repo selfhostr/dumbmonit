@@ -93,23 +93,6 @@ pub(super) fn rules() -> Vec<Rule> {
             )
         },
         Rule {
-            description: "The processors of the Hyper-V host are above 90% for 15 minutes: the \
-                          virtual machines compete for them."
-                .to_string(),
-            operator: Operator::Gt,
-            threshold: 90.0,
-            clear_threshold: Some(80.0),
-            for_duration: Duration::from_secs(15 * 60),
-            severity: Severity::Warning,
-            unit: "%".to_string(),
-            ..base(
-                "hyperv_host_cpu_high",
-                "Hyper-V host CPU saturated",
-                RuleKind::Threshold,
-                "dumbmonit_hyperv_host_cpu_percent",
-            )
-        },
-        Rule {
             description: "More than 90% of the memory of the Hyper-V host is in use for 15 \
                           minutes: no room left to start or grow a virtual machine."
                 .to_string(),

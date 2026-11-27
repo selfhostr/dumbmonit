@@ -2,7 +2,8 @@
 //! binaire de test : les compteurs sont en mémoire et partagés par le
 //! processus, un autre test échouant exprès sur la même page les fausserait.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use axum::http::StatusCode;
 use serde_json::json;

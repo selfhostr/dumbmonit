@@ -4,7 +4,8 @@
 //! Un seul test dans ce binaire : les limiteurs du point d'inscription sont
 //! propres au processus.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
