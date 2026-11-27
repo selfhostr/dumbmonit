@@ -101,6 +101,7 @@ mod targets_bulk;
 mod targets_import;
 mod targets_redaction;
 mod teams;
+mod template_import;
 mod threats;
 mod tokens;
 mod topology;
@@ -388,6 +389,8 @@ pub fn router_with(state: AppState, weather_hub: crate::weather::WeatherHub) -> 
         .merge(self_monitoring::routes())
         // Paquets d'intégration : types d'équipement décrits en YAML (`packs.rs`).
         .merge(packs::routes())
+        // Import de modèles (Zabbix, snmp_exporter) en paquets (`template_import.rs`).
+        .merge(template_import::routes())
         // Changements d'un site web : pages, diff et captures (`webchange.rs`).
         .merge(webchange::routes())
         // Sauvegarde des configurations réseau : versions, diff, clé d'hôte (`netconfig.rs`).
