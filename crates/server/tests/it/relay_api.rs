@@ -1,0 +1,654 @@
+//! Tests d'intégration du relais : un faux agent, joué ici par le test lui-même
+//! sur le canal HTTP, relaie une sonde `http` vers un petit serveur local, avec
+//! le même collecteur que celui de l'agent réel (`dumbmonit_collectors`).
+
+use crate::common;
+
+use std::time::Duration;
+
+use axum::Router;
+use axum::body::Body;
+use axum::http::{Request, StatusCode, header};
+use axum::routing::get;
+use dumbmonit_proto::{AgentCommand, ProbeJob, ProbeOutcome};
+use http_body_util::BodyExt;
+use serde_json::{Value, json};
+use tower::ServiceExt;
+
+use common::TestApp;
+
+/// Un service HTTP local : ce que la sonde relayée va interroger.
+async fn local_web_server() -> String {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.expect("port libre");
+    let address = listener.local_addr().expect("adresse");
+    let router = Router::new().route("/", get(|| async { "ok" }));
+    tokio::spawn(async move { axum::serve(listener, router).await.expect("serveur local") });
+    format!("http://{address}/")
+}
+
+async fn enrollment_token(app: &TestApp, admin: &str) -> String {
+    // Réutilisable : ces tests enregistrent plusieurs agents avec le même jeton,
+    // ce qu'un jeton à usage unique — le défaut — refuse à juste titre.
+    let reply = app
+        .post("/api/agent/tokens", json!({ "name": "site", "reusable": true }), Some(admin))
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "jeton : {}", reply.body);
+    reply.body["secret"].as_str().expect("secret").to_string()
+}
+
+/// Secrets de liaison remis aux agents simulés, par (jeton, clé d'identité).
+///
+/// Un vrai agent garde le sien sur disque et le présente à chaque requête :
+/// une machine non liée est refusée partout. Les jetons sont propres à chaque
+/// test, ce qui suffit à isoler les tests qui tournent en parallèle.
+static SECRETS: std::sync::LazyLock<
+    std::sync::Mutex<std::collections::HashMap<(String, String), String>>,
+> = std::sync::LazyLock::new(Default::default);
+
+fn remembered_secret(token: &str, key: &str) -> Option<String> {
+    SECRETS.lock().unwrap().get(&(token.to_string(), key.to_string())).cloned()
+}
+
+fn remember_secret(token: &str, key: &str, body: &Value) {
+    if let Some(secret) = body["agent_secret"].as_str() {
+        SECRETS.lock().unwrap().insert((token.to_string(), key.to_string()), secret.to_string());
+    }
+}
+
+/// Requête au nom de l'agent : jeton porteur, secret de liaison, pas de session.
+async fn as_agent(
+    app: &TestApp,
+    method: &str,
+    uri: &str,
+    token: &str,
+    body: Value,
+) -> (StatusCode, Value) {
+    let mut builder = Request::builder()
+        .method(method)
+        .uri(uri)
+        .header(header::AUTHORIZATION, format!("Bearer {token}"))
+        .header(header::CONTENT_TYPE, "application/json");
+    let key = uri.split_once("key=").map(|(_, rest)| rest.split('&').next().unwrap_or_default());
+    if let Some(secret) = key.and_then(|key| remembered_secret(token, key)) {
+        builder = builder.header("x-dumbmonit-agent-secret", secret);
+    }
+    let request = builder.body(Body::from(body.to_string())).unwrap();
+    let response = app.router.clone().oneshot(request).await.expect("réponse");
+    let status = response.status();
+    let bytes = response.into_body().collect().await.expect("corps").to_bytes();
+    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+}
+
+/// Enregistre l'agent relais (premier lot) et rend l'identifiant de sa cible.
+async fn register_relay(app: &TestApp, token: &str, key: &str, relay: bool) -> i64 {
+    let batch = json!({
+        "protocol": 1,
+        "identity": {
+            "hostname": "relay-lyon", "os": "linux", "agent_version": "0.1.0",
+            "machine_id": key, "commands_enabled": false, "relay": relay, "site": "Lyon",
+            "binding_supported": true,
+        },
+        "sent_at_ms": 0,
+        "samples": [],
+    });
+    let (status, body) = as_agent(app, "POST", "/api/ingest", token, batch).await;
+    assert_eq!(status, StatusCode::OK, "ingestion : {body}");
+    remember_secret(token, key, &body);
+    body["target_id"].as_i64().expect("target id")
+}
+
+async fn create_http_target(app: &TestApp, admin: &str, url: &str, via_agent: Option<i64>) -> i64 {
+    let reply = app
+        .post(
+            "/api/targets",
+            json!({
+                "name": "site-web", "address": url, "kind": "http",
+                "via_agent": via_agent, "credential": { "type": "none" },
+                // Le garde-fou des moniteurs refuse le bouclage sans cette option.
+                "tags": { "allow_private_targets": "true" },
+            }),
+            Some(admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "cible : {}", reply.body);
+    // La réponse de création annonce déjà le relais : l'interface s'en sert
+    // sans relire la cible.
+    assert_eq!(reply.body["via_agent"], json!(via_agent), "relais dans la réponse");
+    reply.body["id"].as_i64().expect("id")
+}
+
+/// Vient chercher, comme l'agent, la prochaine *mesure* confiée à `key`.
+///
+/// Une cible créée sans profil lance aussi une identification, qui passe par
+/// le même canal et peut arriver avant ou après la mesure : elle est rendue
+/// avec un compte rendu vide, comme le ferait l'agent pour un type sans profil.
+async fn take_probe(app: &TestApp, token: &str, key: &str) -> (AgentCommand, ProbeJob) {
+    for _ in 0..3 {
+        let (status, jobs) =
+            as_agent(app, "GET", &format!("/api/agent/relay?key={key}&wait=5"), token, Value::Null)
+                .await;
+        assert_eq!(status, StatusCode::OK, "{jobs}");
+        let mut probe = None;
+        for job in jobs.as_array().expect("liste") {
+            let command: AgentCommand = serde_json::from_value(job.clone()).unwrap();
+            let job = ProbeJob::from_command(&command).expect("sonde");
+            if !job.discover {
+                probe = Some((command, job));
+                continue;
+            }
+            let outcome = ProbeOutcome {
+                duration_ms: 1,
+                error: None,
+                samples: Vec::new(),
+                profile_id: None,
+                netconfig: None,
+            };
+            let (status, body) = as_agent(
+                app,
+                "POST",
+                &format!("/api/agent/relay/{}?key={key}", command.id),
+                token,
+                serde_json::to_value(&outcome).unwrap(),
+            )
+            .await;
+            assert_eq!(status, StatusCode::NO_CONTENT, "{body}");
+        }
+        if let Some(found) = probe {
+            return found;
+        }
+    }
+    panic!("aucune mesure confiée à l'agent");
+}
+
+/// Instance dont le registre connaît le collecteur `http`, comme le serveur réel.
+async fn setup() -> TestApp {
+    let app = common::setup_with(|_| {}).await;
+    app.create_admin().await;
+    app
+}
+
+#[tokio::test]
+async fn an_http_probe_is_relayed_through_the_agent_and_recorded_on_the_target() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+    let agent_id = register_relay(&app, &token, "machine-lyon", true).await;
+    let web = local_web_server().await;
+
+    // Le registre du harnais ne connaît que le collecteur de démonstration :
+    // le type `http` est validé par le registre partagé, comme sur l'agent.
+    let target_id = create_http_target(&app, &admin, &web, Some(agent_id)).await;
+    let view = app.get(&format!("/api/targets/{target_id}"), Some(&admin)).await;
+    assert_eq!(view.body["via_agent"], json!(agent_id));
+
+    // L'agent est visible comme relais, avec son site.
+    let relays = app.get("/api/relays", Some(&admin)).await;
+    assert_eq!(relays.status, StatusCode::OK);
+    let relay =
+        relays.body.as_array().unwrap().iter().find(|r| r["id"] == json!(agent_id)).unwrap();
+    assert_eq!(relay["relay"], json!(true));
+    assert_eq!(relay["site"], json!("Lyon"));
+    assert_eq!(relay["relayed"], json!(1));
+    let host = app.get(&format!("/api/targets/{agent_id}/agent"), Some(&admin)).await;
+    assert_eq!(host.body["relay"], json!(true));
+    assert_eq!(host.body["relayed"], json!(1));
+
+    // « Probe now » sur une cible relayée attend le compte rendu de l'agent.
+    let probe = {
+        let app = app.router.clone();
+        let admin = admin.clone();
+        tokio::spawn(async move {
+            let request = Request::builder()
+                .method("POST")
+                .uri(format!("/api/targets/{target_id}/probe"))
+                .header(header::COOKIE, admin)
+                .header("x-requested-with", "DumbMonit")
+                .body(Body::empty())
+                .unwrap();
+            let response = app.oneshot(request).await.expect("réponse");
+            let status = response.status();
+            let bytes = response.into_body().collect().await.expect("corps").to_bytes();
+            (status, serde_json::from_slice::<Value>(&bytes).unwrap_or(Value::Null))
+        })
+    };
+
+    // Le faux agent vient chercher la sonde (attente longue bornée).
+    let (command, job) = take_probe(&app, &token, "machine-lyon").await;
+    assert_eq!(job.target.id, target_id);
+    assert_eq!(job.target.kind, "http");
+    assert!(!job.discover);
+
+    // … l'exécute avec les collecteurs partagés, exactement comme l'agent réel…
+    let registry = dumbmonit_server::collectors::Registry::remote(Duration::from_secs(2));
+    let samples = registry
+        .probe(&job.target, Duration::from_secs(job.timeout_secs))
+        .await
+        .expect("sonde http locale");
+    assert!(samples.iter().any(|s| s.metric == "up"));
+
+    // … et rend compte.
+    let outcome =
+        ProbeOutcome { duration_ms: 12, error: None, samples, profile_id: None, netconfig: None };
+    let (status, body) = as_agent(
+        &app,
+        "POST",
+        &format!("/api/agent/relay/{}?key=machine-lyon", command.id),
+        &token,
+        serde_json::to_value(&outcome).unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT, "{body}");
+
+    // La sonde immédiate a reçu le résultat…
+    let (status, report) = probe.await.expect("tâche");
+    assert_eq!(status, StatusCode::OK, "{report}");
+    assert!(report["sample_count"].as_u64().unwrap() >= 1);
+    assert!(
+        report["series"].as_array().unwrap().iter().any(|s| s.as_str().unwrap().contains("up{")),
+        "{report}"
+    );
+
+    // … et la cible porte le verdict comme si le serveur l'avait interrogée.
+    let view = app.get(&format!("/api/targets/{target_id}"), Some(&admin)).await;
+    assert!(view.body["last_probe_at"].is_string(), "{}", view.body);
+    assert!(view.body["last_error"].is_null(), "{}", view.body);
+
+    // Un second compte rendu pour la même sonde ne trouve plus rien.
+    let (status, _) = as_agent(
+        &app,
+        "POST",
+        &format!("/api/agent/relay/{}?key=machine-lyon", command.id),
+        &token,
+        serde_json::to_value(&outcome).unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn a_failed_relayed_probe_lands_in_last_error() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+    let agent_id = register_relay(&app, &token, "machine-lyon", true).await;
+    let target_id = create_http_target(&app, &admin, "http://127.0.0.1:1/", Some(agent_id)).await;
+
+    let probe = {
+        let app = app.router.clone();
+        let admin = admin.clone();
+        tokio::spawn(async move {
+            let request = Request::builder()
+                .method("POST")
+                .uri(format!("/api/targets/{target_id}/probe"))
+                .header(header::COOKIE, admin)
+                .header("x-requested-with", "DumbMonit")
+                .body(Body::empty())
+                .unwrap();
+            app.oneshot(request).await.expect("réponse").status()
+        })
+    };
+    let (command, _) = take_probe(&app, &token, "machine-lyon").await;
+    let id = command.id;
+    let outcome = ProbeOutcome {
+        duration_ms: 3,
+        error: Some("Monitor unreachable: connection refused".into()),
+        samples: Vec::new(),
+        profile_id: None,
+        netconfig: None,
+    };
+    let (status, _) = as_agent(
+        &app,
+        "POST",
+        &format!("/api/agent/relay/{id}?key=machine-lyon"),
+        &token,
+        serde_json::to_value(&outcome).unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    assert_eq!(probe.await.unwrap(), StatusCode::BAD_REQUEST);
+
+    let view = app.get(&format!("/api/targets/{target_id}"), Some(&admin)).await;
+    assert_eq!(view.body["last_error"], json!("Monitor unreachable: connection refused"));
+    assert_eq!(view.body["error_kind"], json!("down"));
+}
+
+#[tokio::test]
+async fn the_relay_channel_requires_the_token_and_a_known_machine() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+
+    // Sans jeton.
+    let request = Request::builder()
+        .method("GET")
+        .uri("/api/agent/relay?key=x&wait=0")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.router.clone().oneshot(request).await.expect("réponse");
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+
+    // Jeton valide, machine jamais vue.
+    let (status, _) =
+        as_agent(&app, "GET", "/api/agent/relay?key=inconnue&wait=0", &token, Value::Null).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Machine connue, rien à faire : liste vide, sans attendre.
+    register_relay(&app, &token, "machine-lyon", true).await;
+    let (status, jobs) =
+        as_agent(&app, "GET", "/api/agent/relay?key=machine-lyon&wait=0", &token, Value::Null)
+            .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(jobs, json!([]));
+
+    // Un compte rendu pour une sonde inexistante est refusé, pas accepté en silence.
+    let outcome = ProbeOutcome {
+        duration_ms: 0,
+        error: None,
+        samples: vec![],
+        profile_id: None,
+        netconfig: None,
+    };
+    let (status, _) = as_agent(
+        &app,
+        "POST",
+        "/api/agent/relay/12345?key=machine-lyon",
+        &token,
+        serde_json::to_value(&outcome).unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn via_agent_is_validated_and_kept_when_omitted() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+    let agent_id = register_relay(&app, &token, "machine-lyon", false).await;
+
+    // Un relais inexistant, ou qui n'est pas un agent, est refusé.
+    let reply = app
+        .post(
+            "/api/targets",
+            json!({ "name": "a", "address": "http://a/", "kind": "http", "via_agent": 9999 }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::BAD_REQUEST, "{}", reply.body);
+
+    let plain = create_http_target(&app, &admin, "http://plain/", None).await;
+    let reply = app
+        .post(
+            "/api/targets",
+            json!({ "name": "b", "address": "http://b/", "kind": "http", "via_agent": plain }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::BAD_REQUEST, "{}", reply.body);
+    assert!(reply.body["error"].as_str().unwrap().contains("not an agent"));
+
+    // Une machine ne se relaie pas elle-même…
+    let reply = app
+        .put(
+            &format!("/api/targets/{agent_id}"),
+            json!({ "name": "relay-lyon", "address": "machine-lyon", "kind": "agent", "via_agent": agent_id }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::BAD_REQUEST, "{}", reply.body);
+    assert!(reply.body["error"].as_str().unwrap().contains("relay itself"), "{}", reply.body);
+    // … et le relais d'une machine à agent ne se saisit pas : c'est le serveur
+    // qui le constate quand elle passe par une passerelle. La valeur envoyée
+    // est ignorée, celle qui est rangée reste.
+    let other_agent = register_relay(&app, &token, "machine-paris", true).await;
+    let reply = app
+        .put(
+            &format!("/api/targets/{agent_id}"),
+            json!({ "name": "relay-lyon", "address": "machine-lyon", "kind": "agent", "via_agent": other_agent }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
+    assert_eq!(reply.body["via_agent"], serde_json::Value::Null, "{}", reply.body);
+
+    // Un relais qui n'a pas déclaré `relay: true` est accepté : l'interface le
+    // signale, la liste le marque.
+    let target_id = create_http_target(&app, &admin, "http://c/", Some(agent_id)).await;
+    let relays = app.get("/api/relays", Some(&admin)).await;
+    let relay =
+        relays.body.as_array().unwrap().iter().find(|r| r["id"] == json!(agent_id)).unwrap();
+    assert_eq!(relay["relay"], json!(false));
+    assert_eq!(relay["relayed"], json!(1));
+
+    // Une modification qui ne mentionne pas `via_agent` le conserve ; `null`
+    // l'efface.
+    let reply = app
+        .put(
+            &format!("/api/targets/{target_id}"),
+            json!({ "name": "renamed", "address": "http://c/", "kind": "http" }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
+    assert_eq!(reply.body["via_agent"], json!(agent_id));
+
+    let reply = app
+        .put(
+            &format!("/api/targets/{target_id}"),
+            json!({ "name": "renamed", "address": "http://c/", "kind": "http", "via_agent": null }),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
+    assert!(reply.body["via_agent"].is_null());
+}
+
+/// Sonde depuis plusieurs emplacements : le réglage est validé, l'agent reçoit
+/// sa part de la ronde, et la page du moniteur lit l'état par emplacement.
+#[tokio::test]
+async fn an_uptime_monitor_is_probed_from_several_locations() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+    let agent_id = register_relay(&app, &token, "machine-geneve", true).await;
+    let web = local_web_server().await;
+
+    let payload = |multisite: Value, via_agent: Option<i64>| {
+        json!({
+            "name": "site-multi", "address": web, "kind": "http",
+            "via_agent": via_agent, "credential": { "type": "none" },
+            "tags": { "allow_private_targets": "true" },
+            "multisite": multisite,
+        })
+    };
+    // Un seul emplacement, un relais en plus, un seuil hors bornes : refusés.
+    for (multisite, via_agent) in [
+        (json!({ "server": true, "agents": [] }), None),
+        (json!({ "server": false, "agents": [agent_id] }), None),
+        (json!({ "server": true, "agents": [agent_id] }), Some(agent_id)),
+        (json!({ "server": true, "agents": [agent_id], "quorum": 3 }), None),
+    ] {
+        let reply =
+            app.post("/api/targets", payload(multisite.clone(), via_agent), Some(&admin)).await;
+        assert_eq!(reply.status, StatusCode::BAD_REQUEST, "{multisite}: {}", reply.body);
+    }
+
+    let reply = app
+        .post(
+            "/api/targets",
+            payload(json!({ "server": true, "agents": [agent_id, agent_id] }), None),
+            Some(&admin),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{}", reply.body);
+    let target_id = reply.body["id"].as_i64().unwrap();
+    assert_eq!(
+        reply.body["multisite"],
+        json!({ "server": true, "agents": [agent_id], "quorum": null }),
+        "agents dédoublonnés"
+    );
+
+    // Avant toute ronde : les emplacements attendent.
+    let report = app.get(&format!("/api/targets/{target_id}/probe-locations"), Some(&admin)).await;
+    assert_eq!(report.status, StatusCode::OK, "{}", report.body);
+    assert_eq!(report.body["decision"], "unknown");
+    assert_eq!(report.body["quorum"], 2);
+    let locations = report.body["locations"].as_array().unwrap();
+    assert_eq!(locations.len(), 2);
+    assert_eq!(locations[0]["location"], "server");
+    assert_eq!(locations[1]["location"], format!("agent-{agent_id}"));
+    assert_eq!(locations[1]["state"], "pending");
+
+    // « Probe now » lance une ronde complète et attend la décision.
+    let probe = {
+        let app = app.router.clone();
+        let admin = admin.clone();
+        tokio::spawn(async move {
+            let request = Request::builder()
+                .method("POST")
+                .uri(format!("/api/targets/{target_id}/probe"))
+                .header(header::COOKIE, admin)
+                .header("x-requested-with", "DumbMonit")
+                .body(Body::empty())
+                .unwrap();
+            let response = app.oneshot(request).await.expect("réponse");
+            let status = response.status();
+            let bytes = response.into_body().collect().await.expect("corps").to_bytes();
+            (status, serde_json::from_slice::<Value>(&bytes).unwrap_or(Value::Null))
+        })
+    };
+    let (command, job) = take_probe(&app, &token, "machine-geneve").await;
+    assert_eq!(job.target.id, target_id);
+    let registry = dumbmonit_server::collectors::Registry::remote(Duration::from_secs(2));
+    let samples = registry
+        .probe(&job.target, Duration::from_secs(job.timeout_secs))
+        .await
+        .expect("sonde http locale");
+    let outcome =
+        ProbeOutcome { duration_ms: 12, error: None, samples, profile_id: None, netconfig: None };
+    let (status, body) = as_agent(
+        &app,
+        "POST",
+        &format!("/api/agent/relay/{}?key=machine-geneve", command.id),
+        &token,
+        serde_json::to_value(&outcome).unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT, "{body}");
+    let (status, reply) = probe.await.expect("tâche");
+    assert_eq!(status, StatusCode::OK, "{reply}");
+    assert!(
+        reply["series"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s.as_str().unwrap().contains("probe_success{")),
+        "{reply}"
+    );
+
+    // La décision est publiée, l'agent a son constat et sa latence.
+    let report = app.get(&format!("/api/targets/{target_id}/probe-locations"), Some(&admin)).await;
+    assert_eq!(report.body["decision"], "up", "{}", report.body);
+    let agent = &report.body["locations"][1];
+    assert_eq!(agent["state"], "up", "{}", report.body);
+    assert!(agent["latency_ms"].is_u64(), "{}", report.body);
+    assert!(agent["checked_at"].is_string());
+    let view = app.get(&format!("/api/targets/{target_id}"), Some(&admin)).await;
+    assert!(view.body["last_error"].is_null(), "{}", view.body);
+
+    // `null` retire le réglage.
+    let off = payload(Value::Null, None);
+    let reply = app.put(&format!("/api/targets/{target_id}"), off, Some(&admin)).await;
+    assert_eq!(reply.status, StatusCode::OK, "{}", reply.body);
+    assert!(reply.body["multisite"].is_null());
+}
+
+/// Un résultat mis de côté par le relais pendant une coupure.
+fn offline_result(seq: u64, target_id: i64, ts_ms: i64) -> Value {
+    json!({
+        "seq": seq,
+        "target_id": target_id,
+        "started_at_ms": ts_ms,
+        "outcome": {
+            "duration_ms": 3,
+            "samples": [
+                { "metric": "up", "labels": {}, "value": 1.0, "kind": "gauge", "ts_ms": ts_ms }
+            ]
+        }
+    })
+}
+
+#[tokio::test]
+async fn a_relay_gets_its_plan_and_its_offline_results_are_taken_once() {
+    let app = setup().await;
+    let admin = app.admin_cookie().await;
+    let token = enrollment_token(&app, &admin).await;
+    let agent_id = register_relay(&app, &token, "machine-lyon", true).await;
+    let other_relay = register_relay(&app, &token, "machine-paris", true).await;
+    let mine = create_http_target(&app, &admin, "http://10.0.0.5/", Some(agent_id)).await;
+    let theirs = create_http_target(&app, &admin, "http://10.1.0.5/", Some(other_relay)).await;
+
+    // Le planning : les équipements de ce relais, et eux seuls.
+    let (status, plan) =
+        as_agent(&app, "GET", "/api/agent/relay/plan?key=machine-lyon", &token, Value::Null).await;
+    assert_eq!(status, StatusCode::OK, "{plan}");
+    let planned: Vec<i64> = plan["probes"]
+        .as_array()
+        .expect("sondes")
+        .iter()
+        .map(|p| p["target"]["id"].as_i64().unwrap())
+        .collect();
+    assert_eq!(planned, vec![mine]);
+    assert!(plan["probes"][0]["timeout_secs"].as_u64().unwrap() >= 1);
+    assert_eq!(plan["probes"][0]["target"]["kind"], json!("http"));
+
+    // Le rattrapage : horodatages d'origine, il y a une heure.
+    let then = chrono::Utc::now().timestamp_millis() - 3_600_000;
+    let first = json!({
+        "spool_id": "a1b2",
+        "results": [
+            offline_result(1, mine, then),
+            offline_result(2, mine, then + 60_000),
+            // Un équipement d'un autre relais : jamais écrit au nom de celui-ci.
+            offline_result(3, theirs, then),
+        ],
+        "dropped": 0,
+    });
+    let uri = "/api/agent/relay/backlog?key=machine-lyon";
+    let (status, ack) = as_agent(&app, "POST", uri, &token, first.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{ack}");
+    assert_eq!(ack, json!({ "acked_seq": 3, "accepted": 2, "duplicates": 0, "ignored": 1 }));
+
+    // Accusé perdu, lot renvoyé avec la suite : seul le nouveau est rangé.
+    let mut again = first.clone();
+    again["results"].as_array_mut().unwrap().push(offline_result(4, mine, then + 120_000));
+    let (status, ack) = as_agent(&app, "POST", uri, &token, again).await;
+    assert_eq!(status, StatusCode::OK, "{ack}");
+    assert_eq!(ack, json!({ "acked_seq": 4, "accepted": 1, "duplicates": 3, "ignored": 0 }));
+
+    // Relais réinstallé : nouveau tampon, la numérotation repart.
+    let fresh = json!({ "spool_id": "c3d4", "results": [offline_result(1, mine, then)] });
+    let (status, ack) = as_agent(&app, "POST", uri, &token, fresh).await;
+    assert_eq!(status, StatusCode::OK, "{ack}");
+    assert_eq!(ack["accepted"], json!(1));
+    assert_eq!(ack["acked_seq"], json!(1));
+
+    // L'autre relais ne range rien pour un équipement qui n'est pas le sien.
+    let foreign = json!({ "spool_id": "e5f6", "results": [offline_result(1, mine, then)] });
+    let (status, ack) =
+        as_agent(&app, "POST", "/api/agent/relay/backlog?key=machine-paris", &token, foreign).await;
+    assert_eq!(status, StatusCode::OK, "{ack}");
+    assert_eq!(ack["ignored"], json!(1));
+    assert_eq!(ack["accepted"], json!(0));
+
+    // Un lot démesuré est refusé franchement.
+    let too_many = dumbmonit_proto::MAX_BACKLOG_RESULTS as u64 + 1;
+    let results: Vec<Value> = (1..=too_many).map(|seq| offline_result(seq, mine, then)).collect();
+    let huge = json!({ "spool_id": "a1b2", "results": results });
+    let (status, _) = as_agent(&app, "POST", uri, &token, huge).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // Le verdict courant de l'équipement n'est pas réécrit par le passé.
+    let view = app.get(&format!("/api/targets/{mine}"), Some(&admin)).await;
+    assert!(view.body["last_error"].is_null(), "{}", view.body);
+}
