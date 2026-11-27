@@ -1,7 +1,8 @@
 //! Tests d'intégration des rapports périodiques : droits, validation, cycle de
 //! vie du calendrier et aperçu sans canal courriel.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use axum::http::StatusCode;
 use serde_json::json;

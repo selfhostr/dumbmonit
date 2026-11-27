@@ -3,7 +3,8 @@
 //! elle. Chaque `structuredContent` reçu est validé contre l'`outputSchema`
 //! que `tools/list` annonce : le serveur s'y engage, un client peut le vérifier.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use std::collections::HashMap;
 

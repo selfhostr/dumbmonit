@@ -1,7 +1,8 @@
 //! Régressions de l'audit de sécurité d'octobre 2026 : ce qu'un lecteur (ou un
 //! jeton `read`) ne doit plus lire, et les limites posées aux gestes coûteux.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode, header};

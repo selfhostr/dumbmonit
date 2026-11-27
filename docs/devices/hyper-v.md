@@ -53,9 +53,11 @@ From the DumbMonit server (or its relay agent) to the device:
     net localgroup "Performance Monitor Users" dumbmonit /add
     ```
 
-4. Give the account read access to the Hyper-V WMI namespace: wmimgmt.msc → right-click WMI Control → Properties → Security → Root → virtualization → v2 → Security, add it and tick Enable Account and Remote Enable. Do the same on Root → CIMV2 for the host CPU and memory.
+4. In wmimgmt.msc, open WMI Control → Properties → Security → Root → virtualization → v2 → Security, add the account and tick Enable Account and Remote Enable.
 
-5. In DumbMonit, enter the host name as its certificate names it (hv01.corp.example.com) and log in as dumbmonit, or DOMAIN\dumbmonit for a domain account.
+5. Do the same on Root → CIMV2, for the host CPU and memory.
+
+6. In DumbMonit, enter the host name as its certificate names it (hv01.corp.example.com) and log in as dumbmonit, or DOMAIN\dumbmonit for a domain account.
 
 ### Permissions
 

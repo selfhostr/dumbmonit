@@ -3,7 +3,8 @@
 //! L'URL du battement porte souvent son propre secret : aucune réponse ne doit
 //! la rendre, ni en clair ni dans un message d'erreur.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
