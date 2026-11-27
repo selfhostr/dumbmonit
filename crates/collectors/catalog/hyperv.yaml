@@ -1,0 +1,55 @@
+# Mesures et vues du type « hyperv » (format : crates/collectors/src/catalog.rs).
+source: hyperv
+prefixes: [hyperv_, winrm_]
+metrics:
+  - { name: hyperv_vms, label: "Virtual machines" }
+  - { name: hyperv_vms_running, label: "Virtual machines running" }
+  - { name: hyperv_host_cpu_percent, label: "Host CPU", unit: "%", better: "lower", min: 0, max: 100 }
+  - { name: hyperv_host_memory_used_percent, label: "Host memory used", unit: "%", better: "lower", min: 0, max: 100 }
+  - { name: hyperv_host_memory_total_bytes, label: "Host memory total", unit: "B" }
+  - { name: hyperv_host_memory_used_bytes, label: "Host memory used", unit: "B" }
+  - { name: hyperv_host_uptime_seconds, label: "Host uptime", unit: "s" }
+  - { name: hyperv_vm_state, label: "VM state" }
+  - { name: hyperv_vm_running, label: "VM running", unit: "bool", better: "higher" }
+  - { name: hyperv_vm_health_ok, label: "VM health OK", unit: "bool", better: "higher" }
+  - { name: hyperv_vm_uptime_seconds, label: "VM uptime", unit: "s" }
+  - { name: hyperv_vm_cpu_percent, label: "VM CPU", unit: "%", better: "lower", min: 0, max: 100 }
+  - { name: hyperv_vm_cpus, label: "VM processors" }
+  - { name: hyperv_vm_memory_assigned_bytes, label: "VM memory assigned", unit: "B" }
+  - { name: hyperv_vm_integration_ok, label: "VM integration services", unit: "bool", better: "higher" }
+  - { name: hyperv_vm_replication_ok, label: "VM replication healthy", unit: "bool", better: "higher" }
+  - { name: hyperv_vm_checkpoints, label: "VM checkpoints", better: "lower" }
+  - { name: hyperv_vm_checkpoint_oldest_age_seconds, label: "Oldest checkpoint age", unit: "s", better: "lower" }
+  - { name: winrm_section_readable, label: "Section readable", unit: "bool" }
+views:
+  - view: stat
+    title: "Current values"
+    metrics:
+      - hyperv_vms
+      - hyperv_vms_running
+      - hyperv_host_cpu_percent
+      - hyperv_host_memory_used_percent
+      - hyperv_host_memory_total_bytes
+      - hyperv_host_uptime_seconds
+      - winrm_section_readable
+  - view: timeseries
+    title: "Host CPU and memory"
+    metrics: [hyperv_host_cpu_percent, hyperv_host_memory_used_percent]
+  - view: topn
+    title: "VM CPU"
+    metrics: [hyperv_vm_cpu_percent]
+    group_by: vm
+    options:
+      limit: "10"
+  - view: topn
+    title: "VM memory assigned"
+    metrics: [hyperv_vm_memory_assigned_bytes]
+    group_by: vm
+    options:
+      limit: "10"
+  - view: topn
+    title: "Oldest checkpoint"
+    metrics: [hyperv_vm_checkpoint_oldest_age_seconds]
+    group_by: vm
+    options:
+      limit: "10"

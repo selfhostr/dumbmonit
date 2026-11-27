@@ -281,7 +281,7 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
         "mysql" => CollectorView {
             kind: "mysql",
             label: "MySQL or MariaDB database",
-            summary: "Logs in and runs a query: catches a database that is up but no longer answering.",
+            summary: "Logs in, runs a query and reads the server's health: catches a database that is up but no longer answering, and one that is running out of connections, lagging behind its primary or slow.",
             examples: &[
                 "The database behind a WordPress",
                 "A Nextcloud or a Kimai",
@@ -298,9 +298,13 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
                     "In the mysql client, create an account with no privilege (adjust the host part to the DumbMonit machine).\nCREATE USER 'dumbmonit'@'%' IDENTIFIED BY 'a-long-password';",
                     "In DumbMonit, enter the server, for example db.home.lan:3307 (port 3306 by default), then the account's user and password.",
                     "Optional: replace the default query SELECT 1 with one that returns a single number, to chart it.",
+                    "Optional, for the complete server health metrics (queries, replication, long-running queries): let the account read the server status.\nGRANT PROCESS, REPLICATION CLIENT ON *.* TO 'dumbmonit'@'%';",
                 ],
                 ports: &[to_device!(3306, "tcp", "MySQL or MariaDB (default port)")],
-                permissions: &["USAGE (no privilege)\nConnect and run SELECT 1, nothing more"],
+                permissions: &[
+                    "USAGE (no privilege)\nConnect and run SELECT 1, nothing more",
+                    "PROCESS, REPLICATION CLIENT (optional)\nSee every session, and read the replication status; without them the health metrics are partial",
+                ],
                 warning: "The check opens a real connection on every poll: on an instance close to its connection limit, give it a longer interval.",
             },
             options: MYSQL_OPTIONS,

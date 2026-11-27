@@ -198,6 +198,7 @@ pub use uptime::{
 pub use veeam::VeeamCollector;
 pub use vsphere::VsphereCollector;
 pub use winrm::WinrmCollector;
+pub use winrm::hyperv::HypervCollector;
 pub use xcpng::XcpngCollector;
 
 /// Les collecteurs connus, par type de cible.
@@ -304,6 +305,7 @@ impl Registry {
         registry.register(Arc::new(OvhCollector::new()));
         registry.register(Arc::new(InfomaniakCollector::new()));
         registry.register(Arc::new(WinrmCollector::new()));
+        registry.register(Arc::new(HypervCollector::new()));
         registry.register(Arc::new(KopiaCollector::new()));
         registry.register(Arc::new(DuplicatiCollector::new()));
         registry.register(Arc::new(TailscaleCollector::new()));

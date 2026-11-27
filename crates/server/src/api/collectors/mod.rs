@@ -110,6 +110,7 @@ mod cloud;
 mod credentials;
 mod kinds_apps;
 mod kinds_devices;
+mod kinds_hyperv;
 mod kinds_probes;
 mod kinds_services;
 mod options_apps;
@@ -253,6 +254,7 @@ const BETA_KINDS: &[&str] = &[
     "ceph",
     "duplicati",
     "frigate",
+    "hyperv",
     "keycloak",
     "kopia",
     "lidarr",
@@ -338,6 +340,7 @@ fn compiled(kind: &str) -> Option<CollectorView> {
         .or_else(|| kinds_probes::view(kind))
         .or_else(|| kinds_apps::view(kind))
         .or_else(|| kinds_services::view(kind))
+        .or_else(|| kinds_hyperv::view(kind))
         .or_else(|| cloud::view(kind))
 }
 
@@ -359,6 +362,7 @@ fn guide_url(kind: &str) -> String {
     let page = match kind {
         "victorialogs" | "victoriametrics" => "victoriametrics",
         "agent" | "agent_service" => "agent",
+        "hyperv" => "hyper-v",
         "http_steps" => "http-scenario",
         "http" | "tcp" | "dns" | "ping" | "tls" | "ntp" | "smtp" | "mysql" | "mqtt"
         | "websocket" | "udp" | "ssh" | "imap" | "pop3" | "snmp_oid" | "radius" | "grpc" => {

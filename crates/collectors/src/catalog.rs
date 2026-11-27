@@ -168,6 +168,7 @@ const EMBEDDED: &[(&str, &str)] = &[
     ("homeassistant", include_str!("../catalog/homeassistant.yaml")),
     ("http", include_str!("../catalog/http.yaml")),
     ("http_steps", include_str!("../catalog/http_steps.yaml")),
+    ("hyperv", include_str!("../catalog/hyperv.yaml")),
     ("imap", include_str!("../catalog/imap.yaml")),
     ("immich", include_str!("../catalog/immich.yaml")),
     ("influxdb", include_str!("../catalog/influxdb.yaml")),

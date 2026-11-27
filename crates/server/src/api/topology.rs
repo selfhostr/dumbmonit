@@ -103,6 +103,7 @@ const WINDOW: &str = "30m";
 const GUEST_SERIES: &[(&str, &str, f64)] = &[
     ("proxmox_guest_running", "name", 1.0),
     ("xcpng_vm_running", "vm", 1.0),
+    ("hyperv_vm_running", "vm", 1.0),
     ("nutanix_vm_running", "vm", 1.0),
     // vSphere code l'alimentation : 0 = poweredOn, 1 = poweredOff, 2 = suspended.
     ("vsphere_vm_power_state", "vm", 0.0),

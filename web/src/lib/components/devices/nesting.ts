@@ -32,6 +32,7 @@ import { needsAttention, type RackRow } from './rack.ts';
 const HOST_RANK: Record<string, number> = {
 	agent: 0,
 	winrm: 1,
+	hyperv: 1,
 	proxmox: 1,
 	xcpng: 1,
 	nutanix: 1,

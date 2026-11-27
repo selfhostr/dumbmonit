@@ -98,6 +98,7 @@ nav:
       - Proxmox Datacenter Manager: devices/pdm.md
       - Proxmox Mail Gateway: devices/pmg.md
       - VMware vSphere: devices/vsphere.md
+      - Microsoft Hyper-V: devices/hyper-v.md
       - XCP-ng / XenServer: devices/xcpng.md
       - Nutanix AHV: devices/nutanix.md
       - Synology DSM: devices/synology.md
@@ -132,6 +133,8 @@ nav:
       - Redis and Valkey: devices/redis.md
       - MongoDB: devices/mongodb.md
       - RabbitMQ: devices/rabbitmq.md
+      - MySQL and MariaDB: devices/mysql.md
+      - PostgreSQL: devices/postgresql.md
       - SQL Server: devices/mssql.md
       - Oracle Database: devices/oracle.md
       - Elasticsearch / OpenSearch: devices/elasticsearch.md
