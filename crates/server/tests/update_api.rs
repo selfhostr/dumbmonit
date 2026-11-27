@@ -1,7 +1,8 @@
 //! Mise à jour guidée : les routes `/api/update*`. Aucun test ne sort sur
 //! Internet — la vérification est coupée avant la première lecture.
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use axum::http::StatusCode;
 use common::TestApp;

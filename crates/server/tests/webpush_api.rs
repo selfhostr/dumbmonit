@@ -5,7 +5,8 @@
 //! Aucun service de push réel n'est joint : les adresses acceptées sont sous
 //! `.invalid`, un domaine qui ne se résout jamais (RFC 2606).
 
-use crate::common;
+#[path = "it/common/mod.rs"]
+mod common;
 
 use axum::http::StatusCode;
 use base64::Engine;
