@@ -91,6 +91,19 @@ async fn harness() -> Harness {
     registry.register(Arc::new(collectors::DummyCollector));
     let victoria = tsdb::Victoria::new(UNREACHABLE_VICTORIA.to_string()).unwrap();
     let sink = tsdb::spawn_writer(victoria.clone(), Duration::from_secs(60));
+    // Modules facultatifs actifs : ces tests couvrent des fonctions qu'ils contrôlent.
+    dumbmonit_server::features::save(
+        &pool,
+        &dumbmonit_server::features::Features {
+            wall: true,
+            sla_reports: true,
+            status_pages: true,
+            slo: true,
+            threat_map: true,
+        },
+    )
+    .await
+    .expect("modules facultatifs");
     let state = AppState::new(Inner {
         config,
         pool: pool.clone(),

@@ -3341,6 +3341,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Features" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
     put:
       operationId: putFeatures
       tags: [Onboarding]

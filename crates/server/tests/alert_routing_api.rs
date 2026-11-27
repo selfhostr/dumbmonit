@@ -48,6 +48,19 @@ async fn setup() -> TestApp {
     let mut registry = collectors::Registry::new();
     registry.register(Arc::new(collectors::DummyCollector));
 
+    // Modules facultatifs actifs : ces tests couvrent des fonctions qu'ils contrôlent.
+    dumbmonit_server::features::save(
+        &pool,
+        &dumbmonit_server::features::Features {
+            wall: true,
+            sla_reports: true,
+            status_pages: true,
+            slo: true,
+            threat_map: true,
+        },
+    )
+    .await
+    .expect("modules facultatifs");
     let state = AppState::new(Inner {
         config,
         pool: pool.clone(),

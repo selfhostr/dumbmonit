@@ -67,6 +67,19 @@ async fn setup(secret: &str) -> TestApp {
     // que la restauration doit rendre lisible de l'autre côté.
     registry.register(Arc::new(collectors::SnmpCollector::new()));
 
+    // Modules facultatifs actifs : ces tests couvrent des fonctions qu'ils contrôlent.
+    dumbmonit_server::features::save(
+        &pool,
+        &dumbmonit_server::features::Features {
+            wall: true,
+            sla_reports: true,
+            status_pages: true,
+            slo: true,
+            threat_map: true,
+        },
+    )
+    .await
+    .expect("modules facultatifs");
     let state = AppState::new(Inner {
         config: config.clone(),
         pool: pool.clone(),
