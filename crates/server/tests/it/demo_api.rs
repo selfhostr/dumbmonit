@@ -66,8 +66,7 @@ async fn le_compte_demo_se_connecte_et_lit_le_parc() {
     assert!(
         names.iter().all(|name| {
             name.contains("home.arpa")
-                || name.contains("dupont.ch")
-                || name.contains("muller-archi.ch")
+                || name.contains("example.com")
                 || *name == demo::extras::CLOUDFLARE_HOST
                 || demo::extras::DOMAINS.iter().any(|(domain, _, _)| domain == name)
         }),
@@ -122,7 +121,7 @@ async fn le_semis_montre_les_nouveautes() {
     // L'API trie par titre : on compare sans tenir compte de l'ordre.
     scenes.sort();
     let mut expected: Vec<(String, String)> =
-        [("home", "paris"), ("lab", "tokyo"), ("photos", "newyork"), ("muller", "dubai")]
+        [("home", "paris"), ("lab", "tokyo"), ("photos", "newyork"), ("larkspur", "dubai")]
             .map(|(slug, scene)| (slug.to_string(), scene.to_string()))
             .to_vec();
     expected.sort();
@@ -183,7 +182,7 @@ async fn chaque_page_cle_a_des_donnees() {
         assert!(found >= *minimum, "{uri} : {found} < {minimum} : {}", reply.body);
     }
 
-    // Le mode MSP est allumé, avec le bureau de Genève comme second client.
+    // Le mode MSP est allumé, avec l entrepôt comme second client.
     let clients = app.get("/api/clients", Some(&cookie)).await;
     assert_eq!(clients.body["settings"]["enabled"], true, "{}", clients.body);
     assert!(clients.body.to_string().contains(demo::workspace::OFFICE_CLIENT));
@@ -207,7 +206,7 @@ async fn chaque_page_cle_a_des_donnees() {
     assert!(cves.body.to_string().contains("CVE-2025-32463"), "{}", cves.body);
 
     // La page publique du bureau a son incident en cours.
-    let office = app.get("/api/public/status/muller", None).await;
+    let office = app.get("/api/public/status/larkspur", None).await;
     assert_eq!(office.status, StatusCode::OK, "{:?}", office.body);
     assert!(office.body.to_string().contains("Delays on incoming email"), "{}", office.body);
 }

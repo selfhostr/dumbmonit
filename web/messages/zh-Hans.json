@@ -10604,20 +10604,6 @@
 	"wall_scene_forced": "此设置由链接临时指定，不会保存在这里。",
 	"wall_scene_none": "无",
 	"wall_scene_paris": "巴黎",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=other": "{count} 个问题"
-			}
-		}
-	],
 	"wall_scene_world_hint": "“巴黎”会在面板背后绘制这座城市；“无”则只显示纯色面板。",
 	"wall_scene_world_title": "面板背后的城市",
 	"wall_sign_out": "退出登录",

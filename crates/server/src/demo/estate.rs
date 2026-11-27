@@ -39,14 +39,14 @@ pub const KINDS: &[&str] = &[
     "omada", "m365", "entra",
 ];
 
-/// Équipements du bureau du client PME (Muller Architectes, Genève), interrogés
+/// Équipements du bureau du client PME (Larkspur Freight, Genève), interrogés
 /// par l'agent relais posé sur place (voir `super::workspace`).
-pub const OFFICE_DEVICES: &[&str] = &["vbr01.muller.home.arpa", "omada.muller.home.arpa"];
+pub const OFFICE_DEVICES: &[&str] = &["vbr-wh.home.arpa", "omada-wh.home.arpa"];
 /// Locataire Microsoft du client PME.
-pub const M365_NAME: &str = "Microsoft 365 (muller-archi.ch)";
-pub const ENTRA_NAME: &str = "Entra ID (muller-archi.ch)";
+pub const M365_NAME: &str = "Microsoft 365 (www.example.com)";
+pub const ENTRA_NAME: &str = "Entra ID (www.example.com)";
 /// Adresse du faux Microsoft Graph : connexion et lectures sur le même hôte.
-const GRAPH: &str = "http://graph.muller.home.arpa";
+const GRAPH: &str = "http://graph.home.arpa";
 
 /// NAS Synology supplémentaires : mise à jour de DSM proposée, volume dégradé,
 /// injoignable. Le NAS principal (`nas`) est le sain.
@@ -192,12 +192,12 @@ pub async fn start() -> anyhow::Result<Estate> {
         (
             DemoDevice {
                 key: "veeam",
-                name: "vbr01.muller.home.arpa",
+                name: "vbr-wh.home.arpa",
                 kind: "veeam",
-                address: "http://vbr01.muller.home.arpa".into(),
+                address: "http://vbr-wh.home.arpa".into(),
                 tags: vec![],
                 credential: Credential::UsernamePassword {
-                    username: r"MULLER\svc-dumbmonit".into(),
+                    username: r"LARKSPUR\svc-dumbmonit".into(),
                     password: "demonstration".into(),
                 },
                 interval_secs: 300,
@@ -207,9 +207,9 @@ pub async fn start() -> anyhow::Result<Estate> {
         (
             DemoDevice {
                 key: "omada",
-                name: "omada.muller.home.arpa",
+                name: "omada-wh.home.arpa",
                 kind: "omada",
-                address: "http://omada.muller.home.arpa".into(),
+                address: "http://omada-wh.home.arpa".into(),
                 tags: vec![],
                 credential: Credential::UsernamePassword {
                     username: "demonstration-client".into(),

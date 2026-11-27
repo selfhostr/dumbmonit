@@ -15,7 +15,7 @@ const SOURCES: &str = include_str!("../../../../collectors/src/kopia/testdata/so
 const CAPTURE: &str = "2026-10-26T01:00:00Z";
 
 const WORDS: &[(&str, &str)] =
-    &[("\"hostname\":\"nas\"", "\"hostname\":\"nas.home.arpa\""), ("\"laptop\"", "\"laptop-sam\"")];
+    &[("\"hostname\":\"nas\"", "\"hostname\":\"nas.home.arpa\""), ("\"laptop\"", "\"laptop-ops2\"")];
 
 pub(super) fn router() -> Router {
     Router::new().fallback(handle)

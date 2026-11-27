@@ -10602,20 +10602,6 @@
 	"wall_scene_forced": "링크가 지금만 이것을 지정했으며 여기에는 저장되지 않습니다.",
 	"wall_scene_none": "없음",
 	"wall_scene_paris": "파리",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=other": "문제 {count}건"
-			}
-		}
-	],
 	"wall_scene_world_hint": "파리를 선택하면 보드 뒤에 도시가 그려집니다. 없음은 단순한 보드를 유지합니다.",
 	"wall_scene_world_title": "보드 뒤의 도시",
 	"wall_sign_out": "로그아웃",

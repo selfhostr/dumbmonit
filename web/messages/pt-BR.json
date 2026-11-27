@@ -10728,21 +10728,6 @@
 	"wall_scene_forced": "Um link definiu isso por enquanto; não fica salvo aqui.",
 	"wall_scene_none": "Nenhum",
 	"wall_scene_paris": "Paris",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLEMA",
-				"countPlural=other": "{count} PROBLEMAS"
-			}
-		}
-	],
 	"wall_scene_world_hint": "Paris desenha a cidade atrás do painel. Nenhum deixa um painel simples.",
 	"wall_scene_world_title": "Cidade atrás do painel",
 	"wall_sign_out": "Sair",

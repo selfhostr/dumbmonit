@@ -23,9 +23,9 @@ pub const CLOUDFLARE_HOST: &str = "Cloudflare edge";
 /// Domaines surveillés : (nom, jours restants au démarrage, bureau
 /// d'enregistrement). Le dernier arrive à échéance : l'alerte se déclenche.
 pub const DOMAINS: &[(&str, f64, &str)] = &[
-    ("dupont.ch", 212.0, "Infomaniak Network SA"),
-    ("dupont-photos.net", 41.0, "Gandi SAS"),
-    ("homelab-notes.eu", 6.0, "OVH sas"),
+    ("example.com", 212.0, "Example Registrar Ltd"),
+    ("example.net", 41.0, "Example Registrar Ltd"),
+    ("example.org", 6.0, "OVH sas"),
 ];
 
 /// Vrai pour les types de cible que [`samples`] simule.

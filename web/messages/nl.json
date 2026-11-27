@@ -10728,21 +10728,6 @@
 	"wall_scene_forced": "Een link heeft deze voor nu ingesteld; hij wordt hier niet opgeslagen.",
 	"wall_scene_none": "Geen",
 	"wall_scene_paris": "Parijs",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLEEM",
-				"countPlural=other": "{count} PROBLEMEN"
-			}
-		}
-	],
 	"wall_scene_world_hint": "Parijs tekent de stad achter het bord. Geen houdt een gewoon bord.",
 	"wall_scene_world_title": "Stad achter het bord",
 	"wall_sign_out": "Afmelden",

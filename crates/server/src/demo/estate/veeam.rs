@@ -29,8 +29,8 @@ const CAPTURE: &str = "2026-09-30T09:00:00+02:00";
 /// Version publiée la plus récente (13.0.2, mai 2026) et noms du parc.
 const WORDS: &[(&str, &str)] = &[
     ("12.3.1.1139", "13.0.2.29"),
-    ("nas.example.lan", "nas.muller.home.arpa"),
-    ("Example Ltd", "Muller Architectes SA"),
+    ("nas.example.lan", "nas-wh.home.arpa"),
+    ("Example Ltd", "Larkspur Freight"),
 ];
 
 pub(super) fn router() -> Router {

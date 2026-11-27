@@ -6,8 +6,8 @@
 //!
 //! Deux clients :
 //!
-//! - **Dupont household** (le client 1, la maison) : le parc d'origine ;
-//! - **Muller Architectes SA**, un bureau d'architectes de Genève : un
+//! - **Home lab** (le client 1, la maison) : le parc d'origine ;
+//! - **Larkspur Freight**, une société de transport et logistique (sites HQ et Warehouse) : un
 //!   contrôleur de domaine Windows, Veeam, un réseau Omada, Microsoft 365, et
 //!   l'agent relais posé dans le bureau qui interroge ce qui ne se voit pas
 //!   d'Internet.
@@ -31,15 +31,15 @@ use crate::db;
 use crate::db::targets::TargetInput;
 
 /// Le client PME, après le client 1 (la maison).
-pub const OFFICE_CLIENT: &str = "Muller Architectes SA";
-const HOME_CLIENT: &str = "Dupont household";
+pub const OFFICE_CLIENT: &str = "Larkspur Freight";
+const HOME_CLIENT: &str = "Home lab";
 
 /// Sondes du bureau, confiées au relais : (nom, type, adresse).
 pub const OFFICE_CHECKS: &[(&str, &str, &str)] = &[
-    ("intranet.muller.home.arpa", "http", "https://intranet.muller.home.arpa/"),
-    ("nas.muller.home.arpa", "ping", "nas.muller.home.arpa"),
-    ("printer.muller.home.arpa", "ping", "printer.muller.home.arpa"),
-    ("muller-archi.ch (TLS)", "tls", "muller-archi.ch:443"),
+    ("intranet-hq.home.arpa", "http", "https://intranet-hq.home.arpa/"),
+    ("nas-wh.home.arpa", "ping", "nas-wh.home.arpa"),
+    ("printer-wh.home.arpa", "ping", "printer-wh.home.arpa"),
+    ("www.example.com (TLS)", "tls", "www.example.com:443"),
 ];
 
 /// Dossiers de la liste des équipements : (dossier, noms).
@@ -83,23 +83,23 @@ const FOLDERS: &[(&str, &[&str])] = &[
         &[
             "crowdsec.home.arpa",
             "Cloudflare edge",
-            "dupont.ch",
-            "dupont-photos.net",
-            "homelab-notes.eu",
-            "dupont.ch (DNS)",
+            "example.com",
+            "example.net",
+            "example.org",
+            "example.com (DNS)",
         ],
     ),
     (
-        "Geneva office",
+        "Warehouse",
         &[
             WINDOWS_HOST,
             RELAY_HOST,
-            "vbr01.muller.home.arpa",
-            "omada.muller.home.arpa",
-            "intranet.muller.home.arpa",
-            "nas.muller.home.arpa",
-            "printer.muller.home.arpa",
-            "muller-archi.ch (TLS)",
+            "vbr-wh.home.arpa",
+            "omada-wh.home.arpa",
+            "intranet-hq.home.arpa",
+            "nas-wh.home.arpa",
+            "printer-wh.home.arpa",
+            "www.example.com (TLS)",
         ],
     ),
     ("Microsoft 365", &[M365_NAME, ENTRA_NAME]),
@@ -198,25 +198,25 @@ async fn seed_clients(pool: &SqlitePool) -> Result<i64> {
     )
     .bind(HOME_CLIENT)
     .bind("The family homelab: hypervisor, storage, media and home automation.")
-    .bind(r#"["noe@dupont.ch"]"#)
-    .bind("Europe/Zurich")
+    .bind(r#"["admin@example.com"]"#)
+    .bind("Europe/Berlin")
     .execute(pool)
     .await
     .context("demo home client")?;
     let office: i64 = sqlx::query_scalar(
         "INSERT INTO clients (name, description, contacts, monitor_quota, sla_report,
                               sla_objective, report_timezone)
-         VALUES (?, ?, ?, 40, 1, 99.5, 'Europe/Zurich') RETURNING id",
+         VALUES (?, ?, ?, 40, 1, 99.5, 'Europe/Berlin') RETURNING id",
     )
     .bind(OFFICE_CLIENT)
-    .bind("Architecture firm in Geneva, 14 people. Managed since 2024.")
-    .bind(r#"["it@muller-archi.ch","direction@muller-archi.ch"]"#)
+    .bind("Freight and logistics company, 40 people. Managed since 2024.")
+    .bind(r#"["it@example.com","ops@example.com"]"#)
     .fetch_one(pool)
     .await
     .context("demo office client")?;
     for (_, names) in FOLDERS
         .iter()
-        .filter(|(folder, _)| *folder == "Geneva office" || *folder == "Microsoft 365")
+        .filter(|(folder, _)| *folder == "Warehouse" || *folder == "Microsoft 365")
     {
         for name in *names {
             sqlx::query("UPDATE targets SET client_id = ? WHERE name = ?")
@@ -234,15 +234,15 @@ async fn seed_clients(pool: &SqlitePool) -> Result<i64> {
 struct People {
     noe: i64,
     sam: i64,
-    claire: i64,
+    viewer: i64,
 }
 
 async fn seed_people(pool: &SqlitePool, office: i64) -> Result<People> {
     let mut ids = Vec::new();
     for (username, display_name, role) in [
-        ("noe", "Noé Dupont", Role::Admin),
-        ("sam", "Sam Rochat", Role::Operator),
-        ("claire.muller", "Claire Muller", Role::Viewer),
+        ("noe", "Demo Admin", Role::Admin),
+        ("sam", "Demo Operator", Role::Operator),
+        ("wh.viewer", "Warehouse Viewer", Role::Viewer),
     ] {
         let id = users::insert(
             pool,
@@ -252,11 +252,11 @@ async fn seed_people(pool: &SqlitePool, office: i64) -> Result<People> {
         .with_context(|| format!("demo account {username}"))?;
         ids.push(id);
     }
-    let people = People { noe: ids[0], sam: ids[1], claire: ids[2] };
-    // Claire ne voit que son bureau.
+    let people = People { noe: ids[0], sam: ids[1], viewer: ids[2] };
+    // Le lecteur ne voit que l entrepôt.
     sqlx::query("INSERT OR IGNORE INTO client_members (client_id, user_id) VALUES (?, ?)")
         .bind(office)
-        .bind(people.claire)
+        .bind(people.viewer)
         .execute(pool)
         .await?;
     // Une équipe réseau, qui opère les dossiers réseau des deux clients.
@@ -271,7 +271,7 @@ async fn seed_people(pool: &SqlitePool, office: i64) -> Result<People> {
         .bind(people.sam)
         .execute(pool)
         .await?;
-    for (folder, level) in [("Network", "operate"), ("Geneva office", "read")] {
+    for (folder, level) in [("Network", "operate"), ("Warehouse", "read")] {
         sqlx::query("INSERT INTO team_folder_grants (team_id, folder, level) VALUES (?, ?, ?)")
             .bind(team)
             .bind(folder)
@@ -294,11 +294,11 @@ async fn seed_channels(pool: &SqlitePool) -> Result<Channels> {
     let mut ids = Vec::new();
     for (name, kind, settings) in [
         (
-            "Email (Dupont)",
+            "Email (Home lab)",
             "smtp",
-            r#"{"host":"mail.home.arpa","security":"starttls","port":587,"from":"monitoring@dupont.ch","to":["noe@dupont.ch"]}"#,
+            r#"{"host":"mail.home.arpa","security":"starttls","port":587,"from":"monitoring@example.com","to":["admin@example.com"]}"#,
         ),
-        ("Muller IT (Teams)", "teams", "{}"),
+        ("Larkspur IT (Teams)", "teams", "{}"),
         ("Night shift (Telegram)", "telegram", r#"{"chat_id":"-1002345678901"}"#),
         ("Gotify (home)", "gotify", r#"{"server_url":"https://gotify.home.arpa"}"#),
         ("PagerDuty (MSP)", "pagerduty", r#"{"region":"eu","source":"dumbmonit-demo"}"#),
@@ -318,12 +318,12 @@ async fn seed_channels(pool: &SqlitePool) -> Result<Channels> {
     Ok(Channels { email: ids[0], teams: ids[1] })
 }
 
-/// Le bureau de Genève sur la carte du monde : le site déclaré par le relais
-/// et le contrôleur de domaine. Le reste est affecté à la maison (Lausanne).
+/// Le entrepôt sur la carte du monde : le site déclaré par le relais
+/// et le contrôleur de domaine. Le reste est affecté à la maison (Utrecht).
 async fn seed_locations(pool: &SqlitePool) -> Result<()> {
     sqlx::query(
         "INSERT INTO locations (name, address, latitude, longitude, site)
-         VALUES ('Geneva office', 'Rue du Rhône 42, Geneva, Switzerland', 46.2035, 6.1466, ?)",
+         VALUES ('Warehouse', '12 Dock Street, Rotterdam, Netherlands', 51.9225, 4.4792, ?)",
     )
     .bind(OFFICE_SITE)
     .execute(pool)
@@ -331,12 +331,12 @@ async fn seed_locations(pool: &SqlitePool) -> Result<()> {
     .context("demo office location")?;
     sqlx::query(
         "INSERT INTO locations (name, address, latitude, longitude, site)
-         VALUES ('Offsite backups', 'Equinix ZH4, Zurich, Switzerland', 47.4241, 8.5525, '')",
+         VALUES ('Offsite backups', 'Colo facility, Frankfurt, Germany', 50.1109, 8.6821, '')",
     )
     .execute(pool)
     .await?;
     sqlx::query(
-        "UPDATE targets SET location_id = (SELECT id FROM locations WHERE name = 'Geneva office')
+        "UPDATE targets SET location_id = (SELECT id FROM locations WHERE name = 'Warehouse')
          WHERE client_id = (SELECT id FROM clients WHERE name = ?)",
     )
     .bind(OFFICE_CLIENT)
@@ -370,13 +370,13 @@ async fn seed_silences(pool: &SqlitePool, targets: &[(TargetId, String, String)]
             "Sunday scrub",
             "The weekly data scrub slows the NAS down: no latency alerts meanwhile.",
             find("nas.home.arpa"),
-            r#"{"kind":"weekly","days":[6],"start_minute":120,"end_minute":300,"utc_offset_minutes":0,"timezone":"Europe/Zurich"}"#
+            r#"{"kind":"weekly","days":[6],"start_minute":120,"end_minute":300,"utc_offset_minutes":0,"timezone":"Europe/Berlin"}"#
                 .to_string(),
         ),
         (
             "Printer repair",
             "Technician on site until noon, the printer is unplugged.",
-            find("printer.muller.home.arpa"),
+            find("printer-wh.home.arpa"),
             format!(
                 r#"{{"kind":"once","starts_at":"{}","ends_at":"{}"}}"#,
                 rfc(now - chrono::Duration::hours(1)),
@@ -408,7 +408,7 @@ async fn seed_oncall(
     channels: &Channels,
     office: i64,
 ) -> Result<()> {
-    // La relève a eu lieu lundi dernier à 9 h, heure de Zurich.
+    // La relève a eu lieu lundi dernier à 9 h, heure de Berlin.
     let monday = {
         let today = Utc::now().date_naive();
         let back = chrono::Datelike::weekday(&today).num_days_from_monday();
@@ -416,11 +416,11 @@ async fn seed_oncall(
     };
     let start = format!("{}T09:00", monday.format("%Y-%m-%d"));
     let home = format!(
-        r#"{{"timezone":"Europe/Zurich","handoff_notifications":true,"layers":[{{"name":"Week","rotation":{{"kind":"weekly","start":"{start}","length":1,"unit":"weeks"}},"participants":[{},{}],"restrictions":[]}}]}}"#,
+        r#"{{"timezone":"Europe/Berlin","handoff_notifications":true,"layers":[{{"name":"Week","rotation":{{"kind":"weekly","start":"{start}","length":1,"unit":"weeks"}},"participants":[{},{}],"restrictions":[]}}]}}"#,
         people.noe, people.sam
     );
     let office_hours = format!(
-        r#"{{"timezone":"Europe/Zurich","handoff_notifications":false,"layers":[{{"name":"Office hours","rotation":{{"kind":"daily","start":"{start}","length":1,"unit":"days"}},"participants":[{}],"restrictions":[{{"days":[0,1,2,3,4],"start_minute":480,"end_minute":1080}}]}}]}}"#,
+        r#"{{"timezone":"Europe/Berlin","handoff_notifications":false,"layers":[{{"name":"Office hours","rotation":{{"kind":"daily","start":"{start}","length":1,"unit":"days"}},"participants":[{}],"restrictions":[{{"days":[0,1,2,3,4],"start_minute":480,"end_minute":1080}}]}}]}}"#,
         people.sam
     );
     let home_id: i64 = sqlx::query_scalar(
@@ -437,18 +437,18 @@ async fn seed_oncall(
         "INSERT INTO oncall_schedules (name, description, definition, client_id)
          VALUES (?, ?, ?, ?) RETURNING id",
     )
-    .bind("Muller office hours")
+    .bind("Larkspur office hours")
     .bind("Weekdays 8:00 to 18:00, as in the service contract.")
     .bind(&office_hours)
     .bind(office)
     .fetch_one(pool)
     .await?;
-    // Sam reprend la garde de Noé ce week-end.
+    // L opérateur reprend la garde de l admin ce week-end.
     let saturday = Utc::now() + chrono::Duration::days(2);
     sqlx::query(
         "INSERT INTO oncall_overrides (schedule_id, user_id, replaces_user_id, starts_at, ends_at,
                                        note, created_by)
-         VALUES (?, ?, ?, ?, ?, 'Noé away for the weekend', 'noe')",
+         VALUES (?, ?, ?, ?, ?, 'Admin away for the weekend', 'noe')",
     )
     .bind(home_id)
     .bind(people.sam)
@@ -476,8 +476,8 @@ async fn seed_oncall(
     sqlx::query(
         "INSERT INTO oncall_policies (name, description, definition, client_id) VALUES (?, ?, ?, ?)",
     )
-    .bind("Muller office")
-    .bind("The office-hours rota and the Muller IT channel in Teams.")
+    .bind("Larkspur office")
+    .bind("The office-hours rota and the Larkspur IT channel in Teams.")
     .bind(office_policy)
     .bind(office)
     .execute(pool)
@@ -518,9 +518,9 @@ async fn seed_runbooks(pool: &SqlitePool, office: i64) -> Result<()> {
             None,
         ),
         (
-            "Muller: backup job failed",
+            "Larkspur: backup job failed",
             "1. Veeam console on VBR01 → History: read the error of the last session.\n\
-             2. Retry the job once. A second failure: call Claire Muller before 18:00.\n\
+             2. Retry the job once. A second failure: call the warehouse manager before 18:00.\n\
              3. Note the incident in the monthly SLA report.",
             &[("kind", "veeam")],
             Some(office),
@@ -558,9 +558,9 @@ async fn seed_reports(pool: &SqlitePool, channels: &Channels, office: i64) -> Re
     sqlx::query(
         "INSERT INTO report_schedules (name, enabled, frequency, weekday, hour, timezone,
              recipients, channel_id, armed_at, last_sent_at, kind)
-         VALUES ('Weekly homelab digest', 1, 'weekly', 0, 8, 'Europe/Zurich', ?, ?, ?, ?, 'digest')",
+         VALUES ('Weekly homelab digest', 1, 'weekly', 0, 8, 'Europe/Berlin', ?, ?, ?, ?, 'digest')",
     )
-    .bind(r#"["noe@dupont.ch"]"#)
+    .bind(r#"["admin@example.com"]"#)
     .bind(channels.email)
     .bind(&armed)
     .bind(&last)
@@ -570,10 +570,10 @@ async fn seed_reports(pool: &SqlitePool, channels: &Channels, office: i64) -> Re
     sqlx::query(
         "INSERT INTO report_schedules (name, enabled, frequency, day_of_month, hour, timezone,
              recipients, channel_id, armed_at, kind, attach_pdf, attach_csv, objective, client_id)
-         VALUES ('Muller monthly SLA', 1, 'monthly', 1, 7, 'Europe/Zurich', ?, ?, ?, 'sla', 1, 1,
+         VALUES ('Larkspur monthly SLA', 1, 'monthly', 1, 7, 'Europe/Berlin', ?, ?, ?, 'sla', 1, 1,
                  99.5, ?)",
     )
-    .bind(r#"["it@muller-archi.ch","direction@muller-archi.ch"]"#)
+    .bind(r#"["it@example.com","ops@example.com"]"#)
     .bind(channels.email)
     .bind(&armed)
     .bind(office)
