@@ -25,7 +25,7 @@ export async function listRelayKinds(signal?: AbortSignal): Promise<string[] | n
 }
 
 /** Kinds that never go through a relay, whatever the server says: pushed, or checked on the server. */
-const NEVER_RELAYED = new Set(['agent', 'agent_service', 'push', 'website', 'webchange']);
+const NEVER_RELAYED = new Set(['agent', 'agent_service', 'agent_script', 'push', 'website', 'webchange']);
 
 /** True when a monitor of this kind can be probed through a relay agent. */
 export function relayable(kind: string, kinds: string[] | null): boolean {

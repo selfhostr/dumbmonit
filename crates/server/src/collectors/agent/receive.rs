@@ -20,6 +20,7 @@ use crate::tsdb::SampleSink;
 use super::enrolment::{EnrolOrigin, Refusal};
 use super::eventlog;
 use super::modules::{self, Module};
+use super::scripts;
 use super::store::RegisterError;
 use super::{store, token};
 use crate::collectors::{MAX_BACKFILL_MS, MAX_SKEW_AHEAD_MS};
@@ -235,6 +236,14 @@ pub async fn ingest(
         None
     };
 
+    // Contrôles personnalisés confiés à cette machine, et les verdicts qu'elle
+    // en rapporte : seuls ceux de ses propres contrôles sont retenus.
+    let script_checks = scripts::offered(pool, cipher, target.id, received_at_ms).await?;
+    if let Some(results) = batch.script_results {
+        let verdicts = scripts::record(pool, target.id, &script_checks, results, received_at_ms);
+        samples.extend(verdicts.await?);
+    }
+
     sink.send(samples).await;
     let previous_ms = store::last_seen_ms(pool, target.id).await?;
     store::record_batch(pool, target.id, received_at_ms, accepted).await?;
@@ -263,6 +272,7 @@ pub async fn ingest(
         logs: Some(super::logs::setting(pool, target.id).await?),
         // Posée par la route, qui sait si le canal est chiffré : `api/ingest.rs`.
         sentinel: None,
+        script_checks: Some(script_checks.into_iter().map(|offered| offered.check).collect()),
     })
 }
 

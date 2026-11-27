@@ -36,6 +36,7 @@ impl Agent {
         }
         batch.event_log = self.eventlog.report();
         batch.declared_monitors = self.declared.clone();
+        batch.script_results = self.scripts.pending();
 
         match self.client.send(&batch).await {
             Ok(ack) => {
@@ -56,6 +57,7 @@ impl Agent {
                 self.note_acceptance(count, ack.accepted);
                 self.forget_inventory(batch.inventory.as_ref());
                 self.eventlog.acknowledge(batch.event_log.as_ref());
+                self.scripts.acknowledge(batch.script_results.as_deref());
                 self.adopt_binding(ack.agent_secret.clone(), ack.bound);
                 self.adopt_interval(ack.interval_secs);
                 self.adopt_disabled_modules(ack.disabled_modules);
@@ -66,6 +68,10 @@ impl Agent {
                     self.eventlog.set_rules(rules);
                 }
                 self.server_logs = ack.logs;
+                // `None` : serveur antérieur, les contrôles connus restent.
+                if let Some(checks) = ack.script_checks {
+                    self.scripts.set_checks(checks);
+                }
                 // `None` : serveur antérieur. Un serveur qui répond sans réglage
                 // ne retire rien à une sentinelle déjà en marche.
                 if ack.sentinel.is_some() {

@@ -17,7 +17,7 @@ export const NO_SITE = 'none';
 /** Kinds proposed when a site has nothing to learn from, most useful first. */
 export const COMMON_KINDS = ['http', 'ping', 'tcp', 'snmp'];
 /** Kinds that never make sense as a one-click suggestion (own enrolment, children of an agent). */
-const NOT_SUGGESTED = new Set(['agent', 'agent_service']);
+const NOT_SUGGESTED = new Set(['agent', 'agent_service', 'agent_script']);
 /** How many kind suggestions one site shows. */
 export const MAX_KINDS = 5;
 
@@ -170,7 +170,7 @@ export function discoveredFor(
 }
 
 /** Kinds never probed through a relay (pushed, or checked on the server); mirrors `relayable` in `api/relay.ts`. */
-const NEVER_RELAYED = new Set(['agent', 'agent_service', 'push', 'website', 'webchange']);
+const NEVER_RELAYED = new Set(['agent', 'agent_service', 'agent_script', 'push', 'website', 'webchange']);
 
 /** Payload that creates a discovered device with the site's defaults. */
 export function payloadFor(found: Discovered, defaults: SiteDefaults): TargetPayload {

@@ -16,6 +16,7 @@ mod push;
 mod relay_offline;
 pub mod remediation;
 mod sample;
+pub mod script;
 mod selfupdate;
 mod sentinel;
 mod target;
@@ -66,6 +67,7 @@ pub use relay_offline::{
 };
 pub use remediation::{CMD_SCRIPT_RUN, CMD_SERVICE_RESTART, DeclaredScript, RemediationInfo};
 pub use sample::{MetricKind, Sample};
+pub use script::{CheckMetric, SCRIPT_CHECK_KIND, ScriptCheck, ScriptResult};
 pub use selfupdate::{
     AGENT_FILE_PREFIX, AgentUpdateOffer, SIGNATURE_SUFFIX, SelfUpdateAbility, SelfUpdateInfo,
     SelfUpdateOutcome, SelfUpdateReport, UPDATE_DOWNLOAD_PATH, UPDATE_TRIAL_SECS, agent_file_name,

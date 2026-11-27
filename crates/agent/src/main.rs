@@ -25,6 +25,7 @@ mod relay;
 mod relay_offline;
 mod remediation;
 mod run;
+mod scripts;
 mod selfupdate;
 mod sentinel;
 mod shutdown;

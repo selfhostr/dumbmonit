@@ -18,6 +18,7 @@ const KIND_DOCS: Record<string, string> = {
 	snmp_oid: 'snmp',
 	victorialogs: 'victoriametrics',
 	agent_service: 'agent',
+	agent_script: 'custom-scripts',
 	dummy: ''
 };
 const SERVICE_KINDS = new Set(['dns', 'grpc', 'imap', 'mqtt', 'mysql', 'ntp', 'ping', 'pop3', 'postgres', 'radius', 'smtp', 'ssh', 'tcp', 'tls', 'udp', 'websocket']);

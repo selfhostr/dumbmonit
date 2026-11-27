@@ -80,7 +80,7 @@ pub use dumbmonit_collectors::{RedfishCollector, redfish};
 #[allow(unused_imports)]
 pub use dumbmonit_proto::Collector;
 
-pub use agent::{AgentCollector, AgentServiceCollector};
+pub use agent::{AgentCollector, AgentScriptCollector, AgentServiceCollector};
 pub use push::PushCollector;
 
 /// Le registre des collecteurs compilés du serveur.
@@ -141,6 +141,9 @@ pub fn builtin(
     // Services qu'un agent a détectés (Docker, ZFS…), chacun sous son hôte :
     // même contrôle de fraîcheur, par module.
     registry.register(Arc::new(AgentServiceCollector::new(pool.clone())));
+    // Contrôles personnalisés (scripts, greffons Nagios) exécutés par un agent :
+    // le collecteur relit le dernier verdict rapporté.
+    registry.register(Arc::new(AgentScriptCollector::new(pool.clone())));
     // Moniteurs en poussée (heartbeat) : le travail surveillé appelle une URL.
     registry.register(Arc::new(PushCollector::new(pool.clone())));
     // Changements du contenu d'un site : texte et instantanés, gardés en base.

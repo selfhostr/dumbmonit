@@ -302,6 +302,10 @@ impl TargetPayload {
             crate::collectors::push::Settings::from_tags(&self.tags)
                 .map_err(|error| ApiError::BadRequest(error.to_string()))?;
         }
+        if self.kind == crate::collectors::agent::scripts::KIND {
+            crate::collectors::agent::scripts::validate_tags(&self.tags)
+                .map_err(ApiError::BadRequest)?;
+        }
 
         let group_name = self.group_name.flatten().unwrap_or_default().trim().to_string();
         if group_name.chars().count() > MAX_GROUP_NAME_CHARS {

@@ -109,6 +109,7 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "hyperv",
     "agent",
     "agent_service",
+    "agent_script",
     "http",
     "http_steps",
     "tcp",
@@ -530,6 +531,7 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
             ],
         ),
         ("push", &["expected_interval", "grace", "schedule", "timezone", "max_duration"]),
+        ("agent_script", &["agent_id", "command", "args", "format", "timeout_seconds", "env"]),
         (
             "webchange",
             &[
@@ -1177,6 +1179,11 @@ fn les_defauts_affiches_sont_ceux_des_collecteurs() {
         crate::collectors::push::DEFAULT_EXPECTED_INTERVAL
     );
     assert_eq!(defaut("push", "grace"), crate::collectors::push::DEFAULT_GRACE);
+    assert_eq!(
+        defaut("agent_script", "timeout_seconds"),
+        dumbmonit_proto::script::CHECK_DEFAULT_TIMEOUT_SECS.to_string()
+    );
+    assert_eq!(defaut("agent_script", "format"), dumbmonit_proto::script::FORMAT_NAGIOS);
     assert_eq!(defaut("push", "timezone"), crate::collectors::push::DEFAULT_TIMEZONE);
     assert_eq!(defaut("push", "schedule"), "");
     assert_eq!(defaut("push", "max_duration"), "");
@@ -1602,6 +1609,7 @@ fn la_documentation_reprend_les_notices_mot_pour_mot() {
         ("nutanix", include_str!("../../../../../docs/devices/nutanix.md")),
         ("agent", include_str!("../../../../../docs/devices/agent.md")),
         ("agent_service", include_str!("../../../../../docs/devices/agent.md")),
+        ("agent_script", include_str!("../../../../../docs/devices/custom-scripts.md")),
         ("push", include_str!("../../../../../docs/devices/push.md")),
         ("webchange", include_str!("../../../../../docs/devices/webchange.md")),
         ("netconfig", include_str!("../../../../../docs/devices/netconfig.md")),

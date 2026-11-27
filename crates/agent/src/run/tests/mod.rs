@@ -23,6 +23,7 @@ fn config() -> Config {
         docker_max_containers: 200,
         commands: false,
         actions: crate::remediation::ActionsConfig::default(),
+        scripts: crate::scripts::ScriptsConfig::default(),
         relay: false,
         site: None,
         gateway: crate::gateway::GatewayConfig::default(),

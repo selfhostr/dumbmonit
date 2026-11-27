@@ -181,3 +181,32 @@ fn an_unknown_module_is_refused_with_the_known_names() {
     assert!(error.contains("plakr"), "{error}");
     assert!(error.contains("plakar"), "{error}");
 }
+
+#[test]
+fn custom_checks_are_off_by_default_and_read_their_directories() {
+    let config = Config::merge(file_with_url_and_token(), env(&[])).expect("configuration");
+    assert!(!config.scripts.enabled, "refusés tant que la machine ne les demande pas");
+    assert_eq!(config.scripts.dirs.len(), 1, "le dossier par défaut");
+    assert!(config.scripts.user.is_none());
+
+    let yaml = "scripts: true\n\
+                scripts_dirs: [/etc/dumbmonit/scripts.d, ' /usr/lib/nagios/plugins ', '']\n\
+                scripts_user: nagios\n\
+                scripts_max_concurrent: 99\n";
+    let config = Config::merge(from_yaml(yaml), env(&[])).expect("configuration");
+    assert!(config.scripts.enabled);
+    let dirs: Vec<&str> = config.scripts.dirs.iter().filter_map(|d| d.to_str()).collect();
+    assert_eq!(dirs, ["/etc/dumbmonit/scripts.d", "/usr/lib/nagios/plugins"]);
+    assert_eq!(config.scripts.user.as_deref(), Some("nagios"));
+    assert_eq!(config.scripts.max_concurrent, 16, "borné");
+
+    let variables = env(&[
+        ("DUMBMONIT_AGENT_SCRIPTS", "no"),
+        ("DUMBMONIT_AGENT_SCRIPTS_DIRS", "/opt/checks,/srv/checks"),
+    ]);
+    let config = Config::merge(from_yaml(yaml), variables).expect("configuration");
+    assert!(!config.scripts.enabled, "la variable prime");
+    assert_eq!(config.scripts.dirs.len(), 2);
+    let invalid = env(&[("DUMBMONIT_AGENT_SCRIPTS", "perhaps")]);
+    assert!(Config::merge(from_yaml(yaml), invalid).is_err());
+}
