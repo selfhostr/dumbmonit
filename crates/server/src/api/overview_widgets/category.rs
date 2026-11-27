@@ -18,6 +18,8 @@ const CATEGORIES: &[(&str, Category)] = &[
     ("redfish", Category::Servers),
     ("kubernetes", Category::Servers),
     ("aws", Category::Servers),
+    ("gcp", Category::Servers),
+    ("ipmi", Category::Servers),
     ("azure", Category::Servers),
     ("hetzner", Category::Servers),
     ("ovh", Category::Servers),

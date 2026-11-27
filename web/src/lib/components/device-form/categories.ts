@@ -31,7 +31,7 @@ export type CategoryId = (typeof CATEGORY_IDS)[number];
  * are the agent's own entries (relay, Active Directory rollout).
  */
 export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs'>, string[]> = {
-	machines: ['agent', 'agent:relay', 'agent:ad', 'winrm', 'redfish', 'nut'],
+	machines: ['agent', 'agent:relay', 'agent:ad', 'winrm', 'redfish', 'ipmi', 'nut'],
 	network: ['snmp', 'netconfig', 'opnsense', 'pfsense', 'fortigate', 'sophos', 'mikrotik', 'unifi', 'omada', 'arubacentral', 'openvpn', 'tailscale'],
 	virtualization: ['proxmox', 'pdm', 'vsphere', 'hyperv', 'xcpng', 'nutanix', 'kubernetes'],
 	storage: ['synology', 'truenas', 'unraid', 'qnap', 'ceph', 'minio', 'pbs', 'veeam', 'kopia', 'duplicati'],
@@ -41,7 +41,7 @@ export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs'>, string[]> = {
 	mail: ['smtp', 'imap', 'pop3', 'mailcow', 'mdaemon', 'securitygateway', 'pmg', 'mail_blacklist'],
 	observability: ['victoriametrics', 'victorialogs', 'loki', 'graylog', 'prometheus', 'otlp'],
 	security: ['activedirectory', 'keycloak', 'authentik', 'entra', 'vaultwarden', 'crowdsec', 'pihole', 'adguard'],
-	cloud: ['m365', 'azure', 'aws', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
+	cloud: ['m365', 'azure', 'aws', 'gcp', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
 	apps: ['nextcloud', 'immich', 'paperless', 'papra', 'gitlab', 'forgejo'],
 	media: ['jellyfin', 'plex', 'sonarr', 'radarr', 'lidarr', 'prowlarr', 'qbittorrent', 'homeassistant', 'frigate']
 };

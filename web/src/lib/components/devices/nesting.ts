@@ -69,6 +69,7 @@ const NOT_A_HOST = new Set([
 	'ip_blacklist',
 	'mail_blacklist',
 	'aws',
+	'gcp',
 	'azure',
 	'm365',
 	'entra',

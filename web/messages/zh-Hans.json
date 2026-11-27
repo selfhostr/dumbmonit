@@ -4432,6 +4432,8 @@
 	"kinds_label_authentik": "authentik",
 	"kinds_label_aws": "AWS CloudWatch",
 	"kinds_label_azure": "Microsoft Azure",
+	"kinds_label_gcp": "Google Cloud",
+	"kinds_label_ipmi": "IPMI (BMC)",
 	"kinds_label_caddy": "Caddy",
 	"kinds_label_ceph": "Ceph",
 	"kinds_label_cloudflare": "Cloudflare",

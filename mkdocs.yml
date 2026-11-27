@@ -162,6 +162,8 @@ nav:
       - Microsoft 365: devices/m365.md
       - Microsoft Entra ID: devices/entra.md
       - Microsoft Azure: devices/azure.md
+      - Google Cloud: devices/gcp.md
+      - Server hardware (IPMI): devices/ipmi.md
       - AWS CloudWatch: devices/aws.md
       - Cloudflare: devices/cloudflare.md
       - Hetzner Cloud: devices/hetzner.md
