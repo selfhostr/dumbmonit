@@ -528,11 +528,11 @@ pub struct AgentHost {
 }
 
 /// Contrôleur de domaine Windows du client PME.
-pub const WINDOWS_HOST: &str = "srv-dc01.muller.home.arpa";
+pub const WINDOWS_HOST: &str = "dc-wh01.home.arpa";
 /// Relais du bureau du client PME.
-pub const RELAY_HOST: &str = "relay-geneva.muller.home.arpa";
+pub const RELAY_HOST: &str = "relay-wh.home.arpa";
 /// Site du bureau, tel que les agents le déclarent.
-pub const OFFICE_SITE: &str = "Geneva office";
+pub const OFFICE_SITE: &str = "Warehouse";
 
 pub const AGENT_HOSTS: &[AgentHost] = &[
     AgentHost {
@@ -562,7 +562,7 @@ pub const AGENT_HOSTS: &[AgentHost] = &[
         os: "linux",
         os_version: "Debian GNU/Linux 13 (trixie)",
         kernel: "6.12.48-arm64",
-        machine_id: "demo-relay-geneva",
+        machine_id: "demo-relay-wh",
         relay: true,
         site: Some(OFFICE_SITE),
         gateway: Some(8443),

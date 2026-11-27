@@ -10721,21 +10721,6 @@
 	"wall_scene_forced": "Un enlace lo fija por ahora; no se guarda aquí.",
 	"wall_scene_none": "Ninguno",
 	"wall_scene_paris": "París",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLEMA",
-				"countPlural=other": "{count} PROBLEMAS"
-			}
-		}
-	],
 	"wall_scene_world_hint": "París dibuja la ciudad detrás del panel. Ninguno deja un panel liso.",
 	"wall_scene_world_title": "Ciudad detrás del panel",
 	"wall_sign_out": "Cerrar sesión",

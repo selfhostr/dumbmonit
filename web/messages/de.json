@@ -10721,21 +10721,6 @@
 	"wall_scene_forced": "Ein Link legt dies gerade fest; hier wird nichts gespeichert.",
 	"wall_scene_none": "Keiner",
 	"wall_scene_paris": "Paris",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLEM",
-				"countPlural=other": "{count} PROBLEME"
-			}
-		}
-	],
 	"wall_scene_world_hint": "Paris zeichnet die Stadt hinter der Tafel. Keiner zeigt eine schlichte Tafel.",
 	"wall_scene_world_title": "Stadt hinter der Tafel",
 	"wall_sign_out": "Abmelden",

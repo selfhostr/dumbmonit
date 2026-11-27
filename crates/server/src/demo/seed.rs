@@ -42,7 +42,7 @@ const CHECKS: &[(&str, &str, &str, Option<&str>)] = &[
     (extras::CROWDSEC_HOST, "crowdsec", "http://crowdsec.home.arpa:8080", None),
     (extras::CLOUDFLARE_HOST, "cloudflare", "api.cloudflare.com", None),
     ("nextcloud.home.arpa (DNS)", "dns", "nextcloud.home.arpa", None),
-    ("dupont.ch (DNS)", "dns", "dupont.ch", None),
+    ("example.com (DNS)", "dns", "example.com", None),
 ];
 
 /// Une machine à agent du parc fictif, enregistrée.
@@ -145,7 +145,7 @@ pub async fn run(
     // de quoi se dessiner (les équipements y sont affectés dans `workspace`).
     sqlx::query(
         "INSERT INTO locations (name, address, latitude, longitude)
-         VALUES ('Home', 'Lausanne, Switzerland', 46.5197, 6.6323)",
+         VALUES ('Home', 'Utrecht, Netherlands', 52.0907, 5.1214)",
     )
     .execute(pool)
     .await?;
@@ -304,25 +304,25 @@ const PAGES: &[PageSpec] = &[
     },
     PageSpec {
         slug: "photos",
-        title: "Dupont photos",
-        description: "The family photo site and the mailboxes behind dupont.ch.",
+        title: "Home lab photos",
+        description: "The family photo site and the mailboxes behind example.com.",
         scene: "newyork",
         items: &[
             ("nextcloud.home.arpa (TLS)", "Photo sharing", "Web"),
-            ("dupont.ch (DNS)", "dupont.ch name servers", "Web"),
+            ("example.com (DNS)", "example.com name servers", "Web"),
             (extras::CLOUDFLARE_HOST, "Cloudflare edge", "Web"),
         ],
         kinds: &[("kopia", "Offsite photo backup", "Backups")],
     },
     PageSpec {
-        slug: "muller",
-        title: "Muller Architectes — IT status",
-        description: "Office network, file server, backups and Microsoft 365 for the Geneva team.",
+        slug: "larkspur",
+        title: "Larkspur Freight — IT status",
+        description: "Office network, file server, backups and Microsoft 365 for the warehouse team.",
         scene: "dubai",
         items: &[
-            ("intranet.muller.home.arpa", "Intranet", "Office"),
-            ("nas.muller.home.arpa", "File server", "Office"),
-            ("printer.muller.home.arpa", "Printer", "Office"),
+            ("intranet-hq.home.arpa", "Intranet", "Office"),
+            ("nas-wh.home.arpa", "File server", "Office"),
+            ("printer-wh.home.arpa", "Printer", "Office"),
             (super::synthetic::WINDOWS_HOST, "Sign-in (Active Directory)", "Office"),
         ],
         kinds: &[
@@ -428,7 +428,7 @@ async fn seed_status_pages(
     // Un incident en cours sur la page du bureau, la dégradation d'Exchange
     // Online que remonte Microsoft 365, et sa maintenance planifiée.
     let office: Option<i64> =
-        sqlx::query_scalar("SELECT id FROM status_pages WHERE slug = 'muller'")
+        sqlx::query_scalar("SELECT id FROM status_pages WHERE slug = 'larkspur'")
             .fetch_optional(pool)
             .await?;
     if let Some(office) = office {

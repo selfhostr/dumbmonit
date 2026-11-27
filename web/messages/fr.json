@@ -10721,21 +10721,6 @@
 	"wall_scene_forced": "Un lien l'impose pour l'instant ; ce n'est pas enregistré ici.",
 	"wall_scene_none": "Aucun",
 	"wall_scene_paris": "Paris",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLÈME",
-				"countPlural=other": "{count} PROBLÈMES"
-			}
-		}
-	],
 	"wall_scene_world_hint": "Paris dessine la ville derrière le tableau. Aucun garde un tableau uni.",
 	"wall_scene_world_title": "Ville derrière le tableau",
 	"wall_sign_out": "Se déconnecter",

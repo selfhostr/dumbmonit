@@ -10973,23 +10973,6 @@
 	"wall_scene_forced": "Link ustawił to na teraz; nie jest to tutaj zapisane.",
 	"wall_scene_none": "Brak",
 	"wall_scene_paris": "Paryż",
-	"wall_scene_sign_problems": [
-		{
-			"declarations": [
-				"input count",
-				"local countPlural = count: plural"
-			],
-			"selectors": [
-				"countPlural"
-			],
-			"match": {
-				"countPlural=one": "{count} PROBLEM",
-				"countPlural=few": "{count} PROBLEMY",
-				"countPlural=many": "{count} PROBLEMÓW",
-				"countPlural=other": "{count} PROBLEMU"
-			}
-		}
-	],
 	"wall_scene_world_hint": "Paryż rysuje miasto za tablicą. Brak zostawia zwykłą tablicę.",
 	"wall_scene_world_title": "Miasto za tablicą",
 	"wall_sign_out": "Wyloguj się",

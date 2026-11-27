@@ -402,7 +402,6 @@
 		});
 	});
 
-	const gastonSign = $derived(trouble ? m.wall_scene_sign_problems({ count: problems }).toLocaleUpperCase(getLocale()) : null);
 	const gastonEyes = $derived(startled ? 'startled' : 'open');
 </script>
 
@@ -650,7 +649,6 @@
 						class="gaston"
 						hat
 						tip={gastonTip}
-						sign={gastonSign}
 						lookX={gastonLook}
 						lookY={trouble ? -0.3 : 0}
 						eyes={gastonEyes}
