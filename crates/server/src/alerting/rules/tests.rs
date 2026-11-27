@@ -584,6 +584,7 @@ fn les_regles_livrees_ne_visent_que_des_metriques_produites() {
                         || jellyfin::PRODUCED.contains(&mot)
                         || plex::PRODUCED.contains(&mot)
                         || nextcloud::PRODUCED.contains(&mot)
+                        || mysql::PRODUCED.contains(&mot)
                         || postgres::PRODUCED.contains(&mot)
                         || synology::PRODUCED.contains(&mot),
                     "rule \"{}\" targets \"{mot}\", which no collector produces",

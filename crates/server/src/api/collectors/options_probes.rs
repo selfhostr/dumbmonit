@@ -441,6 +441,12 @@ pub(super) const MYSQL_OPTIONS: &[OptionView] = &[
         "prefer",
         &["prefer", "require", "verify-full", "disable"],
     ),
+    boolean(
+        "server_stats",
+        "Server health metrics",
+        "Also reads connections, queries per second, slow queries, the InnoDB buffer pool hit ratio, replication and its lag, schema sizes and long-running queries, on the same connection. An account without PROCESS or REPLICATION CLIENT sees fewer of them; nothing here can make the check fail.",
+        true,
+    ),
     ALLOW_PRIVATE_TARGETS,
     PROBE_TIMEOUT,
 ];

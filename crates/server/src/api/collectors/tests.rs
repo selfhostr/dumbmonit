@@ -285,6 +285,7 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
                 "query",
                 "expect",
                 "sslmode",
+                "server_stats",
                 "allow_private_targets",
                 "timeout_seconds",
             ],

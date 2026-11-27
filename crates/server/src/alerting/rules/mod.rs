@@ -31,6 +31,7 @@ mod pbs;
 mod pfsense;
 mod pihole;
 mod plex;
+mod mysql;
 mod postgres;
 mod pve;
 mod selfhosted;
@@ -166,6 +167,7 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(jellyfin::rules());
     rules.extend(plex::rules());
     rules.extend(nextcloud::rules());
+    rules.extend(mysql::rules());
     rules.extend(postgres::rules());
     rules.extend(synology::rules());
     rules.extend(selfhosted::apps_rules());

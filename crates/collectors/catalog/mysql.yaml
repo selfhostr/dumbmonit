@@ -8,11 +8,53 @@ metrics:
   - { name: probe_connect_seconds, label: "Connect time", unit: "s", better: "lower" }
   - { name: probe_sql_query_seconds, label: "Query time", unit: "s", better: "lower" }
   - { name: probe_sql_rows, label: "Rows returned" }
+  - { name: mysql_connections, label: "Connections" }
+  - { name: mysql_max_connections, label: "Max connections" }
+  - { name: mysql_connections_used_percent, label: "Connections used", unit: "%", better: "lower", min: 0, max: 100 }
+  - { name: mysql_max_used_connections, label: "Peak connections" }
+  - { name: mysql_threads_running, label: "Threads running", better: "lower" }
+  - { name: mysql_queries_total, label: "Queries", kind: counter }
+  - { name: mysql_slow_queries_total, label: "Slow queries", kind: counter }
+  - { name: mysql_aborted_connects_total, label: "Aborted connections", kind: counter }
+  - { name: mysql_aborted_clients_total, label: "Aborted clients", kind: counter }
+  - { name: mysql_buffer_pool_read_requests_total, label: "Buffer pool read requests", kind: counter }
+  - { name: mysql_buffer_pool_disk_reads_total, label: "Buffer pool disk reads", kind: counter }
+  - { name: mysql_buffer_pool_hit_percent, label: "Buffer pool hit ratio", unit: "%", better: "higher", min: 0, max: 100 }
+  - { name: mysql_long_running_queries, label: "Queries running over 60 s", better: "lower" }
+  - { name: mysql_longest_query_seconds, label: "Longest running query", unit: "s", better: "lower" }
+  - { name: mysql_replicas_configured, label: "Replication channels" }
+  - { name: mysql_replica_running, label: "Replication running", unit: "bool", better: "higher" }
+  - { name: mysql_replica_io_running, label: "Replication I/O thread", unit: "bool", better: "higher" }
+  - { name: mysql_replica_sql_running, label: "Replication SQL thread", unit: "bool", better: "higher" }
+  - { name: mysql_replica_lag_seconds, label: "Replica lag", unit: "s", better: "lower" }
+  - { name: mysql_database_size_bytes, label: "Schema size", unit: "B" }
+  - { name: mysql_read_only, label: "Read only", unit: "bool" }
+  - { name: mysql_uptime_seconds, label: "Uptime", unit: "s" }
+  - { name: mysql_version_info, label: "Version", kind: info }
 views:
   - view: stat
     title: "Current values"
     metrics:
+      - mysql_connections_used_percent
+      - mysql_connections
+      - mysql_max_connections
+      - mysql_threads_running
+      - mysql_buffer_pool_hit_percent
+      - mysql_long_running_queries
+      - mysql_replica_running
+      - mysql_replica_lag_seconds
+      - mysql_uptime_seconds
+      - mysql_version_info
       - probe_sql_rows
   - view: timeseries
     title: "Response time"
     metrics: [probe_duration_seconds, probe_connect_seconds, probe_sql_query_seconds]
+  - view: timeseries
+    title: "Connections"
+    metrics: [mysql_connections, mysql_threads_running]
+  - view: timeseries
+    title: "Replication"
+    metrics: [mysql_replica_lag_seconds]
+  - view: timeseries
+    title: "Schema size"
+    metrics: [mysql_database_size_bytes]

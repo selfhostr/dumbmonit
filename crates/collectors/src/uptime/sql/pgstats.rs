@@ -40,6 +40,10 @@ const MAX_TABLES: usize = 5;
 
 /// Les identifiants de transaction tiennent sur 32 bits : au bout de 2^31
 /// transactions non « gelées », la base passe en lecture seule pour se protéger.
+/// Seuil (en secondes) au-delà duquel une requête active compte comme longue ;
+/// doit rester celui de la requête `ACTIVITY`.
+pub const LONG_QUERY_SECONDS: u32 = 60;
+
 const XID_LIMIT: f64 = 2_147_483_648.0;
 
 const SERVER: &str = "SELECT \
@@ -61,7 +65,9 @@ const ACTIVITY: &str = "SELECT \
     COALESCE(max(EXTRACT(EPOCH FROM now() - state_change)) \
         FILTER (WHERE state LIKE 'idle in transaction%'), 0)::float8, \
     COALESCE(max(EXTRACT(EPOCH FROM now() - query_start)) \
-        FILTER (WHERE state = 'active' AND backend_type = 'client backend'), 0)::float8 \
+        FILTER (WHERE state = 'active' AND backend_type = 'client backend'), 0)::float8, \
+    count(*) FILTER (WHERE state = 'active' AND backend_type = 'client backend' \
+        AND now() - query_start > interval '60 seconds')::float8 \
     FROM pg_stat_activity";
 
 const LOCKS: &str = "SELECT count(*) FILTER (WHERE NOT granted)::float8 FROM pg_locks";
@@ -136,6 +142,8 @@ pub struct Activity {
     pub longest_transaction: f64,
     pub longest_idle_in_transaction: f64,
     pub longest_query: f64,
+    /// Requêtes actives depuis plus de [`LONG_QUERY_SECONDS`].
+    pub long_running: f64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -208,6 +216,7 @@ pub fn activity_samples(activity: &Activity, server: &Server, ts_ms: i64) -> Vec
             ts_ms,
         ),
         gauge("postgres_longest_query_seconds", activity.longest_query, ts_ms),
+        gauge("postgres_long_running_queries", activity.long_running, ts_ms),
     ];
     let usable = server.max_connections - server.reserved_connections;
     if usable > 0.0 {
@@ -396,6 +405,7 @@ pub async fn collect(conn: &mut PgConnection, ts_ms: i64, budget: Duration) -> V
             longest_transaction: num(&row, 2),
             longest_idle_in_transaction: num(&row, 3),
             longest_query: num(&row, 4),
+            long_running: num(&row, 5),
         };
         out.extend(activity_samples(&activity, &server, ts_ms));
     }
@@ -515,10 +525,12 @@ mod tests {
             longest_transaction: 12.5,
             longest_idle_in_transaction: 300.0,
             longest_query: 2.0,
+            long_running: 1.0,
         };
         let samples = activity_samples(&activity, &server(), 0);
         assert_eq!(value(&samples, "postgres_connections_used_percent"), Some(100.0));
         assert_eq!(value(&samples, "postgres_longest_idle_in_transaction_seconds"), Some(300.0));
+        assert_eq!(value(&samples, "postgres_long_running_queries"), Some(1.0));
         let calm = Activity { connections: 20.0, ..activity };
         let samples = activity_samples(&calm, &server(), 0);
         let used = value(&samples, "postgres_connections_used_percent").unwrap();
@@ -535,6 +547,7 @@ mod tests {
             longest_transaction: 0.0,
             longest_idle_in_transaction: 0.0,
             longest_query: 0.0,
+            long_running: 0.0,
         };
         let samples = activity_samples(&activity, &odd, 0);
         assert!(value(&samples, "postgres_connections_used_percent").is_none());

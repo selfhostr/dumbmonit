@@ -235,6 +235,8 @@ pub(super) const FLAG_RULES: &[&str] = &[
     "plex_remote_access_failed",
     "plex_signin_lost",
     "plex_database_backup_off",
+    // `rules/mysql.rs`
+    "mysql_replica_not_running",
     // `rules/postgres.rs`
     "postgres_replica_not_streaming",
     "postgres_archiving_failing",
