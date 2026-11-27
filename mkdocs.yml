@@ -208,6 +208,7 @@ nav:
       - What a pack is: packs/index.md
       - Write your first pack: packs/first-pack.md
       - Format reference: packs/format.md
+      - Import templates: integrations/template-import.md
   - Alerting:
       - How alerting works: alerting/index.md
       - Rules: alerting/rules.md

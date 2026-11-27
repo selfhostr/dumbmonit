@@ -144,6 +144,7 @@ export const AUDIT_ACTION_LABEL: Record<string, () => string> = {
 	'team.deleted': () => m.w2ops_audit_action_team_deleted(),
 	'team.settings': () => m.w2ops_audit_action_team_settings(),
 	'team.updated': () => m.w2ops_audit_action_team_updated(),
+	'template.imported': () => m.w2ops_audit_action_template_imported(),
 	'token.created': () => m.w2ops_audit_action_token_created(),
 	'token.revoked': () => m.w2ops_audit_action_token_revoked(),
 	'token.updated': () => m.w3audit_action_token_updated(),

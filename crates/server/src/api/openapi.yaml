@@ -9182,6 +9182,65 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /api/import/templates/preview:
+    post:
+      operationId: previewTemplateImport
+      tags: [Integration packs]
+      summary: Convert a template file into a pack, without installing it
+      description: >-
+        Administrator session, or an API token with write scope. The file is a
+        Zabbix template export (YAML or XML, 6.0/7.0) or a snmp_exporter
+        `generator.yml` / `snmp.yml`, at most 2 MiB. Nothing is stored: the
+        answer holds the pack YAML, a summary and a report that lists every
+        element as converted, partial or ignored, with its reason.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TemplateImportRequest" }
+      responses:
+        "200":
+          description: The conversion.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TemplateImportPreview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/import/templates/apply:
+    post:
+      operationId: applyTemplateImport
+      tags: [Integration packs]
+      summary: Convert a template file and install the resulting pack
+      description: >-
+        Same body as the preview. The file is converted again on the server and
+        installed as an integration pack (`POST /api/packs`), so it is kept in
+        backups with the other packs. `201` when created, `200` when an existing
+        pack was updated or is unchanged. `400` when the conversion has errors.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TemplateImportRequest" }
+      responses:
+        "201":
+          description: Pack installed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TemplateImportApplied" }
+        "200":
+          description: Pack updated or unchanged.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TemplateImportApplied" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   # ------------------------------------------------------------ sauvegarde
   /api/logs:
     get:
@@ -17689,6 +17748,68 @@ components:
         pack: { $ref: "#/components/schemas/Pack" }
         rules_added: { type: integer }
         restart_required: { type: boolean, description: SNMP profiles take effect after a restart. }
+
+    TemplateImportRequest:
+      type: object
+      required: [content]
+      additionalProperties: false
+      properties:
+        content: { type: string, description: The file's text, at most 2 MiB. }
+        filename: { type: string, description: Shown in the audit log only. }
+        id: { type: string, description: Pack id; derived from the template name when omitted. }
+        label: { type: string }
+        sysobjectid:
+          type: array
+          description: >-
+            sysObjectID prefixes the SNMP profiles apply to. Empty, the profiles are
+            only used when picked on a device.
+          items: { type: string, examples: ["1.3.6.1.4.1.99999"] }
+    TemplateImportEntry:
+      type: object
+      required: [element, name, outcome, reason]
+      properties:
+        element: { type: string, examples: [item, discovery, trigger, metric, walk] }
+        name: { type: string }
+        outcome: { type: string, enum: [converted, partial, ignored] }
+        reason: { type: string }
+    TemplateImportPreview:
+      type: object
+      required: [format, pack_id, label, yaml, summary, report, errors, installable, exists]
+      properties:
+        format:
+          type: string
+          enum: [zabbix_yaml, zabbix_xml, snmp_exporter_generator, snmp_exporter_snmp]
+        pack_id: { type: string }
+        label: { type: string }
+        yaml: { type: string, description: The pack that apply installs. }
+        summary:
+          type: object
+          required: [snmp_profiles, snmp_metrics, http_sources, http_metrics, rules, options, converted, partial, ignored]
+          properties:
+            snmp_profiles: { type: array, items: { type: string } }
+            snmp_metrics: { type: integer }
+            http_sources: { type: integer }
+            http_metrics: { type: integer }
+            rules: { type: array, items: { type: string }, description: Rule uids. }
+            options: { type: integer }
+            converted: { type: integer }
+            partial: { type: integer }
+            ignored: { type: integer }
+        report:
+          type: array
+          items: { $ref: "#/components/schemas/TemplateImportEntry" }
+        errors: { type: array, items: { type: string }, description: Why the pack cannot be installed. }
+        installable: { type: boolean }
+        exists: { type: boolean, description: A pack with this id is installed; applying updates it. }
+    TemplateImportApplied:
+      type: object
+      required: [pack_id, kind, snmp_profiles, rules, install]
+      properties:
+        pack_id: { type: string }
+        kind: { type: [string, "null"], description: "pack.<id>, null for SNMP profiles only." }
+        snmp_profiles: { type: array, items: { type: string } }
+        rules: { type: array, items: { type: string } }
+        install: { $ref: "#/components/schemas/PackInstallReport" }
 
     # ------------------------------------------------------------- sauvegarde
     LogsOverview:
