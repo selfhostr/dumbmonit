@@ -376,7 +376,7 @@ pub fn validate_command(command: &str) -> Result<(), String> {
         return Err(format!("'{shown}': ':' is only allowed after a drive letter"));
     }
     let parts: Vec<&str> = command.split(['/', '\\']).collect();
-    if parts.iter().any(|part| *part == "..") {
+    if parts.contains(&"..") {
         return Err(format!("'{shown}': '..' is not allowed"));
     }
     if !absolute && parts.len() > 1 {

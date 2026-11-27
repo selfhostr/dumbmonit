@@ -444,7 +444,7 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
                 title: "Allow the check on the machine",
                 steps: &[
                     "Enable custom checks in the agent.yaml of the machine (/etc/dumbmonit on Linux, C:\\ProgramData\\DumbMonit on Windows), then restart the agent.\nscripts: true",
-                    "Put the script in the script directory (scripts.d next to agent.yaml), executable and writable by its owner only.\nsudo install -m 0755 check_backup.sh /etc/dumbmonit/scripts.d/",
+                    "Put the script in the script directory (scripts.d next to agent.yaml), executable and writable by its owner only.\nsudo install -d -m 0755 /etc/dumbmonit/scripts.d\nsudo install -m 0755 check_backup.sh /etc/dumbmonit/scripts.d/",
                     "For the Nagios plugins of the distribution, add their directory to scripts_dirs instead of copying them.\nscripts_dirs: [/etc/dumbmonit/scripts.d, /usr/lib/nagios/plugins]",
                     "Here, pick that agent, enter the command and one argument per row: no shell is involved, so pipes and variables stay plain text.",
                     "Choose the output format: nagios for plugins (exit code and performance data), json or prometheus for your own scripts.",

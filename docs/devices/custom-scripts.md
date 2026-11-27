@@ -36,6 +36,7 @@ report after it.
 2. Put the script in the script directory (`scripts.d` next to `agent.yaml`), executable and writable by its owner only.
 
     ```bash
+    sudo install -d -m 0755 /etc/dumbmonit/scripts.d
     sudo install -m 0755 check_backup.sh /etc/dumbmonit/scripts.d/
     ```
 
