@@ -221,6 +221,7 @@ pub async fn push_agent_batch(
         inventory: None,
         event_log: None,
         declared_monitors: None,
+        script_results: None,
     };
     let bearer = format!("Bearer {token}");
     // Données de démonstration : rien ne vient du réseau, la garde de
