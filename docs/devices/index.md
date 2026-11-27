@@ -20,6 +20,7 @@ Every page lists what to prepare, what to type and what to do when it fails.
 | A firewall | OPNsense, pfSense, FortiGate… | [OPNsense](opnsense.md), [pfSense](pfsense.md), [FortiGate](fortigate.md) |
 | A website, a port, a DNS name, a certificate, a host | Services | [Services](services.md) |
 | A job that must call in (backup, cron) | Heartbeat | [Heartbeat](push.md) |
+| Your own script or a Nagios plugin, run on a machine | Custom check | [Custom checks](custom-scripts.md) |
 | A list of devices on a network | Scan my network | [Add your first monitor](../install/first-device.md#scan-a-network) |
 | Monitors from another tool | Import | [Import](../using/imports.md) |
 
@@ -136,6 +137,7 @@ the type, fill in the form, **Add monitor**. See
 | [RADIUS server](services.md#radius) | `radius` | shared secret and test account | FreeRADIUS, Windows NPS: a real authentication |
 | [gRPC service](services.md#grpc) | `grpc` | none | Microservice, etcd: the standard gRPC health check |
 | [Heartbeat](push.md) | `push` | none (secret URL) | Cron job, backup script, automation that must call in |
+| [Custom check](custom-scripts.md) | `agent_script` | none, token or username/password | Your own script or any Nagios plugin, run by the agent on its machine |
 | [Website changes](webchange.md) | `webchange` | none | A page or a whole site: text changes, new and removed pages, before/after text |
 | [Website health & SEO](website.md) | `website` | none | Sites in bulk: down, blank page, redirects, noindex, robots.txt, title/description/canonical changes, platform (CSV import) |
 | [Demo monitor](demo.md) | `dummy` | none | Explore the UI without hardware |
