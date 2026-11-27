@@ -197,6 +197,8 @@ nav:
   - Integrations:
       - Website banner: integrations/website-banner.md
       - Homepage and Homarr: integrations/homepage.md
+      - Prometheus exporters (10 recipes): integrations/prometheus-exporters.md
+      - Terraform and Ansible: integrations/automation.md
   - Integration packs:
       - What a pack is: packs/index.md
       - Write your first pack: packs/first-pack.md
@@ -253,4 +255,5 @@ nav:
       - Reproducible builds: development/reproducible-builds.md
       - Signing the agent binaries: development/agent-signing.md
       - PostgreSQL plan: development/postgresql-plan.md
+  - DumbMonit compared: compare.md
   - FAQ: faq.md

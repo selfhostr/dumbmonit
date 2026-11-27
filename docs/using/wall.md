@@ -1,5 +1,8 @@
 # Wall mode
 
+!!! note "Optional module"
+    Wall mode is an optional module, off on a new installation: switch it on in *Settings → System → Modules* ([Settings](settings.md#modules)).
+
 `/wall` shows the console's own board, full screen, for a monitor that stays on in
 a room. It refreshes by itself and keeps the screen awake.
 
