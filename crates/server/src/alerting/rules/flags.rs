@@ -235,6 +235,10 @@ pub(super) const FLAG_RULES: &[&str] = &[
     "plex_remote_access_failed",
     "plex_signin_lost",
     "plex_database_backup_off",
+    // `rules/hyperv.rs`
+    "hyperv_vm_unhealthy",
+    "hyperv_vm_integration_lost",
+    "hyperv_vm_replication_unhealthy",
     // `rules/mysql.rs`
     "mysql_replica_not_running",
     // `rules/postgres.rs`

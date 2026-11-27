@@ -13,6 +13,7 @@ const CATEGORIES: &[(&str, Category)] = &[
     ("pdm", Category::Servers),
     ("xcpng", Category::Servers),
     ("vsphere", Category::Servers),
+    ("hyperv", Category::Servers),
     ("nutanix", Category::Servers),
     ("redfish", Category::Servers),
     ("kubernetes", Category::Servers),

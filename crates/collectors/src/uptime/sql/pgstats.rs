@@ -40,10 +40,6 @@ const MAX_TABLES: usize = 5;
 
 /// Les identifiants de transaction tiennent sur 32 bits : au bout de 2^31
 /// transactions non « gelées », la base passe en lecture seule pour se protéger.
-/// Seuil (en secondes) au-delà duquel une requête active compte comme longue ;
-/// doit rester celui de la requête `ACTIVITY`.
-pub const LONG_QUERY_SECONDS: u32 = 60;
-
 const XID_LIMIT: f64 = 2_147_483_648.0;
 
 const SERVER: &str = "SELECT \
@@ -142,7 +138,7 @@ pub struct Activity {
     pub longest_transaction: f64,
     pub longest_idle_in_transaction: f64,
     pub longest_query: f64,
-    /// Requêtes actives depuis plus de [`LONG_QUERY_SECONDS`].
+    /// Requêtes actives depuis plus de 60 secondes (seuil de la requête `ACTIVITY`).
     pub long_running: f64,
 }
 

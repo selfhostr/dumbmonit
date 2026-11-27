@@ -34,6 +34,7 @@ const NAME: Record<string, string> = {
 	websocket: 'WebSocket',
 	radius: 'RADIUS',
 	winrm: 'Windows',
+	hyperv: 'Hyper-V',
 	redfish: 'Redfish',
 	kubernetes: 'Kubernetes',
 	gitlab: 'GitLab',

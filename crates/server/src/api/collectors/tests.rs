@@ -104,6 +104,7 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "openvpn",
     "xcpng",
     "nutanix",
+    "hyperv",
     "agent",
     "agent_service",
     "http",
@@ -819,6 +820,10 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
         ("ceph", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("minio", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("xcpng", &["port", "insecure_tls", "request_timeout_seconds"]),
+        (
+            "hyperv",
+            &["allow_unencrypted", "port", "auth", "insecure_tls", "request_timeout_seconds"],
+        ),
         ("nutanix", &["port", "insecure_tls", "request_timeout_seconds"]),
     ];
     for (kind, cles) in attendues {
@@ -1591,6 +1596,7 @@ fn la_documentation_reprend_les_notices_mot_pour_mot() {
         ("ceph", include_str!("../../../../../docs/devices/ceph.md")),
         ("minio", include_str!("../../../../../docs/devices/minio.md")),
         ("xcpng", include_str!("../../../../../docs/devices/xcpng.md")),
+        ("hyperv", include_str!("../../../../../docs/devices/hyper-v.md")),
         ("nutanix", include_str!("../../../../../docs/devices/nutanix.md")),
         ("agent", include_str!("../../../../../docs/devices/agent.md")),
         ("agent_service", include_str!("../../../../../docs/devices/agent.md")),

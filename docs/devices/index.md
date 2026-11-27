@@ -16,7 +16,7 @@ Every page lists what to prepare, what to type and what to do when it fails.
 | A machine at another site behind a firewall | Agent with a relay | [Monitor a remote site](../install/remote-site.md) |
 | A Synology NAS | **Synology DSM**: package or API | [Synology agent](synology-agent.md), [Synology DSM](synology.md) |
 | A switch, router, printer, UPS or any SNMP device | **SNMP device** | [SNMP](snmp.md) |
-| A hypervisor | Proxmox VE, VMware vSphere, XCP-ng, Nutanix | [Proxmox VE](proxmox.md), [vSphere](vsphere.md), [XCP-ng](xcpng.md), [Nutanix](nutanix.md) |
+| A hypervisor | Proxmox VE, VMware vSphere, Hyper-V, XCP-ng, Nutanix | [Proxmox VE](proxmox.md), [vSphere](vsphere.md), [Hyper-V](hyper-v.md), [XCP-ng](xcpng.md), [Nutanix](nutanix.md) |
 | A firewall | OPNsense, pfSense, FortiGate… | [OPNsense](opnsense.md), [pfSense](pfsense.md), [FortiGate](fortigate.md) |
 | A website, a port, a DNS name, a certificate, a host | Services | [Services](services.md) |
 | A job that must call in (backup, cron) | Heartbeat | [Heartbeat](push.md) |
@@ -35,6 +35,7 @@ the type, fill in the form, **Add monitor**. See
 | [Proxmox Datacenter Manager](pdm.md) | `pdm` | API token | Console federating several PVE clusters and PBS instances |
 | [Proxmox Mail Gateway](pmg.md) | `pmg` | username/password | Mail gateway filtering spam and viruses |
 | [VMware vSphere](vsphere.md) | `vsphere` | username/password | vCenter or standalone ESXi: hosts, VMs, datastores, alarms |
+| [Microsoft Hyper-V](hyper-v.md) | `hyperv` | username/password (read-only WMI) | Hyper-V host through WinRM, no agent: host load, VM state, health, checkpoints, replication, integration services (beta) |
 | [XCP-ng / XenServer](xcpng.md) | `xcpng` | username/password (read-only XAPI role) | Pool through XAPI: hosts, VMs, storage repositories, high availability |
 | [Nutanix AHV](nutanix.md) | `nutanix` | username/password (Prism Viewer) | Prism Central v4 API: clusters, hosts, AHV VMs, storage containers, alerts |
 | [Synology DSM](synology.md) | `synology` | username/password | DiskStation, RackStation |

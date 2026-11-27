@@ -30,10 +30,6 @@ use crate::uptime::session::Deadline;
 const MAX_SCHEMAS: usize = 10;
 const MAX_CHANNELS: usize = 8;
 
-/// Seuil (en secondes) au-delà duquel une requête compte comme longue ; doit
-/// rester celui de la requête `LONG_QUERIES`.
-pub const LONG_QUERY_SECONDS: u32 = 60;
-
 const STATUS: &str = "SHOW GLOBAL STATUS WHERE Variable_name IN ('Uptime', 'Threads_connected', \
     'Threads_running', 'Questions', 'Slow_queries', 'Aborted_connects', 'Aborted_clients', \
     'Max_used_connections', 'Innodb_buffer_pool_read_requests', 'Innodb_buffer_pool_reads')";
