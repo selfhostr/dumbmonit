@@ -250,12 +250,12 @@ fn requirements(kind: &str) -> Vec<Requirement> {
 /// catalogue). Une seule liste : sortir un type de la bêta, c'est l'en retirer.
 const BETA_KINDS: &[&str] = &[
     "arubacentral",
-    "gcp",
-    "ipmi",
     "authentik",
     "ceph",
     "duplicati",
     "frigate",
+    "gcp",
+    "ipmi",
     "keycloak",
     "kopia",
     "lidarr",
