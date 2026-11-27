@@ -3,7 +3,7 @@
 use super::*;
 
 pub(super) fn view(kind: &str) -> Option<CollectorView> {
-    (kind == "ipmi").then(|| CollectorView {
+    (kind == "ipmi").then_some(CollectorView {
         kind: "ipmi",
         label: "Server hardware (IPMI)",
         summary: "Temperatures, fans, voltages, power supplies, power state and event log of a BMC, read over IPMI v2.0 (RMCP+).",

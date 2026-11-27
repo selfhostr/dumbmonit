@@ -48,6 +48,7 @@ fn envelope(
     timeout_secs: u64,
     body: &str,
 ) -> String {
+    let resource = format!("{WMI_URI}{namespace}/*");
     format!(
         concat!(
             r#"<?xml version="1.0" encoding="UTF-8"?>"#,
@@ -69,7 +70,7 @@ fn envelope(
         ),
         ns = NS_ENUMERATION,
         to = xml_escape(endpoint),
-        resource = format!("{WMI_URI}{namespace}/*"),
+        resource = resource,
         action = action,
         id = message_id,
         timeout = timeout_secs.max(1),
@@ -78,6 +79,7 @@ fn envelope(
 }
 
 /// `Enumerate` d'une requête WQL sur `root/cimv2`.
+#[cfg(test)]
 pub fn enumerate_request(
     endpoint: &str,
     message_id: &str,
@@ -111,6 +113,7 @@ pub fn enumerate_request_in(
 }
 
 /// `Pull` de la suite d'une énumération sur `root/cimv2`.
+#[cfg(test)]
 pub fn pull_request(
     endpoint: &str,
     message_id: &str,
