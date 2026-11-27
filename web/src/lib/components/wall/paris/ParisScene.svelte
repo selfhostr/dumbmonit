@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getLocale } from '#lib/paraglide/runtime.js';
 	import { m } from '#lib/paraglide/messages.js';
 	/**
 	 * The wall's living backdrop: a Paris rooftop, the Eiffel Tower, and the
