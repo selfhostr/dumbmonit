@@ -3,6 +3,18 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.21.1 — 2026-11-28
+
+### Fixed
+
+- Restoring a backup made before 0.21 turned every optional module off, hiding the status pages,
+  SLOs and reports it had just restored. Modules whose data the backup brings are now turned back on.
+- CodeQL findings raised by 0.21.0: no allocation is sized from request input any more.
+
+### Changed
+
+- A new README with fresh screenshots.
+
 ## 0.21.0 — 2026-11-28
 
 ### Added
