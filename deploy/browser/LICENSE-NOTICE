@@ -1,0 +1,6 @@
+DumbMonit browser sidecar, MIT licence (see the LICENSE file at the root of the repository).
+
+Third-party components:
+- Playwright (npm package `playwright`), Apache License 2.0, Copyright (c) Microsoft Corporation.
+- The Docker image mcr.microsoft.com/playwright bundles Chromium (BSD-3-Clause and other
+  open source licences), Node.js (MIT) and Ubuntu packages under their own licences.

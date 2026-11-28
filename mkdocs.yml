@@ -158,6 +158,7 @@ nav:
       - Active Directory: devices/activedirectory.md
       - Veeam Backup & Replication: devices/veeam.md
       - Windows without an agent (WinRM): devices/winrm.md
+      - Browser scenarios (Playwright): monitors/browser.md
       - Kopia (beta): devices/kopia.md
       - Duplicati (beta): devices/duplicati.md
       - Tailscale: devices/tailscale.md

@@ -1,0 +1,16 @@
+{
+  "name": "dumbmonit-browser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright sidecar that runs the browser scenarios of DumbMonit",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "playwright": "1.65.1"
+  }
+}

@@ -41,6 +41,7 @@ jobs:
       rust: ${{ github.event_name != 'pull_request' || steps.filter.outputs.rust == 'true' }}
       web: ${{ github.event_name != 'pull_request' || steps.filter.outputs.web == 'true' }}
       deps: ${{ github.event_name != 'pull_request' || steps.filter.outputs.deps == 'true' }}
+      browser: ${{ github.event_name != 'pull_request' || steps.filter.outputs.browser == 'true' }}
     steps:
       - id: filter
         if: github.event_name == 'pull_request'
@@ -62,6 +63,9 @@ jobs:
               - "**/Cargo.toml"
               - "deny.toml"
               - "web/package-lock.json"
+              - ".github/workflows/ci.yml"
+            browser:
+              - "deploy/browser/**"
               - ".github/workflows/ci.yml"
 
   rust:
@@ -262,3 +266,34 @@ jobs:
       - if: env.RUN == 'true'
         working-directory: web
         run: npm run build
+
+  browser-image:
+    name: Browser sidecar image
+    needs: changes
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      RUN: ${{ needs.changes.outputs.browser }}
+    steps:
+      - name: Changed paths known
+        if: needs.changes.result != 'success'
+        run: exit 1
+      - name: Nothing to check
+        if: env.RUN != 'true'
+        run: echo "No browser sidecar change in this pull request." >> "$GITHUB_STEP_SUMMARY"
+      - if: env.RUN == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - if: env.RUN == 'true'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      # Built to be tested only: nothing is pushed, no tag is published.
+      - if: env.RUN == 'true'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: deploy/browser
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: dumbmonit-browser:ci
+      - name: Unit and end to end tests in the image
+        if: env.RUN == 'true'
+        run: docker run --rm --ipc=host dumbmonit-browser:ci npm test

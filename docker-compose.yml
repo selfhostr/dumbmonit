@@ -29,6 +29,10 @@ services:
     # environment:
     #   PUID: "1000"   # owner of the files in /data (default 65532)
     #   PGID: "1000"
+    #   # Browser monitors (see the dumbmonit-browser service below):
+    #   DUMBMONIT_BROWSER_URL: "http://dumbmonit-browser:3000"
+    #   DUMBMONIT_BROWSER_TOKEN: "${BROWSER_TOKEN}"
+    #   DUMBMONIT_BROWSER_CONCURRENCY: "2"
     restart: unless-stopped
     stop_grace_period: 30s
     read_only: true
@@ -42,6 +46,28 @@ services:
     security_opt: ["no-new-privileges:true"]
     sysctls:
       net.ipv4.ping_group_range: "0 2147483647"
+
+  # Optional sidecar for browser monitors (Playwright + Chromium, about 2 GB
+  # image, about 300 MB of memory per running scenario). Off by default:
+  #   BROWSER_TOKEN=$(openssl rand -hex 32) docker compose --profile browser up -d
+  # then uncomment the DUMBMONIT_BROWSER_* lines above and pass the same token.
+  dumbmonit-browser:
+    image: ghcr.io/selfhostr/dumbmonit-browser:latest
+    profiles: [browser]
+    environment:
+      BROWSER_TOKEN: "${BROWSER_TOKEN:-}"   # at least 32 random characters, the sidecar refuses to start without
+      BROWSER_CONCURRENCY: "2"
+    # No published port: only the dumbmonit service reaches it, over the compose network.
+    restart: unless-stopped
+    stop_grace_period: 40s
+    read_only: true
+    tmpfs: [/tmp]
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    shm_size: 256m
+    mem_limit: 1g
+    pids_limit: 512
 
 volumes:
   dumbmonit-data:
