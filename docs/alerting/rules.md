@@ -14,7 +14,7 @@ below is shipped enabled on every instance.
 
 | Rule | What | Default threshold | Hold | Severity | Reminder |
 |---|---|---|---|---|---|
-| Monitor unreachable | No measurement received for more than three minutes. `bottomk by (target) (1, time() - tlast_over_time(dumbmonit_up[7d]))` | > 180 s | 30 s | Warning (`critical`) | 6 h |
+| Monitor unreachable | No measurement received for more than three minutes, or three probe intervals for monitors checked less often (a domain checked hourly alerts after three hours). `bottomk by (target) (1, time() - tlast_over_time(dumbmonit_up[7d]))` | > 180 s | 30 s | Warning (`critical`) | 6 h |
 | High CPU | CPU load sustained above 90%, averaged per monitor across SNMP, Proxmox and agent sources; clears below 85 %. | > 90 % | 10 min | Advisory (`warning`), escalates after 1 h | 6 h |
 | Unusual CPU | CPU load noticeably different from the usual at this time and day of the week (seasonal baseline). | score > 3.5 | 15 min | Info (`info`) | 6 h |
 | Disk almost full | Filesystem 90% full or more, per mount point (SNMP, Proxmox storages and root filesystems); clears below 88 %. | ≥ 90 % | 15 min | Advisory (`warning`), escalates after 24 h | 6 h |

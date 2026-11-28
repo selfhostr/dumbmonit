@@ -112,8 +112,8 @@ pub fn spawn(state: AppState, seeded: seed::Seeded) {
 
 /// Le relais simulé : vient chercher les sondes des équipements de son site
 /// (`via_agent`) dans la file du serveur, comme un vrai relais par son attente
-/// longue, les exécute avec les collecteurs du processus (les faux du bureau)
-/// et rend compte par le même chemin que l'API des relais.
+/// longue, les exécute avec le registre du processus (les faux du bureau) et
+/// rend compte par le même chemin que l'API des relais.
 fn spawn_relay(state: AppState, agent_id: dumbmonit_proto::TargetId) {
     use crate::collectors::relay::{self, JobResult};
     use dumbmonit_proto::{ProbeJob, ProbeOutcome};
@@ -123,13 +123,13 @@ fn spawn_relay(state: AppState, agent_id: dumbmonit_proto::TargetId) {
             for command in commands {
                 let Ok(job) = ProbeJob::from_command(&command) else { continue };
                 let started = std::time::Instant::now();
-                let result = match state.collectors.get(&job.target.kind) {
-                    Some(collector) => collector.probe(&job.target).await,
-                    None => Err(dumbmonit_proto::ProbeError::Config(format!(
-                        "unknown type {}",
-                        job.target.kind
-                    ))),
-                };
+                // Par le registre, comme le vrai relais (`execute` de l'agent) : il
+                // borne la sonde et pose le témoin `up`. Sans lui, les sondes du
+                // bureau n'écrivaient plus `dumbmonit_up` après l'historique
+                // rétroactif, et sonnaient « Monitor unreachable » au bout de
+                // quelques minutes.
+                let timeout = std::time::Duration::from_secs(job.timeout_secs.max(1));
+                let result = state.collectors.probe(&job.target, timeout).await;
                 let (samples, error) = match result {
                     Ok(samples) => (samples, None),
                     Err(error) => (Vec::new(), Some(error.to_string())),

@@ -31,6 +31,10 @@ const WORDS: &[(&str, &str)] = &[
     ("contoso.onmicrosoft.com", TENANT),
     ("contoso.com", "www.example.com"),
     ("Contoso", "Larkspur Freight"),
+    // Parc calme : tous les services opérationnels, aucun incident ni avis en
+    // cours (l'incident Exchange de la page de statut est résolu).
+    ("\"serviceDegradation\"", "\"serviceOperational\""),
+    ("\"isResolved\": false", "\"isResolved\": true"),
 ];
 
 const TOKEN: &str =

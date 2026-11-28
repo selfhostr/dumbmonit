@@ -271,7 +271,7 @@ const CONTAINERS: &[(&str, &str, bool)] = &[
     ("postgres", "postgres:17-alpine", true),
     ("home-assistant", "ghcr.io/home-assistant/home-assistant:2026.9", true),
     ("jellyfin", "jellyfin/jellyfin:10.11", true),
-    ("paperless-worker", "ghcr.io/paperless-ngx/paperless-ngx:2.18", false),
+    ("paperless-worker", "ghcr.io/paperless-ngx/paperless-ngx:2.18", true),
 ];
 
 /// Remplissage du volume de données au démarrage, croissance par jour (fraction
@@ -788,6 +788,10 @@ mod tests {
             assert!(found.iter().all(|s| s.kind == MetricKind::Counter && s.value > 0.0));
         }
         assert!(samples.iter().any(|s| s.metric == "container_df_volumes_bytes"));
+        // Parc calme : aucun conteneur arrêté sur docker01.
+        let stopped: Vec<_> =
+            samples.iter().filter(|s| s.metric == "container_up" && s.value < 1.0).collect();
+        assert!(stopped.is_empty(), "{stopped:?}");
         // Le volume de données est celui de la prévision.
         let used = samples
             .iter()

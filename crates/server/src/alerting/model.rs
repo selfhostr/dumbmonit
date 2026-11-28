@@ -18,6 +18,23 @@ pub type TargetId = i64;
 /// suppression par dépendance.
 pub const RULE_HOST_DOWN: &str = "host_down";
 
+/// Périodes d'interrogation manquées avant que « Monitor unreachable » ne parle
+/// d'une cible lente : trois, comme les trois minutes du seuil livré pour la
+/// période par défaut d'une minute.
+pub const HOST_DOWN_MISSED_PERIODS: u64 = 3;
+
+/// Seuil d'âge (en secondes) de « Monitor unreachable » pour une cible
+/// interrogée toutes les `interval_secs` secondes.
+///
+/// L'âge du dernier échantillon n'a de sens que rapporté à la période : un nom
+/// de domaine consulté toutes les heures n'écrit rien pendant une heure, sans
+/// être tombé pour autant. Le seuil de la règle (ou de la surcharge) reste un
+/// plancher ; au-delà, il suit la période de la cible. Une période inconnue
+/// (`0`) laisse le seuil tel quel.
+pub fn host_down_threshold(threshold: f64, interval_secs: u64) -> f64 {
+    threshold.max(interval_secs.saturating_mul(HOST_DOWN_MISSED_PERIODS) as f64)
+}
+
 /// `uid` de la règle « service en panne » : une sonde de disponibilité (ping,
 /// HTTP, TCP, DNS…) qui tourne mais échoue (`probe_success = 0`).
 ///
@@ -484,6 +501,10 @@ pub struct TargetNode {
     /// la suppression : sans lui, l'équipement n'est plus observé du tout.
     #[serde(default)]
     pub via_agent: Option<TargetId>,
+    /// Période d'interrogation, en secondes (`0` si inconnue) : le seuil de
+    /// « Monitor unreachable » la suit (voir [`host_down_threshold`]).
+    #[serde(default)]
+    pub interval_secs: u64,
     pub tags: BTreeMap<String, String>,
     /// Une cible désactivée reste dans la topologie — elle peut être le parent
     /// d'une cible active — mais n'a plus le droit de porter une alerte.
@@ -597,11 +618,24 @@ mod tests {
             kind: "snmp".to_string(),
             parent_id: None,
             via_agent: None,
+            interval_secs: 0,
             tags: tags.iter().map(|(k, v)| ((*k).to_string(), (*v).to_string())).collect(),
             enabled: true,
             unreachable: false,
             service_down: false,
         }
+    }
+
+    #[test]
+    fn le_seuil_d_injoignabilite_suit_la_periode_de_la_cible() {
+        // Période par défaut : le seuil livré de trois minutes est inchangé.
+        assert_eq!(host_down_threshold(180.0, 60), 180.0);
+        assert_eq!(host_down_threshold(180.0, 0), 180.0, "unknown period");
+        // Une sonde toutes les heures : trois heures sans mesure, pas trois minutes.
+        assert_eq!(host_down_threshold(180.0, 3600), 10_800.0);
+        assert_eq!(host_down_threshold(180.0, 900), 2700.0);
+        // Un seuil réglé plus large que trois périodes reste celui qui compte.
+        assert_eq!(host_down_threshold(7200.0, 300), 7200.0);
     }
 
     #[test]
