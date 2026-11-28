@@ -117,10 +117,20 @@ async fn chaque_equipement_du_parc_fictif_se_collecte() {
             }
             "nas-office" => assert_eq!(value(&samples, "synology_update_available"), Some(1.0)),
             "unifi" => assert_eq!(value(&samples, "unifi_clients"), Some(31.0)),
-            "kopia" => assert_eq!(value(&samples, "kopia_repo_connected"), Some(1.0)),
+            "kopia" => {
+                assert_eq!(value(&samples, "kopia_repo_connected"), Some(1.0));
+                let errors: Vec<_> = samples
+                    .iter()
+                    .filter(|s| s.metric == "kopia_source_last_snapshot_errors" && s.value > 0.0)
+                    .collect();
+                assert!(errors.is_empty(), "instantanés sans erreur : {errors:?}");
+            }
             "veeam" => assert!(value(&samples, "veeam_jobs_failed").is_some()),
             "omada" => assert!(samples.iter().any(|s| s.metric == "omada_port_up")),
-            "m365" => assert!(value(&samples, "m365_services_degraded").is_some()),
+            "m365" => {
+                assert_eq!(value(&samples, "m365_services_degraded"), Some(0.0), "services sains");
+                assert_eq!(value(&samples, "m365_incidents_active").unwrap_or(0.0), 0.0);
+            }
             "entra" => assert!(samples.iter().any(|s| s.metric.starts_with("entra_"))),
             _ => {}
         }

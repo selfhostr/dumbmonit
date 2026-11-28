@@ -450,6 +450,13 @@ def phase_seed(a, report):
     )
     api.login()
     print("  compte administrateur créé", flush=True)
+    # Depuis 0.21, les modules facultatifs sont coupés sur une installation neuve :
+    # le test les allume pour couvrir leurs données. Absent avant 0.21 : rien à faire.
+    status, _ = api.request("PUT", "/api/settings/features", {
+        "wall": True, "sla_reports": True, "status_pages": True, "slo": True,
+    })
+    if 200 <= status < 300:
+        print("  modules facultatifs allumés", flush=True)
 
     def create_target(label, body):
         state.setdefault("targets", {})[label] = api.call("POST", "/api/targets", body)["id"]

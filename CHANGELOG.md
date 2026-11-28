@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.22.1 — 2026-11-28
+
+### Fixed
+
+- Monitors checked less often than every minute (domains, Microsoft 365, any check with a longer
+  interval) were reported as "Monitor unreachable" a few minutes after a successful check. The
+  alert now waits for three missed checks of the monitor's own interval: a domain checked hourly
+  is only reported unreachable after three hours without an answer.
+- Demo: the office checks run through the demo relay no longer turn unreachable after a few
+  minutes, and the demo is calmer still — Microsoft 365 healthy, Kopia snapshots without errors,
+  every container on docker01 running. Only the unreachable switch and the docker01 disk warning
+  remain.
+
 ## 0.22.0 — 2026-11-28
 
 ### Added

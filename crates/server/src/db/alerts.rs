@@ -342,7 +342,8 @@ pub(crate) async fn forget_rule_states(
 /// active, et les retirer casserait la chaîne de suppression.
 pub async fn list_target_nodes(pool: &SqlitePool) -> Result<Vec<TargetNode>> {
     let rows = sqlx::query(
-        "SELECT id, name, address, kind, parent_id, via_agent, tags, enabled, last_error
+        "SELECT id, name, address, kind, parent_id, via_agent, interval_secs, tags, enabled,
+                last_error
          FROM targets",
     )
     .fetch_all(pool)
@@ -361,6 +362,7 @@ pub async fn list_target_nodes(pool: &SqlitePool) -> Result<Vec<TargetNode>> {
                 kind: row.try_get("kind")?,
                 parent_id: row.try_get("parent_id")?,
                 via_agent: row.try_get("via_agent")?,
+                interval_secs: u64::try_from(row.try_get::<i64, _>("interval_secs")?).unwrap_or(0),
                 tags: json_or_default(&tags),
                 enabled,
                 // Une cible en pause garde son dernier verdict, qui ne dit plus
