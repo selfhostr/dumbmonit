@@ -11106,5 +11106,16 @@
 	"flows_traffic_empty": "Bu aralıkta akış yok.",
 	"flows_traffic_error": "Trafik okunamadı",
 	"flows_traffic_note": "Hacimler örneklenmiş akışlardan tahmin edilir. Her dakikanın yalnızca en büyük 50 alışverişi tutulur; geri kalanı diğerleri olarak sayılır.",
-	"w2ops_audit_action_flows_settings": "Akış alıcısı ayarları değiştirildi"
+	"w2ops_audit_action_flows_settings": "Akış alıcısı ayarları değiştirildi",
+	"deviceform_packs_template_open": "Zabbix veya snmp_exporter şablonu",
+	"deviceform_packs_template_summary": "Bir şablon dosyasını cihaz türüne dönüştürür.",
+	"deviceform_packs_template_title": "Zabbix veya snmp_exporter şablonu",
+	"deviceform_packs_registry_open": "Topluluk paketleri",
+	"deviceform_packs_registry_summary": "Topluluğun paylaştığı cihaz türleri.",
+	"deviceform_packs_registry_title": "Topluluk paketleri",
+	"settings_packs_registry_off_hint": "Topluluk kayıt defteri varsayılan olarak kapalıdır: bir adres seçene kadar hiçbir şey alınmaz. Resmi kayıt defteri, topluluğun paylaştığı paketleri listeler.",
+	"settings_packs_registry_use_official": "Resmi kayıt defterini kullan",
+	"settings_packs_registry_other_address": "Ayarlar’da başka bir adres belirle",
+	"settings_packs_registry_search": "Paket ara",
+	"settings_packs_registry_no_match": "Bu aramayla eşleşen paket yok."
 }

@@ -11106,5 +11106,16 @@
 	"flows_traffic_empty": "Keine Flows in diesem Zeitraum.",
 	"flows_traffic_error": "Datenverkehr konnte nicht gelesen werden",
 	"flows_traffic_note": "Die Volumen werden aus Stichproben-Flows geschätzt. Pro Minute werden nur die 50 größten Verbindungen behalten; der Rest zählt als „Andere“.",
-	"w2ops_audit_action_flows_settings": "Einstellungen des Flow-Empfängers geändert"
+	"w2ops_audit_action_flows_settings": "Einstellungen des Flow-Empfängers geändert",
+	"deviceform_packs_template_open": "Zabbix- oder snmp_exporter-Vorlage",
+	"deviceform_packs_template_summary": "Wandelt eine Vorlagendatei in einen Gerätetyp um.",
+	"deviceform_packs_template_title": "Zabbix- oder snmp_exporter-Vorlage",
+	"deviceform_packs_registry_open": "Community-Pakete",
+	"deviceform_packs_registry_summary": "Von der Community geteilte Gerätetypen.",
+	"deviceform_packs_registry_title": "Community-Pakete",
+	"settings_packs_registry_off_hint": "Das Community-Register ist standardmäßig aus: Es wird nichts abgerufen, bis Sie eine Adresse wählen. Das offizielle Register listet von der Community geteilte Pakete auf.",
+	"settings_packs_registry_use_official": "Offizielles Register verwenden",
+	"settings_packs_registry_other_address": "Andere Adresse in den Einstellungen festlegen",
+	"settings_packs_registry_search": "Pakete suchen",
+	"settings_packs_registry_no_match": "Kein Paket passt zu dieser Suche."
 }

@@ -21,12 +21,13 @@
 	import { page } from '$app/state';
 	import { afterNavigate } from '$app/navigation';
 	import { goto } from '#lib/navigation.js';
-	import { ArrowLeft, BookOpen, CalendarClock, ChevronRight, FileSpreadsheet, Globe, Plug, Radar, Upload } from 'lucide-svelte';
+	import { ArrowLeft, BookOpen, CalendarClock, ChevronRight, FileSpreadsheet, Globe, Package, Plug, Radar, Upload } from 'lucide-svelte';
 	import { ApiError, getTarget, listCollectors, listTargets, type CollectorInfo, type Target } from '#lib/api/index.js';
 	import { Button, DocLink, EmptyState, ErrorNotice, PageHeader, Panel, Plate, Skeleton } from '#lib/ui/index.js';
 	import ImportWebsites from '#lib/components/device-form/ImportWebsites.svelte';
 	import ImportKuma from '#lib/components/device-form/ImportKuma.svelte';
 	import ImportServices from '#lib/components/device-form/ImportServices.svelte';
+	import PackImportDialog from '#lib/components/device-form/PackImportDialog.svelte';
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import CollectorPicker from '#lib/components/device-form/CollectorPicker.svelte';
 	import TargetForm from '#lib/components/device-form/TargetForm.svelte';
@@ -53,6 +54,8 @@
 	let uptimerobotImport = $state<ImportServices | null>(null);
 	let gatusImport = $state<ImportServices | null>(null);
 	let healthchecksImport = $state<ImportServices | null>(null);
+	let templateImport = $state<PackImportDialog | null>(null);
+	let registryImport = $state<PackImportDialog | null>(null);
 	/** Ways to bring monitors over, listed last in the picker. For those who manage monitors. */
 	const imports = $derived<ImportChoice[]>(
 		auth.can('monitors.manage')
@@ -65,6 +68,24 @@
 				]
 			: []
 	);
+	/** Packs add device types: administrators only, like the pack API. Listed after the other imports. */
+	const packImports = $derived<ImportChoice[]>(
+		auth.isAdmin
+			? [
+					{ id: 'zabbix', label: m.deviceform_packs_template_open(), summary: m.deviceform_packs_template_summary(), icon: Upload, onrun: () => templateImport?.show() },
+					{ id: 'packs', label: m.deviceform_packs_registry_open(), summary: m.deviceform_packs_registry_summary(), icon: Package, onrun: () => registryImport?.show() }
+				]
+			: []
+	);
+
+	/** A pack was installed: read the catalogue again (quietly) so its kinds appear. */
+	async function refreshCollectors() {
+		try {
+			collectors = await listCollectors();
+		} catch {
+			// The list stays as it was; the next visit reads it again.
+		}
+	}
 
 	let collectors = $state<CollectorInfo[]>([]);
 	let targets = $state<Target[]>([]);
@@ -420,6 +441,10 @@
 	<ImportServices bind:this={healthchecksImport} provider="healthchecks" />
 	<ImportWebsites bind:this={websitesImport} trigger={false} />
 {/if}
+{#if auth.isAdmin}
+	<PackImportDialog bind:this={templateImport} mode="template" oninstalled={() => void refreshCollectors()} />
+	<PackImportDialog bind:this={registryImport} mode="registry" oninstalled={() => void refreshCollectors()} />
+{/if}
 
 {#if view === 'picker'}
 	<!-- The picker ------------------------------------------------------------ -->
@@ -457,7 +482,7 @@
 					{m.deviceform_new_unknown_kind({ kind: requestedKind })}
 				</p>
 			{/if}
-			<CollectorPicker {collectors} {imports} selected={lastChoice === 'scan' ? null : lastChoice} wide onscan={snmp ? openScan : undefined} onselect={(kind, via) => select(kind, via)}>
+			<CollectorPicker {collectors} imports={[...imports, ...packImports]} selected={lastChoice === 'scan' ? null : lastChoice} wide onscan={snmp ? openScan : undefined} onselect={(kind, via) => select(kind, via)}>
 				{#snippet empty()}
 					<p class="mt-1 text-sm text-ink-2">{m.deviceform_new_empty_lead()}</p>
 					<div class="mt-3 flex flex-wrap justify-center gap-2">

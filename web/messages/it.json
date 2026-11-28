@@ -11106,5 +11106,16 @@
 	"flows_traffic_empty": "Nessun flusso in questo periodo.",
 	"flows_traffic_error": "Impossibile leggere il traffico",
 	"flows_traffic_note": "I volumi sono stimati da flussi campionati. Si conservano solo i 50 scambi più grandi di ogni minuto; il resto conta come altri.",
-	"w2ops_audit_action_flows_settings": "Impostazioni del ricevitore di flussi modificate"
+	"w2ops_audit_action_flows_settings": "Impostazioni del ricevitore di flussi modificate",
+	"deviceform_packs_template_open": "Template Zabbix o snmp_exporter",
+	"deviceform_packs_template_summary": "Trasforma un file di template in un tipo di dispositivo.",
+	"deviceform_packs_template_title": "Template Zabbix o snmp_exporter",
+	"deviceform_packs_registry_open": "Pacchetti della community",
+	"deviceform_packs_registry_summary": "Tipi di dispositivo condivisi dalla community.",
+	"deviceform_packs_registry_title": "Pacchetti della community",
+	"settings_packs_registry_off_hint": "Il registro della community è disattivato per impostazione predefinita: non viene scaricato nulla finché non scegli un indirizzo. Il registro ufficiale elenca i pacchetti condivisi dalla community.",
+	"settings_packs_registry_use_official": "Usa il registro ufficiale",
+	"settings_packs_registry_other_address": "Imposta un altro indirizzo nelle Impostazioni",
+	"settings_packs_registry_search": "Cerca pacchetti",
+	"settings_packs_registry_no_match": "Nessun pacchetto corrisponde a questa ricerca."
 }

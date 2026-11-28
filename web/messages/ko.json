@@ -10976,5 +10976,16 @@
 	"flows_traffic_empty": "이 기간에 플로가 없습니다.",
 	"flows_traffic_error": "트래픽을 읽을 수 없습니다",
 	"flows_traffic_note": "양은 샘플링된 플로에서 추정됩니다. 분마다 가장 큰 50개 교환만 보관하고 나머지는 기타로 셉니다.",
-	"w2ops_audit_action_flows_settings": "플로 수신기 설정 변경됨"
+	"w2ops_audit_action_flows_settings": "플로 수신기 설정 변경됨",
+	"deviceform_packs_template_open": "Zabbix 또는 snmp_exporter 템플릿",
+	"deviceform_packs_template_summary": "템플릿 파일을 장치 유형으로 변환합니다.",
+	"deviceform_packs_template_title": "Zabbix 또는 snmp_exporter 템플릿",
+	"deviceform_packs_registry_open": "커뮤니티 팩",
+	"deviceform_packs_registry_summary": "커뮤니티가 공유하는 장치 유형입니다.",
+	"deviceform_packs_registry_title": "커뮤니티 팩",
+	"settings_packs_registry_off_hint": "커뮤니티 레지스트리는 기본적으로 꺼져 있으며, 주소를 선택하기 전에는 아무것도 가져오지 않습니다. 공식 레지스트리에는 커뮤니티가 공유한 팩이 나열됩니다.",
+	"settings_packs_registry_use_official": "공식 레지스트리 사용",
+	"settings_packs_registry_other_address": "설정에서 다른 주소 지정",
+	"settings_packs_registry_search": "팩 검색",
+	"settings_packs_registry_no_match": "이 검색과 일치하는 팩이 없습니다."
 }

@@ -11106,5 +11106,16 @@
 	"flows_traffic_empty": "Geen flows in deze periode.",
 	"flows_traffic_error": "Verkeer kon niet worden gelezen",
 	"flows_traffic_note": "Volumes zijn geschat op basis van gesamplede flows. Per minuut worden alleen de 50 grootste uitwisselingen bewaard; de rest telt als overige.",
-	"w2ops_audit_action_flows_settings": "Instellingen flow-ontvanger gewijzigd"
+	"w2ops_audit_action_flows_settings": "Instellingen flow-ontvanger gewijzigd",
+	"deviceform_packs_template_open": "Zabbix- of snmp_exporter-sjabloon",
+	"deviceform_packs_template_summary": "Zet een sjabloonbestand om in een apparaattype.",
+	"deviceform_packs_template_title": "Zabbix- of snmp_exporter-sjabloon",
+	"deviceform_packs_registry_open": "Communitypakketten",
+	"deviceform_packs_registry_summary": "Apparaattypes gedeeld door de community.",
+	"deviceform_packs_registry_title": "Communitypakketten",
+	"settings_packs_registry_off_hint": "Het communityregister staat standaard uit: er wordt niets opgehaald tot u een adres kiest. Het officiële register toont pakketten die de community deelt.",
+	"settings_packs_registry_use_official": "Officieel register gebruiken",
+	"settings_packs_registry_other_address": "Stel een ander adres in bij Instellingen",
+	"settings_packs_registry_search": "Pakketten zoeken",
+	"settings_packs_registry_no_match": "Geen pakket komt overeen met deze zoekopdracht."
 }

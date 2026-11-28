@@ -10976,5 +10976,16 @@
 	"flows_traffic_empty": "この期間にフローはありません。",
 	"flows_traffic_error": "トラフィックを読み込めませんでした",
 	"flows_traffic_note": "量はサンプリングされたフローからの推定です。各分で最大 50 件の通信のみ保持し、残りはその他として数えます。",
-	"w2ops_audit_action_flows_settings": "フローレシーバーの設定を変更"
+	"w2ops_audit_action_flows_settings": "フローレシーバーの設定を変更",
+	"deviceform_packs_template_open": "Zabbix または snmp_exporter のテンプレート",
+	"deviceform_packs_template_summary": "テンプレートファイルをデバイスタイプに変換します。",
+	"deviceform_packs_template_title": "Zabbix または snmp_exporter のテンプレート",
+	"deviceform_packs_registry_open": "コミュニティパック",
+	"deviceform_packs_registry_summary": "コミュニティが共有しているデバイスタイプ。",
+	"deviceform_packs_registry_title": "コミュニティパック",
+	"settings_packs_registry_off_hint": "コミュニティレジストリは既定でオフです。アドレスを選ぶまで何も取得しません。公式レジストリには、コミュニティが共有するパックが並びます。",
+	"settings_packs_registry_use_official": "公式レジストリを使う",
+	"settings_packs_registry_other_address": "設定で別のアドレスを指定",
+	"settings_packs_registry_search": "パックを検索",
+	"settings_packs_registry_no_match": "この検索に一致するパックはありません。"
 }

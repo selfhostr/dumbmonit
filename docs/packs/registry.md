@@ -10,11 +10,15 @@ contacts any registry.
 
 ## Using a registry
 
-1. Open **Settings → Integration packs → Community registry**.
-2. Paste the address of the registry's `index.json` and save.
-3. Each pack shows its author, licence and version. **Install** adds it;
+1. Open **Add monitor** and choose **Community packs** in the Import category, or
+   open **Settings → Integration packs → Community registry**.
+2. While no address is set, press **Use the official registry** to use
+   `https://dumbmonit.selfhostr.io/hub/registry/index.json`, or paste the address
+   of another registry's `index.json` in Settings and save.
+3. Search the list. Each pack shows its author, licence and version. **Install** adds it;
    **Update to x.y.z** appears when the registry has a newer version than the
-   one installed.
+   one installed. Once installed, the pack's device types appear in the
+   **Add monitor** catalogue.
 
 The address is stored in the settings and travels with the
 [backup](../install/backup.md). Setting it and installing from it are written to

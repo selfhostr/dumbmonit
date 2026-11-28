@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Added
+
+- Add monitor: the Import category now offers **Zabbix or snmp_exporter template** and
+  **Community packs**, so packs no longer have to be looked for in Settings. After an
+  install, the new device types appear in the catalogue at once.
+- Community registry: while no address is set, **Use the official registry** (in Add monitor
+  and in Settings) fills in `https://dumbmonit.selfhostr.io/hub/registry/index.json`. The pack
+  list can be searched.
+
 ## 0.22.1 — 2026-11-28
 
 ### Fixed

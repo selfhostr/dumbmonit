@@ -10978,5 +10978,16 @@
 	"flows_traffic_empty": "此时间段内没有流。",
 	"flows_traffic_error": "无法读取流量",
 	"flows_traffic_note": "流量依据采样流估算。每分钟只保留最大的 50 个交换，其余计入其他。",
-	"w2ops_audit_action_flows_settings": "流接收器设置已更改"
+	"w2ops_audit_action_flows_settings": "流接收器设置已更改",
+	"deviceform_packs_template_open": "Zabbix 或 snmp_exporter 模板",
+	"deviceform_packs_template_summary": "将模板文件转换为设备类型。",
+	"deviceform_packs_template_title": "Zabbix 或 snmp_exporter 模板",
+	"deviceform_packs_registry_open": "社区包",
+	"deviceform_packs_registry_summary": "社区共享的设备类型。",
+	"deviceform_packs_registry_title": "社区包",
+	"settings_packs_registry_off_hint": "社区注册表默认关闭：在你选择地址之前不会获取任何内容。官方注册表列出社区共享的包。",
+	"settings_packs_registry_use_official": "使用官方注册表",
+	"settings_packs_registry_other_address": "在设置中指定其他地址",
+	"settings_packs_registry_search": "搜索包",
+	"settings_packs_registry_no_match": "没有与此搜索匹配的包。"
 }
