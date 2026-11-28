@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## Unreleased
+
+### Fixed
+
+- Dutch interface translation completed and reviewed.
+- Polish interface translation completed and reviewed.
+- Japanese interface translation completed and reviewed.
+- Korean interface translation completed and reviewed.
+- Turkish interface translation completed and reviewed.
+
 ## 0.22.1 — 2026-11-28
 
 ### Fixed
