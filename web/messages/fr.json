@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Paquet d'intégration installé depuis le registre",
+	"w2ops_audit_action_pack_registry_settings": "Adresse du registre de paquets modifiée",
+	"settings_packs_registry_title": "Registre communautaire",
+	"settings_packs_registry_intro": "Parcourez les paquets d'intégration publiés par un registre de confiance. Rien n'est téléchargé tant qu'aucune adresse n'est saisie.",
+	"settings_packs_registry_url_label": "Adresse du registre (index.json)",
+	"settings_packs_registry_save": "Enregistrer",
+	"settings_packs_registry_refresh": "Actualiser",
+	"settings_packs_registry_install": "Installer",
+	"settings_packs_registry_update": "Mettre à jour vers {version}",
+	"settings_packs_registry_installed": "Installé",
+	"settings_packs_registry_incompatible": "Indisponible",
+	"settings_packs_registry_empty": "Ce registre ne liste aucun paquet.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Héberger un registre",
+	"settings_packs_registry_error": "Le registre n'a pas pu être chargé.",
+	"settings_packs_registry_install_error": "Ce paquet n'a pas pu être installé."
 }

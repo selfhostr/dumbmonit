@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Integratiepakket geïnstalleerd vanuit het register",
+	"w2ops_audit_action_pack_registry_settings": "Adres van het pakketregister gewijzigd",
+	"settings_packs_registry_title": "Communityregister",
+	"settings_packs_registry_intro": "Blader door integratiepakketten van een vertrouwd register. Er wordt niets opgehaald zolang er geen adres is ingesteld.",
+	"settings_packs_registry_url_label": "Registeradres (index.json)",
+	"settings_packs_registry_save": "Opslaan",
+	"settings_packs_registry_refresh": "Vernieuwen",
+	"settings_packs_registry_install": "Installeren",
+	"settings_packs_registry_update": "Bijwerken naar {version}",
+	"settings_packs_registry_installed": "Geïnstalleerd",
+	"settings_packs_registry_incompatible": "Niet beschikbaar",
+	"settings_packs_registry_empty": "Dit register bevat geen pakketten.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Zelf een register hosten",
+	"settings_packs_registry_error": "Het register kon niet worden geladen.",
+	"settings_packs_registry_install_error": "Dit pakket kon niet worden geïnstalleerd."
 }

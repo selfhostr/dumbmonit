@@ -11290,5 +11290,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Пакет интеграции установлен из реестра",
+	"w2ops_audit_action_pack_registry_settings": "Изменён адрес реестра пакетов",
+	"settings_packs_registry_title": "Реестр сообщества",
+	"settings_packs_registry_intro": "Просматривайте пакеты интеграции из доверенного реестра. Пока адрес не задан, ничего не загружается.",
+	"settings_packs_registry_url_label": "Адрес реестра (index.json)",
+	"settings_packs_registry_save": "Сохранить",
+	"settings_packs_registry_refresh": "Обновить",
+	"settings_packs_registry_install": "Установить",
+	"settings_packs_registry_update": "Обновить до {version}",
+	"settings_packs_registry_installed": "Установлен",
+	"settings_packs_registry_incompatible": "Недоступен",
+	"settings_packs_registry_empty": "В этом реестре нет пакетов.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Как разместить реестр",
+	"settings_packs_registry_error": "Не удалось загрузить реестр.",
+	"settings_packs_registry_install_error": "Не удалось установить этот пакет."
 }

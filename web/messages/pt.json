@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Pacote de integração instalado a partir do registo",
+	"w2ops_audit_action_pack_registry_settings": "Endereço do registo de pacotes alterado",
+	"settings_packs_registry_title": "Registo da comunidade",
+	"settings_packs_registry_intro": "Explore pacotes de integração de um registo de confiança. Nada é transferido enquanto não definir um endereço.",
+	"settings_packs_registry_url_label": "Endereço do registo (index.json)",
+	"settings_packs_registry_save": "Guardar",
+	"settings_packs_registry_refresh": "Atualizar",
+	"settings_packs_registry_install": "Instalar",
+	"settings_packs_registry_update": "Atualizar para {version}",
+	"settings_packs_registry_installed": "Instalado",
+	"settings_packs_registry_incompatible": "Indisponível",
+	"settings_packs_registry_empty": "Este registo não lista nenhum pacote.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Como alojar um registo",
+	"settings_packs_registry_error": "Não foi possível carregar o registo.",
+	"settings_packs_registry_install_error": "Não foi possível instalar este pacote."
 }

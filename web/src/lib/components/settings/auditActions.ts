@@ -90,6 +90,8 @@ export const AUDIT_ACTION_LABEL: Record<string, () => string> = {
 	'pack.disabled': () => m.w2ops_audit_action_pack_disabled(),
 	'pack.enabled': () => m.w2ops_audit_action_pack_enabled(),
 	'pack.installed': () => m.w2ops_audit_action_pack_installed(),
+	'pack.registry_installed': () => m.w2ops_audit_action_pack_registry_installed(),
+	'pack.registry_settings': () => m.w2ops_audit_action_pack_registry_settings(),
 	'pack.uninstalled': () => m.w2ops_audit_action_pack_uninstalled(),
 	'passkey.added': () => m.w2ops_audit_action_passkey_added(),
 	'passkey.failed': () => m.w2ops_audit_action_passkey_failed(),

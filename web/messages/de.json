@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Integrationspaket aus dem Register installiert",
+	"w2ops_audit_action_pack_registry_settings": "Adresse des Paketregisters geändert",
+	"settings_packs_registry_title": "Community-Register",
+	"settings_packs_registry_intro": "Durchsuchen Sie Integrationspakete eines vertrauenswürdigen Registers. Ohne Adresse wird nichts abgerufen.",
+	"settings_packs_registry_url_label": "Registeradresse (index.json)",
+	"settings_packs_registry_save": "Speichern",
+	"settings_packs_registry_refresh": "Aktualisieren",
+	"settings_packs_registry_install": "Installieren",
+	"settings_packs_registry_update": "Auf {version} aktualisieren",
+	"settings_packs_registry_installed": "Installiert",
+	"settings_packs_registry_incompatible": "Nicht verfügbar",
+	"settings_packs_registry_empty": "Dieses Register listet keine Pakete.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Ein Register selbst hosten",
+	"settings_packs_registry_error": "Das Register konnte nicht geladen werden.",
+	"settings_packs_registry_install_error": "Dieses Paket konnte nicht installiert werden."
 }

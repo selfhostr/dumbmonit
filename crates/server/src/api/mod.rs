@@ -64,6 +64,7 @@ mod opnsense_live;
 mod otlp;
 mod overview_widgets;
 mod packs;
+mod packs_registry;
 mod passkeys;
 mod pbs;
 mod pdm;
@@ -389,6 +390,7 @@ pub fn router_with(state: AppState, weather_hub: crate::weather::WeatherHub) -> 
         .merge(self_monitoring::routes())
         // Paquets d'intégration : types d'équipement décrits en YAML (`packs.rs`).
         .merge(packs::routes())
+        .merge(packs_registry::routes())
         // Import de modèles (Zabbix, snmp_exporter) en paquets (`template_import.rs`).
         .merge(template_import::routes())
         // Changements d'un site web : pages, diff et captures (`webchange.rs`).

@@ -20,6 +20,8 @@ use tracing::{info, warn};
 use crate::alerting::model::{AnomalyParams, TargetSelector};
 use crate::collectors::Registry;
 
+pub mod registry;
+
 /// Rappel d'une alerte de paquet tant qu'elle dure : celui des règles livrées.
 const REPEAT: Duration = Duration::from_secs(6 * 3600);
 

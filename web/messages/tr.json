@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Entegrasyon paketi kayıt defterinden kuruldu",
+	"w2ops_audit_action_pack_registry_settings": "Paket kayıt defteri adresi değiştirildi",
+	"settings_packs_registry_title": "Topluluk kayıt defteri",
+	"settings_packs_registry_intro": "Güvendiğiniz bir kayıt defterindeki entegrasyon paketlerine göz atın. Adres girmediğiniz sürece hiçbir şey indirilmez.",
+	"settings_packs_registry_url_label": "Kayıt defteri adresi (index.json)",
+	"settings_packs_registry_save": "Kaydet",
+	"settings_packs_registry_refresh": "Yenile",
+	"settings_packs_registry_install": "Kur",
+	"settings_packs_registry_update": "{version} sürümüne güncelle",
+	"settings_packs_registry_installed": "Kurulu",
+	"settings_packs_registry_incompatible": "Kullanılamıyor",
+	"settings_packs_registry_empty": "Bu kayıt defterinde paket yok.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Kayıt defteri nasıl barındırılır",
+	"settings_packs_registry_error": "Kayıt defteri yüklenemedi.",
+	"settings_packs_registry_install_error": "Bu paket kurulamadı."
 }

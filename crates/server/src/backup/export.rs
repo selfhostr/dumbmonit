@@ -95,6 +95,11 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
         clients: clients(pool).await?,
         msp_settings: crate::auth::settings::get::<Value>(pool, crate::auth::clients::SETTINGS_KEY)
             .await?,
+        pack_registry: crate::auth::settings::get::<Value>(
+            pool,
+            crate::packs::registry::SETTINGS_KEY,
+        )
+        .await?,
         client_assignments: client_assignments(pool, &refs).await?,
         netscan_schedules: netscan_schedules(pool, &refs).await?,
         lun_links: lun_links(pool, &refs).await?,

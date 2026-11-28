@@ -54,3 +54,44 @@ export function applyTemplateImport(body: TemplateImportRequest): Promise<Templa
 export function isPackKind(kind: string): boolean {
 	return kind.startsWith('pack.');
 }
+
+// --- Community registry (`crates/server/src/api/packs_registry.rs`) ---------
+
+export type RegistryPackStatus = 'available' | 'installed' | 'update' | 'incompatible';
+
+export interface RegistryPack {
+	id: string;
+	name: string;
+	version: string;
+	description: string;
+	author: string;
+	license: string;
+	min_version: string | null;
+	installed_version: string | null;
+	status: RegistryPackStatus;
+}
+
+export interface RegistryView {
+	url: string;
+	configured: boolean;
+	packs: RegistryPack[];
+	skipped: string[];
+	/** Why the index could not be read, in English as served; null when fine. */
+	error: string | null;
+}
+
+export function getPackRegistry(signal?: AbortSignal): Promise<RegistryView> {
+	return request<RegistryView>('/packs/registry', { signal });
+}
+
+/** An empty address turns the registry off. */
+export function setPackRegistry(url: string): Promise<{ url: string }> {
+	return request<{ url: string }>('/packs/registry/settings', { method: 'PUT', body: { url } });
+}
+
+export function installRegistryPack(id: string): Promise<PackInstallReport> {
+	return request<PackInstallReport>('/packs/registry/install', { method: 'POST', body: { id } });
+}
+
+/** How to host a registry. */
+export const PACK_REGISTRY_DOC_URL = 'https://dumbmonit.selfhostr.io/docs/packs/registry/';

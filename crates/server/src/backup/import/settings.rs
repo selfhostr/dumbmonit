@@ -476,3 +476,32 @@ pub(super) async fn restore_auth_policy(
     });
     Ok(report)
 }
+
+/// Adresse du registre de paquets : remplacée par celle du lot si elle est lisible.
+pub(super) async fn restore_pack_registry(
+    tx: &mut Transaction<'_, Sqlite>,
+    bundle: &Bundle,
+) -> Result<SectionReport> {
+    use crate::packs::registry::{SETTINGS_KEY, Settings, validate_url};
+    let mut report = SectionReport::new("pack_registry");
+    let Some(raw) = &bundle.pack_registry else { return Ok(report) };
+    let settings = match serde_json::from_value::<Settings>(raw.clone()) {
+        Ok(settings) if validate_url(&settings.url).is_ok() => settings,
+        _ => {
+            report.skipped += 1;
+            report.notes.push("The pack registry address of the backup is unreadable".into());
+            return Ok(report);
+        }
+    };
+    sqlx::query(
+        "INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    )
+    .bind(SETTINGS_KEY)
+    .bind(serde_json::to_vec(&settings)?)
+    .execute(&mut **tx)
+    .await
+    .context("réglage du registre de paquets")?;
+    report.updated += 1;
+    Ok(report)
+}

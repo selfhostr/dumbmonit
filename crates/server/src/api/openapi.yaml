@@ -9145,6 +9145,112 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /api/packs/registry:
+    get:
+      operationId: browsePackRegistry
+      tags: [Integration packs]
+      summary: Packs offered by the configured registry
+      description: >-
+        Administrator session, or any API token. Reads the registry's `index.json`
+        (nothing is fetched while no address is set). `status` is `available`,
+        `installed`, `update` or `incompatible` (licence outside the allowed list,
+        or DumbMonit too old). A registry that cannot be read is reported in `error`.
+      x-token-scope: read
+      responses:
+        "200":
+          description: The registry and its packs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, configured, packs, skipped]
+                properties:
+                  url: { type: string }
+                  configured: { type: boolean }
+                  error: { type: [string, "null"] }
+                  skipped: { type: array, items: { type: string } }
+                  packs:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, version, license, status]
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        version: { type: string }
+                        description: { type: string }
+                        author: { type: string }
+                        license: { type: string }
+                        min_version: { type: [string, "null"] }
+                        installed_version: { type: [string, "null"] }
+                        status:
+                          type: string
+                          enum: [available, installed, update, incompatible]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/packs/registry/settings:
+    put:
+      operationId: setPackRegistry
+      tags: [Integration packs]
+      summary: Set the registry address
+      description: An empty `url` turns the registry off. Audited as `pack.registry_settings`.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string }
+      responses:
+        "200":
+          description: The stored setting.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/packs/registry/install:
+    post:
+      operationId: installRegistryPack
+      tags: [Integration packs]
+      summary: Install or update a pack from the registry
+      description: >-
+        Downloads the pack, checks its SHA-256 against the index, requires an
+        allowed licence, then installs it like `POST /api/packs`. Audited as
+        `pack.registry_installed`. `400` for a checksum, licence, version or
+        validation failure, `404` if the id is not in the index, `502` if the
+        registry cannot be reached.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        "200":
+          description: Updated or unchanged.
+        "201":
+          description: Installed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "502":
+          description: The registry could not be reached.
+
   /api/packs/{id}/enable:
     parameters:
       - $ref: "#/components/parameters/PackId"

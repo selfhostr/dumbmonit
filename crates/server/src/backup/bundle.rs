@@ -199,6 +199,9 @@ pub struct Bundle {
     /// Réglage du mode MSP (clé `msp` de `settings`).
     #[serde(default)]
     pub msp_settings: Option<Value>,
+    /// Adresse du registre de paquets (clé `packs.registry` de `settings`).
+    #[serde(default)]
+    pub pack_registry: Option<Value>,
     /// Rattachement des objets aux clients, par clé naturelle : un objet
     /// absent de la liste reste au client par défaut (équipements, pages,
     /// jetons d'agent) ou à l'instance (le reste).

@@ -11046,5 +11046,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "Paquete de integración instalado desde el registro",
+	"w2ops_audit_action_pack_registry_settings": "Dirección del registro de paquetes modificada",
+	"settings_packs_registry_title": "Registro comunitario",
+	"settings_packs_registry_intro": "Explore los paquetes de integración de un registro de confianza. No se descarga nada hasta que indique una dirección.",
+	"settings_packs_registry_url_label": "Dirección del registro (index.json)",
+	"settings_packs_registry_save": "Guardar",
+	"settings_packs_registry_refresh": "Actualizar",
+	"settings_packs_registry_install": "Instalar",
+	"settings_packs_registry_update": "Actualizar a {version}",
+	"settings_packs_registry_installed": "Instalado",
+	"settings_packs_registry_incompatible": "No disponible",
+	"settings_packs_registry_empty": "Este registro no lista ningún paquete.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "Cómo alojar un registro",
+	"settings_packs_registry_error": "No se pudo cargar el registro.",
+	"settings_packs_registry_install_error": "No se pudo instalar este paquete."
 }

@@ -10916,5 +10916,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "レジストリから連携パッケージをインストールしました",
+	"w2ops_audit_action_pack_registry_settings": "パッケージレジストリのアドレスを変更しました",
+	"settings_packs_registry_title": "コミュニティレジストリ",
+	"settings_packs_registry_intro": "信頼できるレジストリが公開する連携パッケージを閲覧できます。アドレスを設定するまで何も取得しません。",
+	"settings_packs_registry_url_label": "レジストリのアドレス (index.json)",
+	"settings_packs_registry_save": "保存",
+	"settings_packs_registry_refresh": "更新",
+	"settings_packs_registry_install": "インストール",
+	"settings_packs_registry_update": "{version} に更新",
+	"settings_packs_registry_installed": "インストール済み",
+	"settings_packs_registry_incompatible": "利用不可",
+	"settings_packs_registry_empty": "このレジストリにはパッケージがありません。",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "レジストリのホスト方法",
+	"settings_packs_registry_error": "レジストリを読み込めませんでした。",
+	"settings_packs_registry_install_error": "このパッケージをインストールできませんでした。"
 }

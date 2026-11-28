@@ -10916,5 +10916,21 @@
 	"settings_tplimport_format_zabbix_yaml": "Zabbix YAML",
 	"settings_tplimport_format_zabbix_xml": "Zabbix XML",
 	"settings_tplimport_format_generator": "snmp_exporter generator.yml",
-	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml"
+	"settings_tplimport_format_snmp": "snmp_exporter snmp.yml",
+	"w2ops_audit_action_pack_registry_installed": "레지스트리에서 연동 패키지를 설치했습니다",
+	"w2ops_audit_action_pack_registry_settings": "패키지 레지스트리 주소를 변경했습니다",
+	"settings_packs_registry_title": "커뮤니티 레지스트리",
+	"settings_packs_registry_intro": "신뢰하는 레지스트리의 연동 패키지를 둘러보세요. 주소를 설정하기 전에는 아무것도 가져오지 않습니다.",
+	"settings_packs_registry_url_label": "레지스트리 주소 (index.json)",
+	"settings_packs_registry_save": "저장",
+	"settings_packs_registry_refresh": "새로고침",
+	"settings_packs_registry_install": "설치",
+	"settings_packs_registry_update": "{version}(으)로 업데이트",
+	"settings_packs_registry_installed": "설치됨",
+	"settings_packs_registry_incompatible": "사용 불가",
+	"settings_packs_registry_empty": "이 레지스트리에는 패키지가 없습니다.",
+	"settings_packs_registry_meta": "{author} · {license} · v{version}",
+	"settings_packs_registry_doc": "레지스트리 호스팅 방법",
+	"settings_packs_registry_error": "레지스트리를 불러오지 못했습니다.",
+	"settings_packs_registry_install_error": "이 패키지를 설치하지 못했습니다."
 }
