@@ -171,7 +171,7 @@ async fn update_now(
     let payload: NowPayload = if body.iter().all(u8::is_ascii_whitespace) {
         NowPayload::default()
     } else {
-        serde_json::from_slice(&body)
+        crate::untrusted::from_slice(&body)
             .map_err(|error| ApiError::BadRequest(format!("Unreadable request: {error}")))?
     };
     if !selfupdate::request(&state.pool, id, payload.allow_downgrade).await? {

@@ -63,7 +63,7 @@ function normalise(url: string): { path: string; query: string } {
 
 /**
  * Rule, deliberately conservative: a value is shifted only if BOTH hold.
- * 1. Its key says it is a time: `t`, `ts`, `time`, `timestamp`, `since`,
+ * 1. Its key says it is a time: `t`, `ts`, `at`, `time`, `timestamp`, `since`,
  *    `until`, or ends with `_at`, `_ts`, `_time`, `_since`, `_until`. Elements
  *    of a `[epoch, value]` pair (Prometheus points) count as such a field.
  * 2. Its value looks like one: a string `YYYY-MM-DD[T ]HH:MM:SS[.fff][Z|+hh:mm]`
@@ -71,7 +71,7 @@ function normalise(url: string): { path: string; query: string } {
  *    is a plausible epoch (seconds or milliseconds) within a year of the
  *    recording. Anything else (ports, counters, durations, dates) is untouched.
  */
-const TIME_KEY = /^(t|ts|time|timestamp|since|until)$|(_at|_ts|_time|_since|_until)$/;
+const TIME_KEY = /^(t|ts|at|time|timestamp|since|until)$|(_at|_ts|_time|_since|_until)$/;
 const ISO = /^(\d{4}-\d{2}-\d{2})([T ])(\d{2}:\d{2}:\d{2})(\.\d+)?(Z|[+-]\d{2}:?\d{2})?$/;
 const YEAR_S = 366 * 86400;
 
@@ -120,6 +120,66 @@ function shiftTimestamps(node: unknown, delta: number, recordedS: number, timeFi
 	return node;
 }
 
+// --- Range queries -----------------------------------------------------------
+
+const RANGE_PATH = '/api/metrics/query_range';
+
+/** Small deterministic PRNG (mulberry32) seeded from a string hash. */
+function seeded(text: string): () => number {
+	let h = 2166136261;
+	for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+	let a = h >>> 0;
+	return () => {
+		a = (a + 0x6d2b79f5) >>> 0;
+		let t = a;
+		t = Math.imul(t ^ (t >>> 15), t | 1);
+		t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+/** Recorded range query for the same PromQL: same window length first, any window otherwise. */
+function recordedRange(index: DemoIndex, query: string): string | undefined {
+	const wanted = new URLSearchParams(query);
+	const expr = wanted.get('query');
+	if (expr === null) return undefined;
+	const span = Number(wanted.get('end')) - Number(wanted.get('start'));
+	let any: string | undefined;
+	for (const [key, file] of Object.entries(index.entries)) {
+		const prefix = `GET ${RANGE_PATH}?`;
+		if (!key.startsWith(prefix)) continue;
+		const params = new URLSearchParams(key.slice(prefix.length));
+		if (params.get('query') !== expr) continue;
+		if (Number(params.get('end')) - Number(params.get('start')) === span) return file;
+		any ??= file;
+	}
+	return any;
+}
+
+/** A plausible series for a query nothing was recorded for; the same query always gives the same one. */
+function synthesizeRange(query: string): unknown {
+	const params = new URLSearchParams(query);
+	const expr = params.get('query') ?? query;
+	const start = Number(params.get('start')) / 1000;
+	const end = Number(params.get('end')) / 1000;
+	const step = Math.max(1, Number(params.get('step')) || 60);
+	if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return [];
+	const rand = seeded(expr);
+	// Scale from what the metric is called: ratios stay near 1, latencies small, the rest a percentage.
+	const ratio = /probe_success|_up\b|dumbmonit_up|available/.test(expr);
+	const latency = /duration|latency|seconds|rtt/.test(expr);
+	const base = ratio ? 1 : latency ? 0.02 + rand() * 0.08 : 15 + rand() * 50;
+	const amp = ratio ? 0 : base * (0.1 + rand() * 0.2);
+	const phase = rand() * Math.PI * 2;
+	const values: [number, string][] = [];
+	const points = Math.min(2000, Math.floor((end - start) / step) + 1);
+	for (let i = 0; i < points; i++) {
+		const wave = Math.sin(phase + i / 9) * amp + (rand() - 0.5) * amp * 0.6;
+		values.push([start + i * step, String(Math.max(0, ratio ? 1 : base + wave))]);
+	}
+	return [{ metric: { target: String(1 + Math.floor(rand() * 3)) }, values }];
+}
+
 // --- Lookup -----------------------------------------------------------------
 
 async function read(index: DemoIndex, file: string): Promise<string> {
@@ -155,7 +215,11 @@ export async function staticFetch(url: string, method: string, anticipated: bool
 	const { path, query } = normalise(url);
 	const exact = `GET ${path}${query ? `?${query}` : ''}`;
 	let file = index.entries[exact];
-	if (file === undefined) {
+	if (file === undefined && path === RANGE_PATH) {
+		// Never another chart's data: the same query recorded, else a synthesized series.
+		file = recordedRange(index, query);
+		if (file === undefined) return answer(200, synthesizeRange(query));
+	} else if (file === undefined) {
 		// Same path, any recorded query: the closest the demo has to what was asked.
 		file = index.entries[`GET ${path}`];
 		if (file === undefined) {

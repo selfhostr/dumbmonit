@@ -20,6 +20,8 @@
 	import { BellRing, HardDrive, Search, Server, Tv, UserRound, Users } from 'lucide-svelte';
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { PageHeader } from '#lib/ui/index.js';
+	import ModulesSection from '#lib/components/settings/ModulesSection.svelte';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 	import GeneralSection from '#lib/components/settings/GeneralSection.svelte';
 	import { m } from '#lib/paraglide/messages.js';
 	import {
@@ -59,7 +61,6 @@
 	import AboutSection from '#lib/components/settings/AboutSection.svelte';
 	import WallModeSection from '#lib/components/settings/WallModeSection.svelte';
 	import WallWeatherSection from '#lib/components/settings/WallWeatherSection.svelte';
-	import MusicSection from '#lib/components/settings/MusicSection.svelte';
 	import PushSection from '#lib/components/settings/PushSection.svelte';
 	import ChannelsSection from '#lib/components/notifications/ChannelsSection.svelte';
 	import NotificationPolicySection from '#lib/components/notifications/NotificationPolicySection.svelte';
@@ -84,6 +85,7 @@
 		TAB_IDS.filter(
 			(id) =>
 				(id !== 'team' || showAccounts) &&
+				(id !== 'wall' || !featuresStore.loaded || featuresStore.on('wall')) &&
 				(!auth.scoped || id === 'account')
 		)
 	);
@@ -98,8 +100,8 @@
 		team: [UsersSection, ...(auth.isAdmin ? [RolesSection, InvitationsSection] : []), TeamsSection, ...(auth.isAdmin ? [ClientsSection] : []), SsoSection, SamlSection, ScimSection, LdapSection, ...(auth.isAdmin ? [AuditLogSection] : [])],
 		monitoring: [AgentsSection, PacksSection, SecurityScoreSection, ...(auth.isAdmin ? [LocationsSection] : [])],
 		notifications: [ChannelsSection, ...(auth.isAdmin ? [MailServerSection] : []), NotificationPolicySection],
-		wall: [WallModeSection, WallWeatherSection, MusicSection],
-		system: [...(auth.isAdmin ? [GeneralSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection] : []), AssistantSection, AboutSection]
+		wall: [WallModeSection, WallWeatherSection],
+		system: [...(auth.isAdmin ? [GeneralSection, ModulesSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection] : []), AssistantSection, AboutSection]
 	});
 
 	const sections = $derived(SECTIONS[tab]);
@@ -155,7 +157,7 @@
 	let query = $state('');
 	const results = $derived(
 		searchSettings(searchIndex(), query).filter(
-			(entry) => tabs.includes(entry.tab) && (auth.isAdmin || (entry.id !== 'locations' && entry.id !== 'logs' && entry.id !== 'storage' && entry.id !== 'email-server'))
+			(entry) => tabs.includes(entry.tab) && (auth.isAdmin || (entry.id !== 'locations' && entry.id !== 'modules' && entry.id !== 'logs' && entry.id !== 'storage' && entry.id !== 'email-server'))
 		)
 	);
 	const href = (entry: { tab: SettingsTab; id: string }) => `/settings/${entry.tab}#${entry.id}`;

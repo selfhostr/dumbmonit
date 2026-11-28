@@ -625,6 +625,7 @@ duration.
 | `connections_idle_in_transaction` | sessions that opened a transaction and went quiet | |
 | `longest_transaction_seconds`, `longest_idle_in_transaction_seconds`, `longest_query_seconds` | oldest open transaction, oldest idle-in-transaction session, longest running query (client sessions only; autovacuum and replication excluded) | |
 | `locks_waiting` | lock requests waiting to be granted | |
+| `long_running_queries` | active client queries running for more than 60 seconds | |
 | `database_size_bytes` | size of each database (at most 20) | `database` |
 | `database_wraparound_percent` | age of the oldest unfrozen transaction ID against the 2 billion limit | `database` |
 | `database_blocks_hit_total`, `database_blocks_read_total` | counters behind the cache hit ratio | `database` |
@@ -687,7 +688,11 @@ From the DumbMonit server (or its relay agent) to the device:
 | 3306 | TCP | MySQL or MariaDB (default port) |
 
 **MySQL or MariaDB database** — connects, authenticates and runs one query: the
-signal for a database that is up but no longer answering. Examples: the database
+signal for a database that is up but no longer answering. On the same connection
+it then reads the server's own status, to tell you *how* the database is doing:
+connections against the limit, queries per second, slow queries, the InnoDB
+buffer pool hit ratio, replication and its lag, schema sizes and long-running
+queries (see [MySQL and MariaDB](mysql.md)). Examples: the database
 behind a WordPress, a Nextcloud or a Kimai, an application database, a MariaDB
 in Docker.
 
@@ -703,9 +708,16 @@ in Docker.
 
 3. Optional: replace the default query SELECT 1 with one that returns a single number, to chart it.
 
+4. Optional, for the complete server health metrics (queries, replication, long-running queries): let the account read the server status.
+
+    ```
+    GRANT PROCESS, REPLICATION CLIENT ON *.* TO 'dumbmonit'@'%';
+    ```
+
 #### Required permissions
 
 - **USAGE (no privilege)**: Connect and run SELECT 1, nothing more
+- **PROCESS, REPLICATION CLIENT (optional)**: See every session, and read the replication status; without them the health metrics are partial
 
 !!! warning
     The check opens a real connection on every poll: on an instance close to its connection limit, give it a longer interval.
@@ -723,6 +735,7 @@ The default query is SELECT 1, which reads no table: nothing else has to be gran
 | `query` | Query | `SELECT 1` | Run on every check. The default reads no table, so the account needs no privilege beyond connecting. A query returning one number turns it into a chart. |
 | `expect` | Expected value | *(empty)* | Value the first column of the first row must hold. Empty: only the query succeeding is checked. |
 | `sslmode` | Encryption | `prefer` | `prefer` encrypts when the server offers it, `require` refuses to connect without it, `verify-full` also checks the certificate and the name, `disable` never encrypts. |
+| `server_stats` | Server health metrics | `true` | Also reads connections, queries per second, slow queries, the InnoDB buffer pool hit ratio, replication and its lag, schema sizes and long-running queries, on the same connection. An account without PROCESS or REPLICATION CLIENT sees fewer of them; nothing here can make the check fail. |
 | `allow_private_targets` | Allow loopback and link-local targets | `false` | See "Addresses the checks refuse" below. |
 | `timeout_seconds` | Timeout (seconds) | `5` | Time after which the service is reported down if it has not answered. Between 1 and 60. |
 

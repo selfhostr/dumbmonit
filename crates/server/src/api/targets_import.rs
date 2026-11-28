@@ -295,7 +295,7 @@ fn csv_text(headers: &HeaderMap, body: &Bytes) -> ApiResult<String> {
         struct Body {
             csv: String,
         }
-        let parsed: Body = serde_json::from_slice(body)
+        let parsed: Body = crate::untrusted::from_slice(body)
             .map_err(|_| ApiError::BadRequest("Expected a JSON body {\"csv\": \"...\"}.".into()))?;
         Ok(parsed.csv)
     } else {

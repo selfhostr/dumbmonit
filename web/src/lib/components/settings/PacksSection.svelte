@@ -15,6 +15,7 @@
 	import { auth } from '#lib/stores/auth.svelte.js';
 	import { Button, Confirm, EmptyState, ErrorNotice, Field, Panel, Plate, Skeleton, Toggle, Disclosure } from '#lib/ui/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import TemplateImportSection from './TemplateImportSection.svelte';
 
 	let packs = $state<PackView[]>([]);
 	let loading = $state(true);
@@ -132,6 +133,13 @@
 		input.value = '';
 	}
 
+	/** Shows a pack just installed or updated (here or by the template import). */
+	function upsert(installed: PackView) {
+		packs = packs.some((p) => p.id === installed.id)
+			? packs.map((p) => (p.id === installed.id ? installed : p))
+			: [...packs, installed].sort((a, b) => a.id.localeCompare(b.id));
+	}
+
 	/** True once the last submit went through (the button confirms in green). */
 	let installedOk = $state(false);
 	async function install(event: SubmitEvent) {
@@ -145,10 +153,7 @@
 			report = await installPack(yaml);
 			yaml = '';
 			fileName = '';
-			const installed = report.pack;
-			packs = packs.some((p) => p.id === installed.id)
-				? packs.map((p) => (p.id === installed.id ? installed : p))
-				: [...packs, installed].sort((a, b) => a.id.localeCompare(b.id));
+			upsert(report.pack);
 			installedOk = true;
 		} catch (cause) {
 			installError = cause;
@@ -392,6 +397,8 @@
 					</div>
 				{/if}
 			</Disclosure>
+
+			<TemplateImportSection oninstalled={upsert} />
 		</div>
 	{/if}
 </Panel>

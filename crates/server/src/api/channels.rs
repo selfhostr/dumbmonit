@@ -621,7 +621,7 @@ fn parse_policy(raw: Option<Value>, current: &ChannelPolicy) -> ApiResult<Channe
 
 /// Traduit le filtre de routage soumis, et refuse ce qui ne se relirait pas.
 pub(crate) fn parse_matcher(raw: Value) -> ApiResult<ChannelMatcher> {
-    let matcher: ChannelMatcher = serde_json::from_value(raw).map_err(|_| {
+    let matcher: ChannelMatcher = crate::untrusted::from_value(raw).map_err(|_| {
         ApiError::BadRequest(
             "Invalid routing filter. Expected {\"include\": [...], \"exclude\": [...]}, \
              where each entry is {\"field\":\"tag\",\"key\":\"site\",\"value\":\"cellar\"}, \

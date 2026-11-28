@@ -199,6 +199,9 @@ pub struct Agent {
     /// le dernier accusé de réception portait. Elle survit à une panne du
     /// serveur — c'est son rôle —, mais pas à un redémarrage de l'agent.
     sentinel: SentinelRunner,
+    /// Contrôles personnalisés confiés par le serveur, et leurs derniers
+    /// verdicts en attente d'un lot accepté.
+    scripts: crate::scripts::ScriptRunner,
     server_sentinel: Option<dumbmonit_proto::SentinelSetting>,
     /// Période courante : celle de la configuration, jusqu'à ce que le serveur en
     /// demande une autre dans son accusé de réception.
@@ -354,6 +357,7 @@ impl Agent {
             server_logs: None,
             sentinel,
             server_sentinel: None,
+            scripts: crate::scripts::ScriptRunner::new(config.scripts.clone()),
             binding,
             binding_refused: false,
             awaiting_approval: false,

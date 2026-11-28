@@ -31,6 +31,7 @@ fn les_regles_livrees_couvrent_les_cas_annonces() {
         "push_missed",
         "push_failed",
         "push_too_long",
+        "script_warning",
         "service_flapping",
         "service_slow",
         "tls_cert_expiring",
@@ -584,6 +585,8 @@ fn les_regles_livrees_ne_visent_que_des_metriques_produites() {
                         || jellyfin::PRODUCED.contains(&mot)
                         || plex::PRODUCED.contains(&mot)
                         || nextcloud::PRODUCED.contains(&mot)
+                        || hyperv::PRODUCED.contains(&mot)
+                        || mysql::PRODUCED.contains(&mot)
                         || postgres::PRODUCED.contains(&mot)
                         || synology::PRODUCED.contains(&mot),
                     "rule \"{}\" targets \"{mot}\", which no collector produces",

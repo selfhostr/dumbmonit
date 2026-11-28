@@ -47,18 +47,18 @@ async fn handle(uri: Uri) -> Response {
     match rest {
         "" => ok(page(
             vec![json!({
-                "siteId": "site-geneva", "name": "Geneva office", "region": "Switzerland",
-                "timeZone": "Europe/Zurich", "scenario": "Office", "type": 0
+                "siteId": "site-wh", "name": "Warehouse", "region": "Netherlands",
+                "timeZone": "Europe/Berlin", "scenario": "Office", "type": 0
             })],
             1,
         )),
-        "/site-geneva/devices" => ok(page(devices(), 4)),
-        "/site-geneva/clients" => ok(page(
-            vec![json!({"mac": "8C-85-90-11-22-33", "name": "laptop-claire",
-                "wireless": true, "ssid": "Muller", "active": true})],
+        "/site-wh/devices" => ok(page(devices(), 4)),
+        "/site-wh/clients" => ok(page(
+            vec![json!({"mac": "8C-85-90-11-22-33", "name": "laptop-ops",
+                "wireless": true, "ssid": "Larkspur", "active": true})],
             23,
         )),
-        p if p == format!("/site-geneva/switches/{SWITCH_MAC}") => ok(switch()),
+        p if p == format!("/site-wh/switches/{SWITCH_MAC}") => ok(switch()),
         _ => json(StatusCode::FORBIDDEN, "{}".into()),
     }
 }
@@ -66,12 +66,12 @@ async fn handle(uri: Uri) -> Response {
 fn devices() -> Vec<Value> {
     let uptime = 1_987_200 + now_s().rem_euclid(86_400);
     vec![
-        json!({"mac": "3C-52-A1-20-00-01", "name": "gw-geneva", "type": "gateway",
+        json!({"mac": "3C-52-A1-20-00-01", "name": "gw-wh", "type": "gateway",
             "model": "ER7206", "modelVersion": "2.0",
             "firmwareVersion": "2.2.5 Build 20250910 Rel.48720", "ip": "10.20.0.1",
             "status": 1, "statusCategory": 1, "cpuUtil": 9, "memUtil": 41,
             "uptimeLong": uptime, "needUpgrade": false, "clientNum": 0}),
-        json!({"mac": SWITCH_MAC, "name": "sw-geneva", "type": "switch",
+        json!({"mac": SWITCH_MAC, "name": "sw-wh-01", "type": "switch",
             "model": "SG2428P", "modelVersion": "5.20",
             "firmwareVersion": "5.20.6 Build 20250703 Rel.62218", "ip": "10.20.0.2",
             "status": 1, "statusCategory": 1, "cpuUtil": 14, "memUtil": 52,
@@ -94,7 +94,7 @@ fn devices() -> Vec<Value> {
 type Port = (u32, &'static str, bool, u32, Option<f64>, Option<&'static str>, f64, bool);
 
 const PORTS: &[Port] = &[
-    (1, "Port1", true, 3, None, Some("gw-geneva"), 2.4e6, true),
+    (1, "Port1", true, 3, None, Some("gw-wh"), 2.4e6, true),
     (2, "Port2", true, 3, Some(9.8), Some("ap-studio"), 1.1e6, false),
     (3, "Port3", true, 3, Some(7.2), Some("ap-meeting"), 4.0e5, false),
     (4, "Port4", true, 3, None, Some("srv-dc01"), 3.1e6, false),
@@ -124,5 +124,5 @@ fn switch() -> Value {
             p
         })
         .collect();
-    json!({"mac": SWITCH_MAC, "name": "sw-geneva", "type": "switch", "ports": ports})
+    json!({"mac": SWITCH_MAC, "name": "sw-wh-01", "type": "switch", "ports": ports})
 }

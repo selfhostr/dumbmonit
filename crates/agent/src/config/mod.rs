@@ -117,6 +117,10 @@ struct FileConfig {
     actions: Option<bool>,
     actions_dir: Option<String>,
     action_services: Option<Vec<String>>,
+    scripts: Option<bool>,
+    scripts_dirs: Option<Vec<String>>,
+    scripts_user: Option<String>,
+    scripts_max_concurrent: Option<usize>,
     relay: Option<bool>,
     site: Option<String>,
     gateway_listen: Option<String>,
@@ -379,6 +383,10 @@ pub struct Config {
     /// Actions de remédiation (services, scripts locaux). Désactivées par
     /// défaut, et bornées par ce que la machine déclare : voir `remediation.rs`.
     pub actions: crate::remediation::ActionsConfig,
+    /// Contrôles personnalisés (scripts, greffons Nagios). Désactivés par
+    /// défaut, et bornés aux dossiers que la machine autorise : voir
+    /// `scripts/mod.rs`.
+    pub scripts: crate::scripts::ScriptsConfig,
     /// Relayer les interrogations que le serveur délègue à cet agent : il
     /// exécute alors lui-même les collecteurs (SNMP, Proxmox, HTTP…) contre les
     /// équipements de son propre réseau. Désactivé par défaut : un agent
@@ -461,6 +469,7 @@ impl fmt::Debug for Config {
             .field("docker_max_containers", &self.docker_max_containers)
             .field("commands", &self.commands)
             .field("actions", &self.actions)
+            .field("scripts", &self.scripts)
             .field("relay", &self.relay)
             .field("site", &self.site)
             .field("gateway", &self.gateway)

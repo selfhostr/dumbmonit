@@ -152,6 +152,7 @@ pub async fn restore(
     let destinations = &bundle.backup_destinations;
     report.push(crate::backup::offsite::bundle::restore(&mut tx, cipher, destinations).await?);
     report.push(restore_instance(&mut tx, bundle).await?);
+    report.push(restore_features(&mut tx, bundle).await?);
     report.push(restore_silences(&mut tx, bundle, &refs).await?);
     report.push(restore_status_pages(&mut tx, bundle, &refs).await?);
     report.push(restore_report_schedules(&mut tx, bundle, &channels, &refs).await?);

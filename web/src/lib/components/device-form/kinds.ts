@@ -44,6 +44,7 @@ import {
 	Cloud,
 	Images,
 	FileText,
+	FileCode,
 	Film,
 	Tv,
 	GitBranch,
@@ -94,6 +95,7 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 	synology: HardDrive,
 	agent: Cpu,
 	agent_service: Layers,
+	agent_script: FileCode,
 	http: Globe,
 	tcp: Plug,
 	dns: AtSign,
@@ -115,6 +117,7 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 	opnsense: BrickWall,
 	truenas: HardDrive,
 	redfish: ServerCog,
+	ipmi: ServerCog,
 	mdaemon: Mail,
 	securitygateway: MailCheck,
 	victoriametrics: ChartLine,
@@ -124,6 +127,7 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 	nextcloud: Cloud,
 	immich: Images,
 	paperless: FileText,
+	papra: FileText,
 	jellyfin: Film,
 	plex: Tv,
 	gitlab: GitBranch,
@@ -145,6 +149,7 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 	unifi: Router,
 	homeassistant: House,
 	vsphere: Layers,
+	hyperv: Layers,
 	xcpng: Layers,
 	nutanix: Layers,
 	redis: DatabaseZap,
@@ -181,6 +186,7 @@ const KIND_ICON: Record<string, typeof LucideIcon> = {
 	entra: KeyRound,
 	azure: CloudCog,
 	aws: CloudCog,
+	gcp: CloudCog,
 	cloudflare: GlobeLock,
 	hetzner: Server,
 	ovh: Server,
@@ -220,6 +226,7 @@ const KIND_KEYWORDS: Record<string, string> = {
 	synology: 'nas storage diskstation backup hyper backup raid',
 	truenas: 'nas zfs storage pool backup replication snapshot',
 	opnsense: 'firewall router gateway vpn wireguard dhcp',
+	ipmi: 'ipmi bmc rmcp lan baseboard management controller sensors fan psu power temperature sel hardware server',
 	redfish: 'bmc idrac ilo ipmi xclarity hardware fan psu power supply server',
 	mdaemon: 'mail email server smtp imap pop3 webmail worldclient windows mdaemon',
 	securitygateway: 'mail email gateway spam antivirus quarantine smtp mdaemon windows',
@@ -230,6 +237,7 @@ const KIND_KEYWORDS: Record<string, string> = {
 	nextcloud: 'cloud files sync owncloud office calendar contacts php self-hosted app',
 	immich: 'photos pictures videos gallery google photos backup self-hosted app',
 	paperless: 'documents paperless-ngx scan ocr archive pdf self-hosted app',
+	papra: 'documents papra archive ocr pdf self-hosted app',
 	jellyfin: 'media server movies tv shows music streaming emby transcode self-hosted app',
 	plex: 'media server movies tv shows music streaming transcode pms self-hosted app',
 	gitlab: 'forge source control git ci cd pipeline sidekiq runner self-hosted app devops',
@@ -250,6 +258,7 @@ const KIND_KEYWORDS: Record<string, string> = {
 	mikrotik: 'router routeros routerboard chr switch crs hap wireless firewall network',
 	unifi: 'ubiquiti wifi access point ap switch gateway udm dream machine cloud key controller network',
 	homeassistant: 'home assistant hass smart home zigbee z-wave iot automation battery sensors',
+	hyperv: 'microsoft hyper-v hyperv windows server hypervisor virtual machine vm checkpoint snapshot replica replication integration services winrm wmi',
 	vsphere: 'vmware esxi vcenter hypervisor virtual machine vm datastore',
 	xcpng: 'xcp-ng xcpng xen xenserver citrix hypervisor xapi xen orchestra pool virtual machine vm storage repository sr',
 	nutanix: 'nutanix ahv prism central element hci hyperconverged hypervisor cluster virtual machine vm storage container',
@@ -286,6 +295,7 @@ const KIND_KEYWORDS: Record<string, string> = {
 	m365: 'microsoft office 365 microsoft365 graph exchange online teams sharepoint onedrive licenses licences service health incident risky users saas',
 	entra: 'azure ad active directory microsoft entra id app registration secret certificate expiry mfa ad connect sync hybrid identity',
 	azure: 'microsoft azure monitor resource health vm virtual machine subscription service principal alerts cloud',
+	gcp: 'google cloud platform gcp compute engine gce cloud sql monitoring stackdriver service account project vm cloud',
 	aws: 'amazon web services cloudwatch ec2 rds alarms status check sigv4 iam cloud',
 	cloudflare: 'cdn dns zone tunnel cloudflared certificate waf load balancer analytics 5xx zero trust',
 	hetzner: 'hetzner cloud vps server volume backup snapshot cpu cloud hosting',
@@ -315,6 +325,7 @@ const KIND_KEYWORDS: Record<string, string> = {
 	imap: 'mail email mailbox dovecot inbox imaps',
 	pop3: 'mail email mailbox dovecot pop pops',
 	push: 'heartbeat cron job script backup scheduled task dead man switch',
+	agent_script: 'script nagios plugin icinga naemon check_disk check_http check_mysql custom command powershell bash',
 	snmp_oid: 'snmp oid mib sensor temperature humidity ups battery value threshold',
 	radius: 'aaa authentication login freeradius nps 802.1x wpa enterprise wifi vpn eap access-request',
 	grpc: 'rpc protobuf health check http2 microservice etcd envoy istio mesh',
@@ -489,8 +500,7 @@ export const CATEGORY_ICON: Record<CategoryId, typeof LucideIcon> = {
 	cloud: Cloud,
 	apps: LayoutGrid,
 	media: Tv,
-	packs: Puzzle,
-	other: Server
+	packs: Puzzle
 };
 
 /** Translated title of a category. */
@@ -524,8 +534,6 @@ export function categoryTitle(id: CategoryId): string {
 			return m.deviceform_cat_media();
 		case 'packs':
 			return m.deviceform_cat_packs();
-		case 'other':
-			return m.deviceform_cat_other();
 	}
 }
 
@@ -562,6 +570,8 @@ export function groupCollectors(collectors: CollectorInfo[]): KindGroup[] {
 	const choices: KindChoice[] = collectors
 		// A service an agent found is created by its agent, never from the form.
 		.filter((c) => c.kind !== AGENT_SERVICE_KIND)
+		// The demo kind exists for tests and demo data, never offered.
+		.filter((c) => c.kind !== 'dummy')
 		.map((c) =>
 			c.kind === AGENT_KIND
 				? {

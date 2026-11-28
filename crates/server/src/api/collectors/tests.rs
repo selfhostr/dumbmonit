@@ -38,6 +38,7 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "nextcloud",
     "immich",
     "paperless",
+    "papra",
     "jellyfin",
     "plex",
     "gitlab",
@@ -89,6 +90,8 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "entra",
     "azure",
     "aws",
+    "gcp",
+    "ipmi",
     "cloudflare",
     "hetzner",
     "ovh",
@@ -103,8 +106,10 @@ const KINDS_ENREGISTRES: &[&str] = &[
     "openvpn",
     "xcpng",
     "nutanix",
+    "hyperv",
     "agent",
     "agent_service",
+    "agent_script",
     "http",
     "http_steps",
     "tcp",
@@ -284,6 +289,7 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
                 "query",
                 "expect",
                 "sslmode",
+                "server_stats",
                 "allow_private_targets",
                 "timeout_seconds",
             ],
@@ -525,6 +531,7 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
             ],
         ),
         ("push", &["expected_interval", "grace", "schedule", "timezone", "max_duration"]),
+        ("agent_script", &["agent_id", "command", "args", "format", "timeout_seconds", "env"]),
         (
             "webchange",
             &[
@@ -637,6 +644,7 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
             "paperless",
             &["scheme", "port", "insecure_tls", "request_timeout_seconds", "task_lookback_hours"],
         ),
+        ("papra", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("jellyfin", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("plex", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         (
@@ -816,6 +824,10 @@ fn les_options_des_sondes_reprennent_les_etiquettes_lues_par_les_collecteurs() {
         ("ceph", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("minio", &["scheme", "port", "insecure_tls", "request_timeout_seconds"]),
         ("xcpng", &["port", "insecure_tls", "request_timeout_seconds"]),
+        (
+            "hyperv",
+            &["allow_unencrypted", "port", "auth", "insecure_tls", "request_timeout_seconds"],
+        ),
         ("nutanix", &["port", "insecure_tls", "request_timeout_seconds"]),
     ];
     for (kind, cles) in attendues {
@@ -946,6 +958,7 @@ fn les_defauts_affiches_sont_ceux_des_collecteurs() {
         ("nextcloud", "https", selfhosted::nextcloud::DEFAULT_PORT),
         ("immich", "http", selfhosted::immich::DEFAULT_PORT),
         ("paperless", "http", selfhosted::paperless::DEFAULT_PORT),
+        ("papra", "http", selfhosted::papra::DEFAULT_PORT),
         ("jellyfin", "http", selfhosted::jellyfin::DEFAULT_PORT),
         ("plex", "http", selfhosted::plex::DEFAULT_PORT),
         ("gitlab", "https", selfhosted::gitlab::DEFAULT_PORT),
@@ -1166,6 +1179,11 @@ fn les_defauts_affiches_sont_ceux_des_collecteurs() {
         crate::collectors::push::DEFAULT_EXPECTED_INTERVAL
     );
     assert_eq!(defaut("push", "grace"), crate::collectors::push::DEFAULT_GRACE);
+    assert_eq!(
+        defaut("agent_script", "timeout_seconds"),
+        dumbmonit_proto::script::CHECK_DEFAULT_TIMEOUT_SECS.to_string()
+    );
+    assert_eq!(defaut("agent_script", "format"), dumbmonit_proto::script::FORMAT_NAGIOS);
     assert_eq!(defaut("push", "timezone"), crate::collectors::push::DEFAULT_TIMEZONE);
     assert_eq!(defaut("push", "schedule"), "");
     assert_eq!(defaut("push", "max_duration"), "");
@@ -1530,6 +1548,7 @@ fn la_documentation_reprend_les_notices_mot_pour_mot() {
         ("nextcloud", include_str!("../../../../../docs/devices/nextcloud.md")),
         ("immich", include_str!("../../../../../docs/devices/immich.md")),
         ("paperless", include_str!("../../../../../docs/devices/paperless.md")),
+        ("papra", include_str!("../../../../../docs/devices/papra.md")),
         ("jellyfin", include_str!("../../../../../docs/devices/jellyfin.md")),
         ("plex", include_str!("../../../../../docs/devices/plex.md")),
         ("gitlab", include_str!("../../../../../docs/devices/gitlab.md")),
@@ -1586,9 +1605,11 @@ fn la_documentation_reprend_les_notices_mot_pour_mot() {
         ("ceph", include_str!("../../../../../docs/devices/ceph.md")),
         ("minio", include_str!("../../../../../docs/devices/minio.md")),
         ("xcpng", include_str!("../../../../../docs/devices/xcpng.md")),
+        ("hyperv", include_str!("../../../../../docs/devices/hyper-v.md")),
         ("nutanix", include_str!("../../../../../docs/devices/nutanix.md")),
         ("agent", include_str!("../../../../../docs/devices/agent.md")),
         ("agent_service", include_str!("../../../../../docs/devices/agent.md")),
+        ("agent_script", include_str!("../../../../../docs/devices/custom-scripts.md")),
         ("push", include_str!("../../../../../docs/devices/push.md")),
         ("webchange", include_str!("../../../../../docs/devices/webchange.md")),
         ("netconfig", include_str!("../../../../../docs/devices/netconfig.md")),

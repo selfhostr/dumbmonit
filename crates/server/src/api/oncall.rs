@@ -1249,7 +1249,7 @@ pub async fn update_profile(
         None => current.quiet_hours,
         Some(Value::Null) => None,
         Some(value) => {
-            let schedule: Schedule = serde_json::from_value(value)
+            let schedule: Schedule = crate::untrusted::from_value(value)
                 .map_err(|e| ApiError::BadRequest(format!("Quiet hours not understood: {e}")))?;
             if !matches!(schedule, Schedule::Weekly { .. }) {
                 return Err(ApiError::BadRequest("Quiet hours are a weekly window.".into()));

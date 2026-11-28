@@ -1,0 +1,21 @@
+# Mesures et vues du type « papra » (format : crates/collectors/src/catalog.rs).
+source: selfhosted
+prefixes: [papra_]
+metrics:
+  - { name: papra_database_healthy, label: "Database healthy", unit: "bool", better: "higher" }
+  - { name: papra_organizations, label: "Organizations" }
+  - { name: papra_documents, label: "Documents" }
+  - { name: papra_documents_size_bytes, label: "Documents size", unit: "B" }
+  - { name: papra_documents_deleted, label: "Documents in trash" }
+  - { name: papra_documents_deleted_size_bytes, label: "Trash size", unit: "B" }
+  - { name: papra_scrape_errors, label: "Scrape errors", better: "lower" }
+views:
+  - view: stat
+    title: "Current values"
+    metrics:
+      - papra_database_healthy
+      - papra_organizations
+      - papra_documents
+      - papra_documents_size_bytes
+      - papra_documents_deleted
+      - papra_documents_deleted_size_bytes

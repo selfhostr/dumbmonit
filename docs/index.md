@@ -17,6 +17,8 @@ windows are scheduled.
 <a href="install/docker/">Install<small>Docker Compose, first start, backups</small></a>
 <a href="install/first-device/">Add your first monitor<small>SNMP, network scan, what happens next</small></a>
 <a href="alerting/">Alerting<small>Built-in rules, quiet by construction</small></a>
+<a href="compare/">DumbMonit compared<small>What it does, what it leaves out, when to pick another tool</small></a>
+<a href="integrations/prometheus-exporters/">Prometheus exporters<small>Ten recipes to watch anything that serves /metrics</small></a>
 </div>
 
 ## What it watches
@@ -42,6 +44,11 @@ windows are scheduled.
   `/api/openapi.json` (OpenAPI 3.1). Tokens (`dmt_…`) are scoped read or
   write, can expire, be restricted to a list of networks, and are
   rate-limited.
+
+Some parts of the console are [optional modules](using/settings.md#modules)
+(wall mode, SLA reports, status pages, SLOs, threat map): they start off on a new
+installation and are switched on in *Settings → System → Modules* or in the
+[setup wizard](using/product-modes.md#setup-wizard).
 
 ## What runs
 

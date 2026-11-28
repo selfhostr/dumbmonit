@@ -3,7 +3,7 @@
  *
  * Pure data and predicates, no icon and no text: the titles and icons live
  * in `kinds.ts`, so this file can be tested alone. A kind the table below does
- * not know lands in `packs` (kinds named `pack.<id>`) or in `other`.
+ * not know lands in `packs` (kinds named `pack.<id>`) or in `apps`.
  */
 
 /** Display order of the categories. `import` is not a kind: it is added by the picker, last. */
@@ -21,8 +21,7 @@ export const CATEGORY_IDS = [
 	'cloud',
 	'apps',
 	'media',
-	'packs',
-	'other'
+	'packs'
 ] as const;
 
 export type CategoryId = (typeof CATEGORY_IDS)[number];
@@ -31,10 +30,10 @@ export type CategoryId = (typeof CATEGORY_IDS)[number];
  * Choice ids per category, in display order. `agent:relay` and `agent:ad`
  * are the agent's own entries (relay, Active Directory rollout).
  */
-export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs' | 'other'>, string[]> = {
-	machines: ['agent', 'agent:relay', 'agent:ad', 'winrm', 'redfish', 'nut'],
+export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs'>, string[]> = {
+	machines: ['agent', 'agent:relay', 'agent:ad', 'agent_script', 'winrm', 'redfish', 'ipmi', 'nut'],
 	network: ['snmp', 'netconfig', 'opnsense', 'pfsense', 'fortigate', 'sophos', 'mikrotik', 'unifi', 'omada', 'arubacentral', 'openvpn', 'tailscale'],
-	virtualization: ['proxmox', 'pdm', 'vsphere', 'xcpng', 'nutanix', 'kubernetes'],
+	virtualization: ['proxmox', 'pdm', 'vsphere', 'hyperv', 'xcpng', 'nutanix', 'kubernetes'],
 	storage: ['synology', 'truenas', 'unraid', 'qnap', 'ceph', 'minio', 'pbs', 'veeam', 'kopia', 'duplicati'],
 	databases: ['postgres', 'mysql', 'mssql', 'oracle', 'mongodb', 'redis', 'elasticsearch', 'influxdb', 'rabbitmq', 'kafka', 'mqtt'],
 	web: ['http', 'http_steps', 'website', 'webchange', 'tls', 'websocket', 'grpc', 'nginx', 'apache', 'traefik', 'caddy', 'npm'],
@@ -42,8 +41,8 @@ export const CATEGORY_KINDS: Record<Exclude<CategoryId, 'packs' | 'other'>, stri
 	mail: ['smtp', 'imap', 'pop3', 'mailcow', 'mdaemon', 'securitygateway', 'pmg', 'mail_blacklist'],
 	observability: ['victoriametrics', 'victorialogs', 'loki', 'graylog', 'prometheus', 'otlp'],
 	security: ['activedirectory', 'keycloak', 'authentik', 'entra', 'vaultwarden', 'crowdsec', 'pihole', 'adguard'],
-	cloud: ['m365', 'azure', 'aws', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
-	apps: ['nextcloud', 'immich', 'paperless', 'gitlab', 'forgejo'],
+	cloud: ['m365', 'azure', 'aws', 'gcp', 'cloudflare', 'hetzner', 'ovh', 'infomaniak', 'domain', 'provider'],
+	apps: ['nextcloud', 'immich', 'paperless', 'papra', 'gitlab', 'forgejo'],
 	media: ['jellyfin', 'plex', 'sonarr', 'radarr', 'lidarr', 'prowlarr', 'qbittorrent', 'homeassistant', 'frigate']
 };
 
@@ -53,7 +52,7 @@ const CATEGORY_OF = new Map<string, CategoryId>(
 
 /** The category of a choice (`id` is its kind, or `agent:<feature>`). */
 export function categoryOf(id: string): CategoryId {
-	return CATEGORY_OF.get(id) ?? (id.startsWith('pack.') ? 'packs' : 'other');
+	return CATEGORY_OF.get(id) ?? (id.startsWith('pack.') ? 'packs' : 'apps');
 }
 
 /** Position inside the category: the fixed order above, then the unknown ones. */

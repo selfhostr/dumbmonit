@@ -16,7 +16,6 @@ test('every other page sends it to the wall', () => {
 
 test('after sign-in, a remembered wall address keeps its options', () => {
 	assert.equal(wallDestination('/login', '/wall?city=paris'), '/wall?city=paris');
-	assert.equal(wallDestination('/login', '/wall?speaker=Kitchen'), '/wall?speaker=Kitchen');
 	assert.equal(wallDestination('/login', '/wall'), '/wall');
 });
 

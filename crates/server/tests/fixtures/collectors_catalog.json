@@ -1496,6 +1496,199 @@
     ]
   },
   {
+    "kind": "agent_script",
+    "label": "Custom check (script or Nagios plugin)",
+    "summary": "Your own script or any Nagios plugin, run by the agent on its machine: status, message and performance data.",
+    "examples": [
+      "check_disk",
+      "check_http",
+      "Backup age script"
+    ],
+    "credential_types": [
+      "none",
+      "api_token",
+      "username_password"
+    ],
+    "credentials": [
+      {
+        "kind": "none",
+        "label": "No authentication",
+        "help": "Nothing is sent: the monitor answers without credentials.",
+        "fields": []
+      },
+      {
+        "kind": "api_token",
+        "label": "Token",
+        "help": "Written where an argument says {{secret.token}}, and passed as DUMBMONIT_SECRET_TOKEN.",
+        "fields": [
+          {
+            "key": "token",
+            "label": "Token",
+            "help": "Stored encrypted, never shown again.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      },
+      {
+        "kind": "username_password",
+        "label": "Username / password",
+        "help": "Written where an argument says {{secret.username}} and {{secret.password}}, and passed as DUMBMONIT_SECRET_USERNAME and DUMBMONIT_SECRET_PASSWORD.",
+        "fields": [
+          {
+            "key": "username",
+            "label": "User name",
+            "help": "",
+            "placeholder": "",
+            "input": "text",
+            "choices": [],
+            "required": true
+          },
+          {
+            "key": "password",
+            "label": "Password",
+            "help": "Stored encrypted, never shown again.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "nas01/disk",
+    "default_port": 0,
+    "setup": {
+      "title": "Allow the check on the machine",
+      "steps": [
+        "Enable custom checks in the agent.yaml of the machine (/etc/dumbmonit on Linux, C:\\ProgramData\\DumbMonit on Windows), then restart the agent.\nscripts: true",
+        "Put the script in the script directory (scripts.d next to agent.yaml), executable and writable by its owner only.\nsudo install -d -m 0755 /etc/dumbmonit/scripts.d\nsudo install -m 0755 check_backup.sh /etc/dumbmonit/scripts.d/",
+        "For the Nagios plugins of the distribution, add their directory to scripts_dirs instead of copying them.\nscripts_dirs: [/etc/dumbmonit/scripts.d, /usr/lib/nagios/plugins]",
+        "Here, pick that agent, enter the command and one argument per row: no shell is involved, so pipes and variables stay plain text.",
+        "Choose the output format: nagios for plugins (exit code and performance data), json or prometheus for your own scripts."
+      ],
+      "ports": [
+        {
+          "port": 8443,
+          "protocol": "tcp",
+          "direction": "to_server",
+          "purpose": "Readings and commands: the encrypted agent channel",
+          "optional": false
+        }
+      ],
+      "warning": "The agent runs nothing until scripts: true is set on the machine, and only files of its own script directories: the server cannot make it run anything else.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/custom-scripts/"
+    },
+    "options": [
+      {
+        "key": "agent_id",
+        "label": "Agent that runs the check",
+        "help": "The DumbMonit agent of the machine where the script or plugin lives. It only runs files of the directories its agent.yaml allows (scripts: true, scripts_dirs).",
+        "placeholder": "",
+        "default": "",
+        "required": false,
+        "input": "agent",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "command",
+        "label": "Command",
+        "help": "A file name of the agent's script directories (check_disk, backup-age.sh) or its absolute path. No shell: pipes, ; and $() are not interpreted.",
+        "placeholder": "check_disk",
+        "default": "",
+        "required": true,
+        "input": "text",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "args",
+        "label": "Arguments",
+        "help": "One argument per row, passed as is. Write {{secret.username}}, {{secret.password}} or {{secret.token}} where the credential of this monitor goes.",
+        "placeholder": "",
+        "default": "",
+        "required": false,
+        "input": "rows",
+        "choices": [],
+        "group": "",
+        "columns": [
+          {
+            "key": "value",
+            "label": "Argument",
+            "placeholder": "-w",
+            "input": "text",
+            "choices": [],
+            "pattern": "",
+            "invalid": "",
+            "unique": false
+          }
+        ]
+      },
+      {
+        "key": "format",
+        "label": "Output format",
+        "help": "nagios: exit code 0 OK, 1 WARNING, 2 CRITICAL, 3 UNKNOWN, first line as message, performance data after |. json: {\"status\", \"message\", \"metrics\"}. prometheus: text exposition format, status from the exit code.",
+        "placeholder": "",
+        "default": "nagios",
+        "required": false,
+        "input": "select",
+        "choices": [
+          "nagios",
+          "json",
+          "prometheus"
+        ],
+        "group": ""
+      },
+      {
+        "key": "timeout_seconds",
+        "label": "Timeout (seconds)",
+        "help": "The check is killed with all its child processes after this time, from 1 to 120.",
+        "placeholder": "10",
+        "default": "10",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "env",
+        "label": "Environment variables",
+        "help": "Added to a minimal environment. Variables that load code or change what runs (PATH, LD_*, PYTHON*, BASH_ENV…) are refused.",
+        "placeholder": "",
+        "default": "",
+        "required": false,
+        "input": "rows",
+        "choices": [],
+        "group": "",
+        "columns": [
+          {
+            "key": "name",
+            "label": "Name",
+            "placeholder": "MYSQL_HOST",
+            "input": "text",
+            "choices": [],
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "invalid": "Letters, digits and _ only, not starting with a digit.",
+            "unique": true
+          },
+          {
+            "key": "value",
+            "label": "Value",
+            "placeholder": "",
+            "input": "text",
+            "choices": [],
+            "pattern": "",
+            "invalid": "",
+            "unique": false
+          }
+        ]
+      }
+    ]
+  },
+  {
     "kind": "agent_service",
     "label": "Service found by an agent",
     "summary": "Docker, backups, ZFS, VMs or tunnels found by the agent on a machine, each watched as its own device.",
@@ -5930,6 +6123,208 @@
     "beta": true
   },
   {
+    "kind": "gcp",
+    "label": "Google Cloud",
+    "summary": "Compute Engine and Cloud SQL instance states and Cloud Monitoring metrics of a Google Cloud project, read through a read-only service account.",
+    "examples": [
+      "Google Cloud project"
+    ],
+    "credential_types": [
+      "api_token"
+    ],
+    "credentials": [
+      {
+        "kind": "api_token",
+        "label": "Service account key (JSON)",
+        "help": "The JSON key file of a service account that has read-only roles on the project.",
+        "fields": [
+          {
+            "key": "token",
+            "label": "Service account key",
+            "help": "Paste the whole content of the JSON key file.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "googleapis.com",
+    "default_port": 443,
+    "setup": {
+      "title": "Create a read-only service account for DumbMonit",
+      "steps": [
+        "In the Google Cloud console, open IAM & Admin > Service accounts > Create service account, and name it dumbmonit.",
+        "Grant it the roles Compute Viewer, Cloud SQL Viewer and Monitoring Viewer on the project (IAM & Admin > IAM > Grant access).",
+        "Open the service account > Keys > Add key > Create new key > JSON: a key file is downloaded, shown once.",
+        "Make sure the Compute Engine, Cloud SQL Admin and Cloud Monitoring APIs are enabled on the project (APIs & Services > Enabled APIs).",
+        "In DumbMonit, enter googleapis.com as address, paste the content of the JSON key file, and fill the Project ID option if the key belongs to another project."
+      ],
+      "ports": [
+        {
+          "port": 443,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "Google Cloud REST APIs (HTTPS, *.googleapis.com)",
+          "optional": false
+        },
+        {
+          "port": 443,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "Google sign-in, access token (HTTPS, oauth2.googleapis.com)",
+          "optional": false
+        }
+      ],
+      "permissions": [
+        "Compute Viewer (role on the project)\nLists the Compute Engine instances and their state.",
+        "Cloud SQL Viewer (role on the project)\nLists the Cloud SQL instances and their state. Optional.",
+        "Monitoring Viewer (role on the project)\nReads the Cloud Monitoring time series. Optional."
+      ],
+      "warning": "A stopped Compute Engine instance or Cloud SQL instance (TERMINATED, SUSPENDED) is counted apart and raises no alert. Billing is not read.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/gcp/"
+    },
+    "options": [
+      {
+        "key": "project_id",
+        "label": "Project ID",
+        "help": "The project to watch. Empty: the project the service account key belongs to.",
+        "placeholder": "my-project-123",
+        "default": "",
+        "required": false,
+        "input": "text",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "metrics",
+        "label": "Monitoring metrics",
+        "help": "Cloud Monitoring metric types to read, separated by commas (5 at most). CPU utilization is shown as a percentage.",
+        "placeholder": "compute.googleapis.com/instance/cpu/utilization",
+        "default": "compute.googleapis.com/instance/cpu/utilization",
+        "required": false,
+        "input": "text",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "request_timeout_seconds",
+        "label": "Timeout per request (seconds)",
+        "help": "Time allowed for each call, from 1 to 120.",
+        "placeholder": "15",
+        "default": "15",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      }
+    ],
+    "metrics": [
+      {
+        "name": "gcp_instances",
+        "label": "Compute instances",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_instances_running",
+        "label": "Compute instances running",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "gcp_instances_stopped",
+        "label": "Compute instances stopped",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_instances_failed",
+        "label": "Compute instances failed",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "gcp_instance_unhealthy",
+        "label": "Compute instance unhealthy",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "gcp_sql_instances",
+        "label": "Cloud SQL instances",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_sql_instances_running",
+        "label": "Cloud SQL instances running",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "gcp_sql_instances_stopped",
+        "label": "Cloud SQL instances stopped",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_sql_instances_failed",
+        "label": "Cloud SQL instances failed",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "gcp_sql_unhealthy",
+        "label": "Cloud SQL instance unhealthy",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "gcp_sql_readable",
+        "label": "Cloud SQL readable",
+        "unit": "bool",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_monitoring_readable",
+        "label": "Monitoring readable",
+        "unit": "bool",
+        "kind": "gauge"
+      },
+      {
+        "name": "gcp_metric",
+        "label": "Monitoring metric",
+        "kind": "gauge"
+      }
+    ],
+    "views": [
+      {
+        "view": "stat",
+        "title": "Current values",
+        "metrics": [
+          "gcp_instances_failed",
+          "gcp_sql_instances_failed",
+          "gcp_instance_unhealthy",
+          "gcp_instances",
+          "gcp_instances_running",
+          "gcp_instances_stopped",
+          "gcp_sql_instances",
+          "gcp_sql_instances_running",
+          "gcp_sql_instances_stopped",
+          "gcp_sql_unhealthy",
+          "gcp_sql_readable",
+          "gcp_monitoring_readable"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Monitoring metrics",
+        "metrics": [
+          "gcp_metric"
+        ]
+      }
+    ],
+    "beta": true
+  },
+  {
     "kind": "gitlab",
     "label": "GitLab (self-managed)",
     "summary": "Readiness, Sidekiq backlog, CI runners online or not, pending migrations, instance statistics, sign-up and two-factor settings, licence expiry.",
@@ -7961,6 +8356,326 @@
     ]
   },
   {
+    "kind": "hyperv",
+    "label": "Microsoft Hyper-V",
+    "summary": "Beta. A Hyper-V host without installing anything, through WinRM and WMI queries: host CPU, memory and uptime, and for each virtual machine its state, health, uptime, CPU, assigned memory, integration services, replication and checkpoints.",
+    "examples": [
+      "Windows Server 2019 with Hyper-V",
+      "Windows Server 2022 with Hyper-V",
+      "Hyper-V Server"
+    ],
+    "credential_types": [
+      "username_password"
+    ],
+    "credentials": [
+      {
+        "kind": "username_password",
+        "label": "Windows account",
+        "help": "A local or domain account in the Remote Management Users group, as dumbmonit, DOMAIN\\dumbmonit or dumbmonit@domain.",
+        "fields": [
+          {
+            "key": "username",
+            "label": "User name",
+            "help": "The account created on the server, as dumbmonit (local) or DOMAIN\\dumbmonit.",
+            "placeholder": "CORP\\dumbmonit",
+            "input": "text",
+            "choices": [],
+            "required": true
+          },
+          {
+            "key": "password",
+            "label": "Password",
+            "help": "",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "hv01.corp.example.com",
+    "default_port": 5986,
+    "setup": {
+      "title": "Give DumbMonit a read-only WinRM account on the Hyper-V host",
+      "steps": [
+        "On the host, in an elevated PowerShell, enable WinRM.\nEnable-PSRemoting -SkipNetworkProfileCheck -Force",
+        "Create the HTTPS listener with a certificate named after the host (use your own certificate instead of this self-signed one if you have one), then open its port.\n$cert = New-SelfSignedCertificate -DnsName \"hv01.corp.example.com\" -CertStoreLocation Cert:\\LocalMachine\\My\nNew-Item -Path WSMan:\\LocalHost\\Listener -Transport HTTPS -Address * -CertificateThumbPrint $cert.Thumbprint -Force\nNew-NetFirewallRule -DisplayName \"WinRM HTTPS\" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow",
+        "Create the account with a long random password, then add it to the groups listed below.\nnet user dumbmonit * /add\nnet localgroup \"Remote Management Users\" dumbmonit /add\nnet localgroup \"Performance Monitor Users\" dumbmonit /add",
+        "In wmimgmt.msc, open WMI Control → Properties → Security → Root → virtualization → v2 → Security, add the account and tick Enable Account and Remote Enable.",
+        "Do the same on Root → CIMV2, for the host CPU and memory.",
+        "In DumbMonit, enter the host name as its certificate names it (hv01.corp.example.com) and log in as dumbmonit, or DOMAIN\\dumbmonit for a domain account."
+      ],
+      "ports": [
+        {
+          "port": 5986,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "WinRM over HTTPS (default)",
+          "optional": false
+        },
+        {
+          "port": 5985,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "Only with the Allow unencrypted traffic option",
+          "optional": true
+        }
+      ],
+      "permissions": [
+        "Remote Management Users\nAllows the WinRM login",
+        "Performance Monitor Users\nReads the hypervisor processor load",
+        "WMI root/virtualization/v2: Enable Account, Remote Enable\nReads the virtual machines, their checkpoints and replication",
+        "WMI root/cimv2: Enable Account, Remote Enable\nReads the host memory and uptime"
+      ],
+      "warning": "Beta: written from Microsoft's WMI documentation, not yet tested on every Windows Server version. The account runs no command on the host, it only reads WMI. NTLM and Basic (HTTPS only) are supported, Kerberos is not. A self-signed certificate needs the option Accept an unverifiable certificate.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/hyper-v/"
+    },
+    "options": [
+      {
+        "key": "allow_unencrypted",
+        "label": "Allow unencrypted traffic",
+        "help": "Use HTTP on port 5985 instead of HTTPS on port 5986. Not recommended: the server must allow unencrypted WinRM, and everything that crosses the network, the login included, can be read. Leave it off whenever an HTTPS listener exists.",
+        "placeholder": "",
+        "default": "false",
+        "required": false,
+        "input": "boolean",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "help": "Used if the address does not give a port. 5986 for HTTPS, 5985 with unencrypted traffic.",
+        "placeholder": "5986",
+        "default": "",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "auth",
+        "label": "Authentication",
+        "help": "NTLM works with local and domain accounts. Basic must be enabled on the server and is only accepted over HTTPS. Kerberos is not supported.",
+        "placeholder": "",
+        "default": "ntlm",
+        "required": false,
+        "input": "select",
+        "choices": [
+          "ntlm",
+          "basic"
+        ],
+        "group": ""
+      },
+      {
+        "key": "insecure_tls",
+        "label": "Accept an unverifiable certificate",
+        "help": "The device ships a self-signed certificate: enable this unless you installed one DumbMonit trusts.",
+        "placeholder": "",
+        "default": "false",
+        "required": false,
+        "input": "boolean",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "request_timeout_seconds",
+        "label": "Timeout per request (seconds)",
+        "help": "Time allowed for each call, from 1 to 120.",
+        "placeholder": "15",
+        "default": "15",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      }
+    ],
+    "metrics": [
+      {
+        "name": "hyperv_vms",
+        "label": "Virtual machines",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vms_running",
+        "label": "Virtual machines running",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_host_cpu_percent",
+        "label": "Host CPU",
+        "unit": "%",
+        "kind": "gauge",
+        "better": "lower",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "name": "hyperv_host_memory_used_percent",
+        "label": "Host memory used",
+        "unit": "%",
+        "kind": "gauge",
+        "better": "lower",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "name": "hyperv_host_memory_total_bytes",
+        "label": "Host memory total",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_host_memory_used_bytes",
+        "label": "Host memory used",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_host_uptime_seconds",
+        "label": "Host uptime",
+        "unit": "s",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vm_state",
+        "label": "VM state",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vm_running",
+        "label": "VM running",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "hyperv_vm_health_ok",
+        "label": "VM health OK",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "hyperv_vm_uptime_seconds",
+        "label": "VM uptime",
+        "unit": "s",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vm_cpu_percent",
+        "label": "VM CPU",
+        "unit": "%",
+        "kind": "gauge",
+        "better": "lower",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "name": "hyperv_vm_cpus",
+        "label": "VM processors",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vm_memory_assigned_bytes",
+        "label": "VM memory assigned",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "hyperv_vm_integration_ok",
+        "label": "VM integration services",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "hyperv_vm_replication_ok",
+        "label": "VM replication healthy",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "hyperv_vm_checkpoints",
+        "label": "VM checkpoints",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "hyperv_vm_checkpoint_oldest_age_seconds",
+        "label": "Oldest checkpoint age",
+        "unit": "s",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "winrm_section_readable",
+        "label": "Section readable",
+        "unit": "bool",
+        "kind": "gauge"
+      }
+    ],
+    "views": [
+      {
+        "view": "stat",
+        "title": "Current values",
+        "metrics": [
+          "hyperv_vms",
+          "hyperv_vms_running",
+          "hyperv_host_cpu_percent",
+          "hyperv_host_memory_used_percent",
+          "hyperv_host_memory_total_bytes",
+          "hyperv_host_uptime_seconds",
+          "winrm_section_readable"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Host CPU and memory",
+        "metrics": [
+          "hyperv_host_cpu_percent",
+          "hyperv_host_memory_used_percent"
+        ]
+      },
+      {
+        "view": "topn",
+        "title": "VM CPU",
+        "metrics": [
+          "hyperv_vm_cpu_percent"
+        ],
+        "group_by": "vm",
+        "options": {
+          "limit": "10"
+        }
+      },
+      {
+        "view": "topn",
+        "title": "VM memory assigned",
+        "metrics": [
+          "hyperv_vm_memory_assigned_bytes"
+        ],
+        "group_by": "vm",
+        "options": {
+          "limit": "10"
+        }
+      },
+      {
+        "view": "topn",
+        "title": "Oldest checkpoint",
+        "metrics": [
+          "hyperv_vm_checkpoint_oldest_age_seconds"
+        ],
+        "group_by": "vm",
+        "options": {
+          "limit": "10"
+        }
+      }
+    ],
+    "beta": true
+  },
+  {
     "kind": "imap",
     "label": "Mailbox (IMAP)",
     "summary": "An IMAP server greets, offers TLS and accepts a login, like a real mail client.",
@@ -9324,6 +10039,245 @@
         ]
       }
     ]
+  },
+  {
+    "kind": "ipmi",
+    "label": "Server hardware (IPMI)",
+    "summary": "Temperatures, fans, voltages, power supplies, power state and event log of a BMC, read over IPMI v2.0 (RMCP+).",
+    "examples": [
+      "Supermicro BMC",
+      "Dell iDRAC",
+      "HPE iLO",
+      "Any IPMI-capable BMC"
+    ],
+    "credential_types": [
+      "username_password"
+    ],
+    "credentials": [
+      {
+        "kind": "username_password",
+        "label": "BMC user",
+        "help": "A BMC user allowed to use IPMI over LAN, with the USER privilege level (read-only) or above.",
+        "fields": [
+          {
+            "key": "username",
+            "label": "User name",
+            "help": "The BMC user name.",
+            "placeholder": "dumbmonit",
+            "input": "text",
+            "choices": [],
+            "required": true
+          },
+          {
+            "key": "password",
+            "label": "Password",
+            "help": "The BMC user password. IPMI limits it to 20 characters.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "192.168.1.50",
+    "default_port": 623,
+    "setup": {
+      "title": "Prepare the BMC for DumbMonit",
+      "steps": [
+        "In the BMC web interface, create a user for DumbMonit with the privilege level User (read-only) and IPMI over LAN enabled.",
+        "Make sure IPMI over LAN is enabled on the BMC network interface (often under Configuration > Network > IPMI, or Services).",
+        "Allow UDP 623 from the DumbMonit server (or its relay agent) to the BMC.",
+        "In DumbMonit, enter the BMC address and the user name and password."
+      ],
+      "ports": [
+        {
+          "port": 623,
+          "protocol": "udp",
+          "direction": "to_device",
+          "purpose": "IPMI over LAN (RMCP+)",
+          "optional": false
+        }
+      ],
+      "permissions": [
+        "IPMI user, privilege level User\nReads sensors, the chassis status and the event log; changes nothing."
+      ],
+      "warning": "IPMI v2.0 passwords are exchanged with a challenge but the protocol has known weaknesses: keep the BMC on a management network. If the BMC serves Redfish, prefer the Server hardware (Redfish) integration.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/ipmi/"
+    },
+    "options": [
+      {
+        "key": "request_timeout_seconds",
+        "label": "Timeout per exchange (seconds)",
+        "help": "Time allowed for each BMC answer, from 1 to 60.",
+        "placeholder": "5",
+        "default": "5",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      }
+    ],
+    "metrics": [
+      {
+        "name": "ipmi_temperature_celsius",
+        "label": "Temperature",
+        "unit": "°C",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_fan_rpm",
+        "label": "Fan speed",
+        "unit": "rpm",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_voltage_volts",
+        "label": "Voltage",
+        "unit": "V",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_current_amps",
+        "label": "Current",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_power_watts",
+        "label": "Power",
+        "unit": "W",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_sensor_value",
+        "label": "Other sensor",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_sensor_ok",
+        "label": "Sensor within limits",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "ipmi_sensors",
+        "label": "Sensors",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_sensors_out_of_limits",
+        "label": "Sensors out of limits",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_psu_present",
+        "label": "Power supply present",
+        "unit": "bool",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_psu_ok",
+        "label": "Power supply OK",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "ipmi_psus_faulty",
+        "label": "Power supplies faulty",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_chassis_power_on",
+        "label": "Chassis power on",
+        "unit": "bool",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_chassis_power_fault",
+        "label": "Chassis power fault",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_chassis_power_overload",
+        "label": "Chassis power overload",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_sel_entries",
+        "label": "Event log entries",
+        "kind": "gauge"
+      },
+      {
+        "name": "ipmi_sel_overflow",
+        "label": "Event log overflow",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "ipmi_read_truncated",
+        "label": "Read cut short",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "lower"
+      }
+    ],
+    "views": [
+      {
+        "view": "stat",
+        "title": "Current values",
+        "metrics": [
+          "ipmi_psus_faulty",
+          "ipmi_sensors_out_of_limits",
+          "ipmi_chassis_power_on",
+          "ipmi_chassis_power_fault",
+          "ipmi_chassis_power_overload",
+          "ipmi_sel_entries",
+          "ipmi_sel_overflow",
+          "ipmi_sensors",
+          "ipmi_read_truncated"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Temperatures",
+        "metrics": [
+          "ipmi_temperature_celsius"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Fans",
+        "metrics": [
+          "ipmi_fan_rpm"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Voltages",
+        "metrics": [
+          "ipmi_voltage_volts"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Power",
+        "metrics": [
+          "ipmi_power_watts",
+          "ipmi_current_amps"
+        ]
+      }
+    ],
+    "beta": true
   },
   {
     "kind": "jellyfin",
@@ -13826,7 +14780,7 @@
   {
     "kind": "mysql",
     "label": "MySQL or MariaDB database",
-    "summary": "Logs in and runs a query: catches a database that is up but no longer answering.",
+    "summary": "Logs in, runs a query and reads the server's health: catches a database that is up but no longer answering, and one that is running out of connections, lagging behind its primary or slow.",
     "examples": [
       "The database behind a WordPress",
       "A Nextcloud or a Kimai",
@@ -13870,7 +14824,8 @@
       "steps": [
         "In the mysql client, create an account with no privilege (adjust the host part to the DumbMonit machine).\nCREATE USER 'dumbmonit'@'%' IDENTIFIED BY 'a-long-password';",
         "In DumbMonit, enter the server, for example db.home.lan:3307 (port 3306 by default), then the account's user and password.",
-        "Optional: replace the default query SELECT 1 with one that returns a single number, to chart it."
+        "Optional: replace the default query SELECT 1 with one that returns a single number, to chart it.",
+        "Optional, for the complete server health metrics (queries, replication, long-running queries): let the account read the server status.\nGRANT PROCESS, REPLICATION CLIENT ON *.* TO 'dumbmonit'@'%';"
       ],
       "ports": [
         {
@@ -13882,7 +14837,8 @@
         }
       ],
       "permissions": [
-        "USAGE (no privilege)\nConnect and run SELECT 1, nothing more"
+        "USAGE (no privilege)\nConnect and run SELECT 1, nothing more",
+        "PROCESS, REPLICATION CLIENT (optional)\nSee every session, and read the replication status; without them the health metrics are partial"
       ],
       "warning": "The check opens a real connection on every poll: on an instance close to its connection limit, give it a longer interval.",
       "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/services/#mysql-and-mariadb"
@@ -13949,6 +14905,17 @@
         "group": ""
       },
       {
+        "key": "server_stats",
+        "label": "Server health metrics",
+        "help": "Also reads connections, queries per second, slow queries, the InnoDB buffer pool hit ratio, replication and its lag, schema sizes and long-running queries, on the same connection. An account without PROCESS or REPLICATION CLIENT sees fewer of them; nothing here can make the check fail.",
+        "placeholder": "",
+        "default": "true",
+        "required": false,
+        "input": "boolean",
+        "choices": [],
+        "group": ""
+      },
+      {
         "key": "allow_private_targets",
         "label": "Allow loopback and link-local targets",
         "help": "By default the check refuses addresses only the DumbMonit host itself can reach (127.0.0.1, ::1, 169.254.x.x). Enable this to monitor a service running on the DumbMonit host. Private LAN addresses (10.x, 192.168.x) are always allowed.",
@@ -14008,6 +14975,144 @@
         "name": "probe_sql_rows",
         "label": "Rows returned",
         "kind": "gauge"
+      },
+      {
+        "name": "mysql_connections",
+        "label": "Connections",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_max_connections",
+        "label": "Max connections",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_connections_used_percent",
+        "label": "Connections used",
+        "unit": "%",
+        "kind": "gauge",
+        "better": "lower",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "name": "mysql_max_used_connections",
+        "label": "Peak connections",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_threads_running",
+        "label": "Threads running",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "mysql_queries_total",
+        "label": "Queries",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_slow_queries_total",
+        "label": "Slow queries",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_aborted_connects_total",
+        "label": "Aborted connections",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_aborted_clients_total",
+        "label": "Aborted clients",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_buffer_pool_read_requests_total",
+        "label": "Buffer pool read requests",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_buffer_pool_disk_reads_total",
+        "label": "Buffer pool disk reads",
+        "kind": "counter"
+      },
+      {
+        "name": "mysql_buffer_pool_hit_percent",
+        "label": "Buffer pool hit ratio",
+        "unit": "%",
+        "kind": "gauge",
+        "better": "higher",
+        "min": 0.0,
+        "max": 100.0
+      },
+      {
+        "name": "mysql_long_running_queries",
+        "label": "Queries running over 60 s",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "mysql_longest_query_seconds",
+        "label": "Longest running query",
+        "unit": "s",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "mysql_replicas_configured",
+        "label": "Replication channels",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_replica_running",
+        "label": "Replication running",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "mysql_replica_io_running",
+        "label": "Replication I/O thread",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "mysql_replica_sql_running",
+        "label": "Replication SQL thread",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "mysql_replica_lag_seconds",
+        "label": "Replica lag",
+        "unit": "s",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
+        "name": "mysql_database_size_bytes",
+        "label": "Schema size",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_read_only",
+        "label": "Read only",
+        "unit": "bool",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_uptime_seconds",
+        "label": "Uptime",
+        "unit": "s",
+        "kind": "gauge"
+      },
+      {
+        "name": "mysql_version_info",
+        "label": "Version",
+        "kind": "info"
       }
     ],
     "views": [
@@ -14015,6 +15120,16 @@
         "view": "stat",
         "title": "Current values",
         "metrics": [
+          "mysql_connections_used_percent",
+          "mysql_connections",
+          "mysql_max_connections",
+          "mysql_threads_running",
+          "mysql_buffer_pool_hit_percent",
+          "mysql_long_running_queries",
+          "mysql_replica_running",
+          "mysql_replica_lag_seconds",
+          "mysql_uptime_seconds",
+          "mysql_version_info",
           "probe_sql_rows"
         ]
       },
@@ -14025,6 +15140,28 @@
           "probe_duration_seconds",
           "probe_connect_seconds",
           "probe_sql_query_seconds"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Connections",
+        "metrics": [
+          "mysql_connections",
+          "mysql_threads_running"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Replication",
+        "metrics": [
+          "mysql_replica_lag_seconds"
+        ]
+      },
+      {
+        "view": "timeseries",
+        "title": "Schema size",
+        "metrics": [
+          "mysql_database_size_bytes"
         ]
       }
     ]
@@ -17808,6 +18945,173 @@
     ]
   },
   {
+    "kind": "papra",
+    "label": "Papra",
+    "summary": "Server and database health, organisations, document count and storage used per organisation.",
+    "examples": [
+      "Papra"
+    ],
+    "credential_types": [
+      "api_token"
+    ],
+    "credentials": [
+      {
+        "kind": "api_token",
+        "label": "API key",
+        "help": "An API key created in Papra's settings, sent as \"Authorization: Bearer …\".",
+        "fields": [
+          {
+            "key": "token",
+            "label": "API key",
+            "help": "Stored encrypted, never shown again.",
+            "placeholder": "",
+            "input": "password",
+            "choices": [],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "address_hint": "papra.lan",
+    "default_port": 1221,
+    "setup": {
+      "title": "Create an API key in Papra",
+      "steps": [
+        "In Papra, open Settings → API keys → Create API key and name it as follows.\ndumbmonit",
+        "Tick only the permissions listed below, and copy the key (it starts with ppapi_).",
+        "In DumbMonit, enter Papra's address and paste the key."
+      ],
+      "ports": [
+        {
+          "port": 1221,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "API (HTTP, default)",
+          "optional": false
+        },
+        {
+          "port": 443,
+          "protocol": "tcp",
+          "direction": "to_device",
+          "purpose": "Only with the https scheme behind a reverse proxy",
+          "optional": true
+        }
+      ],
+      "permissions": [
+        "organizations:read\nList of organisations",
+        "documents:read\nDocument counts and sizes, never the documents themselves"
+      ],
+      "warning": "A Papra API key acts as its owner: keep it only in DumbMonit. DumbMonit reads counts and sizes only, never a document name or file.",
+      "doc_url": "https://dumbmonit.selfhostr.io/docs/devices/papra/"
+    },
+    "options": [
+      {
+        "key": "scheme",
+        "label": "Protocol",
+        "help": "Used when the address does not start with http:// or https://.",
+        "placeholder": "",
+        "default": "http",
+        "required": false,
+        "input": "select",
+        "choices": [
+          "http",
+          "https"
+        ],
+        "group": ""
+      },
+      {
+        "key": "port",
+        "label": "Port",
+        "help": "Used if the address does not give a port. Choosing the other protocol without a port uses 80 or 443.",
+        "placeholder": "1221",
+        "default": "1221",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "insecure_tls",
+        "label": "Accept an unverifiable certificate",
+        "help": "For a self-signed or private certificate: enable this if the connection is refused for that reason.",
+        "placeholder": "",
+        "default": "false",
+        "required": false,
+        "input": "boolean",
+        "choices": [],
+        "group": ""
+      },
+      {
+        "key": "request_timeout_seconds",
+        "label": "Timeout per request (seconds)",
+        "help": "Time allowed for each call, from 1 to 120. Photo and file counts are computed on every call on a large instance.",
+        "placeholder": "15",
+        "default": "15",
+        "required": false,
+        "input": "number",
+        "choices": [],
+        "group": ""
+      }
+    ],
+    "metrics": [
+      {
+        "name": "papra_database_healthy",
+        "label": "Database healthy",
+        "unit": "bool",
+        "kind": "gauge",
+        "better": "higher"
+      },
+      {
+        "name": "papra_organizations",
+        "label": "Organizations",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents",
+        "label": "Documents",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_size_bytes",
+        "label": "Documents size",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_deleted",
+        "label": "Documents in trash",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_documents_deleted_size_bytes",
+        "label": "Trash size",
+        "unit": "B",
+        "kind": "gauge"
+      },
+      {
+        "name": "papra_scrape_errors",
+        "label": "Scrape errors",
+        "kind": "gauge",
+        "better": "lower"
+      }
+    ],
+    "views": [
+      {
+        "view": "stat",
+        "title": "Current values",
+        "metrics": [
+          "papra_database_healthy",
+          "papra_organizations",
+          "papra_documents",
+          "papra_documents_size_bytes",
+          "papra_documents_deleted",
+          "papra_documents_deleted_size_bytes"
+        ]
+      }
+    ],
+    "beta": true
+  },
+  {
     "kind": "pbs",
     "label": "Proxmox Backup Server",
     "summary": "Backup freshness per machine, failed tasks, sync and verify jobs, datastore space.",
@@ -21565,6 +22869,12 @@
         "better": "lower"
       },
       {
+        "name": "postgres_long_running_queries",
+        "label": "Queries running over 60 s",
+        "kind": "gauge",
+        "better": "lower"
+      },
+      {
         "name": "postgres_locks_waiting",
         "label": "Locks waiting",
         "kind": "gauge"
@@ -21760,6 +23070,7 @@
           "postgres_cache_hit_percent",
           "postgres_longest_transaction_seconds",
           "postgres_longest_idle_in_transaction_seconds",
+          "postgres_long_running_queries",
           "postgres_locks_waiting",
           "postgres_database_wraparound_percent",
           "postgres_dead_tuples_percent",
@@ -31318,8 +32629,7 @@
           "vaultwarden_version_info"
         ]
       }
-    ],
-    "beta": true
+    ]
   },
   {
     "kind": "veeam",

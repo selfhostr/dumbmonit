@@ -1,5 +1,8 @@
 # SLOs and error budgets
 
+!!! note "Optional module"
+    SLOs are an optional module, off on a new installation: switch them on in *Settings → System → Modules* ([Settings](settings.md#modules)).
+
 A service level objective (SLO) says how available something has to be over a
 rolling window: "the public API is up 99.9 % of the time over 30 days". What the
 target leaves over (0.1 % of 30 days, so 43.2 minutes) is the **error budget**.

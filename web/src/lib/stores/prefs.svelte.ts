@@ -32,6 +32,8 @@ class DisplayPrefs {
 	weekStart = $state<WeekStart>('auto');
 	density = $state<Density>('comfortable');
 	motion = $state<MotionPref>('auto');
+	showGithub = $state(true);
+	showDocs = $state(true);
 
 	constructor() {
 		const stored = read();
@@ -39,6 +41,8 @@ class DisplayPrefs {
 		this.weekStart = stored.weekStart;
 		this.density = stored.density;
 		this.motion = stored.motion;
+		this.showGithub = stored.showGithub;
+		this.showDocs = stored.showDocs;
 	}
 
 	get hour12(): boolean | undefined {
@@ -53,8 +57,8 @@ class DisplayPrefs {
 		Object.assign(this, patch);
 		if (!browser) return;
 		try {
-			const { timeFormat, weekStart, density, motion } = this;
-			localStorage.setItem(PREFS_KEY, JSON.stringify({ timeFormat, weekStart, density, motion }));
+			const { timeFormat, weekStart, density, motion, showGithub, showDocs } = this;
+			localStorage.setItem(PREFS_KEY, JSON.stringify({ timeFormat, weekStart, density, motion, showGithub, showDocs }));
 		} catch {
 			// Storage blocked: the choice lasts until the page is closed.
 		}
@@ -62,10 +66,11 @@ class DisplayPrefs {
 	}
 
 	/** Puts the classes on `<html>`. Called at start-up and after each change. */
-	apply(): void {
+	apply(onWall = location.pathname.replace(/^\/demo(?=\/|$)/, '').startsWith('/wall')): void {
 		if (!browser) return;
 		const root = document.documentElement;
-		root.classList.toggle('density-compact', this.density === 'compact');
+		// The wall ignores density.
+		root.classList.toggle('density-compact', this.density === 'compact' && !onWall);
 		root.classList.toggle('reduce-motion', this.motion === 'reduce');
 	}
 }

@@ -2,9 +2,8 @@
 //!
 //! - `GET /api/wall/weather` : le réglage (lieu, unité) et, quand un lieu est
 //!   choisi, la météo du moment. Lisible par tout porteur authentifié, dans les
-//!   mêmes conditions que le reste des données du mur (`/api/music/now`,
-//!   alertes…). Sans lieu, rien n'est demandé à personne ; si Open-Meteo ne
-//!   répond pas, `current` vaut `null` et le mur n'affiche rien.
+//!   mêmes conditions que le reste des données du mur (alertes…). Sans lieu,
+//!   rien n'est demandé à personne ; si Open-Meteo ne répond pas, `current` vaut `null` et le mur n'affiche rien.
 //! - `PUT /api/wall/weather` : choisit le lieu et l'unité (administrateurs).
 //! - `GET /api/wall/weather/places?q=…` : recherche de ville par nom
 //!   (administrateurs : le serveur n'est pas un relais de géocodage public).

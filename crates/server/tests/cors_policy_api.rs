@@ -4,6 +4,7 @@
 //! Un seul test dans ce fichier : la variable d'environnement est globale au
 //! processus, et chaque fichier de tests est un processus à part.
 
+#[path = "it/common/mod.rs"]
 mod common;
 
 use axum::body::Body;

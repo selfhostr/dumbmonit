@@ -101,8 +101,7 @@ mod tests {
     ///   le binaire de l'agent et le serveur, authentifié par un jeton
     ///   d'enregistrement ou un certificat, que nul client n'a à appeler ;
     /// - les redirections de la connexion OIDC (`/api/auth/oidc/start` et
-    ///   `/callback`) et SAML (`/api/auth/saml/start`, `/acs`, `/complete`), et
-    ///   le retour de Spotify (`/api/music/spotify/callback`) :
+    ///   `/callback`) et SAML (`/api/auth/saml/start`, `/acs`, `/complete`) :
     ///   des pages qu'un navigateur traverse, pas une API ;
     /// - la distribution de l'agent (`/install.sh`, `/install.ps1`,
     ///   `/download/{name}`) : des fichiers, pas du JSON ;
@@ -124,7 +123,6 @@ mod tests {
         "/api/auth/saml/start",
         "/api/auth/saml/acs",
         "/api/auth/saml/complete",
-        "/api/music/spotify/callback",
         "/install.sh",
         "/install.ps1",
         "/download/{name}",
@@ -166,21 +164,14 @@ mod tests {
     }
 
     /// Routes fermées à tout jeton d'API : celles du garde, plus les sauvegardes
-    /// et la connexion à Spotify, son jeton et les gestes du mur (refusées par
-    /// leur gestionnaire, qui exige une session), et le provisionnement SCIM,
-    /// qui n'accepte que le jeton dédié du fournisseur d'identité.
+    /// (refusées par leur gestionnaire, qui exige une session), et le
+    /// provisionnement SCIM, qui n'accepte que le jeton dédié du fournisseur d'identité.
     fn is_session_only(path: &str) -> bool {
         let Some(rest) = path.strip_prefix("/api") else { return false };
         const BY_HANDLER: &[&str] = &[
             "/backup",
             "/scim",
             "/logs",
-            "/music/spotify/authorize",
-            "/music/spotify/complete",
-            "/music/spotify/token",
-            "/music/spotify/playback",
-            "/music/speaker/report",
-            "/music/speaker/play",
             "/system/storage",
             "/webpush",
             "/upgrade-notes",

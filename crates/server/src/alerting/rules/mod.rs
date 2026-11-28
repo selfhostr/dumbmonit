@@ -23,8 +23,10 @@ mod builtin_vendors;
 mod cloud;
 mod flags;
 mod homeassistant;
+mod hyperv;
 mod immich;
 mod jellyfin;
+mod mysql;
 mod nextcloud;
 mod opnsense;
 mod pbs;
@@ -33,6 +35,7 @@ mod pihole;
 mod plex;
 mod postgres;
 mod pve;
+mod scripts;
 mod selfhosted;
 mod synology;
 mod tailscale;
@@ -166,9 +169,12 @@ pub fn builtin_rules() -> Vec<Rule> {
     rules.extend(jellyfin::rules());
     rules.extend(plex::rules());
     rules.extend(nextcloud::rules());
+    rules.extend(hyperv::rules());
+    rules.extend(mysql::rules());
     rules.extend(postgres::rules());
     rules.extend(synology::rules());
     rules.extend(selfhosted::apps_rules());
+    rules.extend(scripts::rules());
     // Les règles « tout ou rien » portent l'unité `bool` : rien à régler (`flags.rs`).
     flags::mark_flags(&mut rules);
     rules

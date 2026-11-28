@@ -37,7 +37,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 # Rust, inside the builder stage (musl/alpine)
 docker build -t dumbmonit-devenv --target builder .
 docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo test
-docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo test -p dumbmonit-server --test alerts_api   # one integration test file
+docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo test -p dumbmonit-server --test it alerts_api::   # one integration test file
 docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo test -p dumbmonit-server test_name          # one test by name
 docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo clippy --all-targets --all-features -- -D warnings
 docker run --rm -v "$PWD:/build" -w /build dumbmonit-devenv cargo fmt --all --check

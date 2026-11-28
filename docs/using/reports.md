@@ -1,5 +1,8 @@
 # Email reports
 
+!!! note "Optional module"
+    Scheduled reports belong to the optional **SLA reports** module, off on a new installation: switch it on in *Settings → System → Modules* ([Settings](settings.md#modules)).
+
 A report is a short email that tells your team how the infrastructure did over
 the last day, week or month, without anyone opening DumbMonit. It is weekly by
 default; daily and monthly are one click away. Reports go through an **email

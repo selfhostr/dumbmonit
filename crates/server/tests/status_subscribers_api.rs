@@ -5,6 +5,7 @@
 //! Un seul test dans ce binaire : le limiteur du point d'inscription est propre
 //! au processus, et d'autres tests en parallèle y puiseraient.
 
+#[path = "it/common/mod.rs"]
 mod common;
 
 use std::time::Duration;

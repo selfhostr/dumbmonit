@@ -30,10 +30,11 @@
 //! Sur la même connexion, la sonde PostgreSQL lit ensuite les vues de statistiques
 //! (voir [`pgstats`]) : connexions contre `max_connections`, transactions longues,
 //! verrous, réplication, âge des identifiants de transaction, gonflement des tables,
-//! archivage WAL. Désactivable avec `server_stats=false`. MySQL / MariaDB n'ont pas
-//! cet équivalent : la requête de l'utilisateur (`query`) y reste le moyen de
-//! lire une valeur du moteur — la valeur renvoyée devient une courbe, et l'option
-//! `expect` un seuil.
+//! archivage WAL. MySQL / MariaDB ont le même principe (voir [`mysqlstats`]) :
+//! connexions, requêtes, requêtes lentes, tampon InnoDB, réplication, taille des
+//! schémas. Désactivable avec `server_stats=false`. La requête de l'utilisateur
+//! (`query`) reste le moyen de lire une valeur propre à son application : la
+//! valeur renvoyée devient une courbe, et l'option `expect` un seuil.
 //!
 //! # Adresse et étiquettes
 //!
@@ -48,9 +49,10 @@
 //! | `expect` | — | Valeur attendue en première colonne. |
 //! | `sslmode` | `prefer` | `disable`, `prefer`, `require`, `verify-full`. |
 //! | `allow_private_targets` | `false` | Autorise la boucle locale (voir `guard`). |
-//! | `server_stats` | `true` | PostgreSQL : lit aussi la santé interne du serveur. |
+//! | `server_stats` | `true` | Lit aussi la santé interne du serveur. |
 //! | `timeout_seconds` | `5` | Délai propre à la sonde (1 à 60). |
 
+mod mysqlstats;
 pub mod options;
 mod pgstats;
 pub(crate) mod verdict;
@@ -315,6 +317,16 @@ async fn mysql(report: &mut Report, options: &Options, endpoint: &str) {
     drop(rows);
     report.gauge("sql_query_seconds", query_started.elapsed().as_secs_f64());
     finish(report, options, count, first.as_ref());
+
+    // Santé interne du serveur, sur la même connexion (voir `mysqlstats`).
+    if options.server_stats {
+        let started = Instant::now();
+        let budget = deadline.remaining().mul_f32(0.75).min(STATS_BUDGET);
+        for sample in mysqlstats::collect(&mut connection, report.timestamp_ms(), budget).await {
+            report.push(sample);
+        }
+        report.exclude(started.elapsed());
+    }
     let _ = connection.close().await;
 }
 

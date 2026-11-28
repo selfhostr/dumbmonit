@@ -8,10 +8,10 @@ Settings holds what is administrative: the instance itself, your account, who ca
 | Team & access | `/settings/team` | Users, Teams, Clients, Single sign-on, SAML, SCIM, LDAP |
 | Monitoring | `/settings/monitoring` | Agents, Integration packs, [Security score](security-score.md), Locations |
 | Notifications | `/settings/notifications` | Channels, Notification policy, quiet hours ([Notification channels](../notifications.md)). Optional on-call schedules (turned on in System) have their tab on the Alerts page: [On-call](../alerting/oncall.md) |
-| Wall display | `/settings/wall` | Wall mode: what it shows, and the way in ([Wall mode](wall.md)) |
-| System | `/settings/system` | Instance name and time zone, On-call schedules (on/off), the setup wizard ([Interface and setup wizard](product-modes.md)), Backup, Configuration files, DumbMonit itself, HTTPS and encryption, Network ports, Data & retention, Logs, API & assistants, About |
+| Wall display | `/settings/wall` | Wall mode: what it shows, and the way in ([Wall mode](wall.md)). Only while the Wall mode module is on |
+| System | `/settings/system` | Instance name and time zone, Modules, On-call schedules (on/off), the setup wizard ([Interface and setup wizard](product-modes.md)), Backup, Configuration files, DumbMonit itself, HTTPS and encryption, Network ports, Data & retention, Logs, API & assistants, About |
 
-Each section keeps its own anchor: `/settings#agents` forwards to `/settings/monitoring#agents`. The old links (`/alerts#notifications`) forward to the new place too. `/settings/general` forwards to the System tab. Status pages and reports are not in Settings any more: they live on the **Status** page (`/status`), whose **Reports** tab holds the reports; `/reports`, `/settings/status` and `/settings/reports` forward there. The wall's news and widgets are gone: their old links (`#news`, `#widgets`) open the Wall display tab, where **Wall music** (`#music`) is.
+Each section keeps its own anchor: `/settings#agents` forwards to `/settings/monitoring#agents`. The old links (`/alerts#notifications`) forward to the new place too. `/settings/general` forwards to the System tab. Status pages and reports are not in Settings any more: they live on the **Status** page (`/status`), whose **Reports** tab holds the reports; `/reports`, `/settings/status` and `/settings/reports` forward there. The wall's news and widgets are gone: their old links (`#news`, `#widgets`) open the Wall display tab.
 
 ## Appearance {#appearance}
 
@@ -19,16 +19,42 @@ The language of the interface, saved in this browser. The console has a single
 dark look, so there is no theme to pick; public status pages keep their own
 light and dark themes.
 
+Two switches, **Show GitHub link** and **Show documentation link**, control the buttons
+at the bottom of the sidebar. Both are shown by default; the choice is kept in this
+browser, like the time format and the density.
+
+## Modules {#modules}
+
+*System → Modules* (administrators). Some parts of the console are optional and
+**off on a new installation**: switch on only what you use.
+
+| Module | What it adds |
+|---|---|
+| Wall mode | The full-screen room monitor, the Wall display tab and wall display accounts ([Wall mode](wall.md)) |
+| SLA reports | Scheduled reports and the monthly availability report, in the Status page |
+| Status pages | Public status pages, incidents and maintenance announcements |
+| SLOs | Availability targets and their error budget, in the Status page |
+| Threat map | The world map of stopped attacks in Monitors → Security. It also needs a source of attack data (CrowdSec, a firewall's live map or Cloudflare): without one nothing is drawn, even with the module on |
+
+A module that is off keeps its data. It disappears from the navigation, the
+settings, the command palette and the overview; its page tells administrators
+that the module is off (anyone else sees "not found"), its API answers `404`,
+and a public status page answers `404` while Status pages is off. Wall display
+accounts are refused while Wall mode is off.
+
+When you upgrade an existing instance, each module that is already in use is
+switched on: Status pages when a page exists, SLOs when one is defined, SLA
+reports when a report schedule exists, Wall mode when a wall display account or a
+wall music link exists. The threat map stays off until you enable it. The choice
+is part of the [backup](#backup). `GET /api/settings/features` reads it,
+`PUT /api/settings/features` (administrators) changes it.
+
 ## Wall display {#wall}
 
 **Open wall mode**: the console's board, full screen, for a monitor in the room.
 ++esc++ leaves it, and the command palette opens it from anywhere. The wall has
 no news or widgets any more; an optional night city can sit behind its verdict.
 See [Wall mode](wall.md).
-
-**Wall music**: connect a Spotify account (the wall becomes a Spotify Connect
-speaker and shows what plays, with play / pause), or send a Spotify, Deezer or
-YouTube link to every wall. See [Music on the wall](wall.md#music-on-the-wall).
 
 ## Account & security
 
@@ -286,8 +312,7 @@ problems on the wall are not links.
 
 The server enforces the same: the account reaches only what the wall reads
 (devices without their address, options or note, alerts, rules, metrics,
-incidents and maintenance windows, the instance name, the weather and the
-wall's music) and every other call answers `403`, reads included. Team
+incidents and maintenance windows, the instance name, and the weather) and every other call answers `403`, reads included. Team
 rights limit which monitors it shows, as for any account. It cannot create
 API tokens, and a token whose owner becomes a wall display stops working.
 

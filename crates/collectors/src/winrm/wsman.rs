@@ -9,7 +9,9 @@ use std::collections::BTreeMap;
 use dumbmonit_proto::ProbeError;
 
 pub const NS_ENUMERATION: &str = "http://schemas.xmlsoap.org/ws/2004/09/enumeration";
-const RESOURCE_URI: &str = "http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/*";
+const WMI_URI: &str = "http://schemas.microsoft.com/wbem/wsman/1/wmi/";
+/// Espace de noms WMI interrogé par défaut.
+pub const CIMV2: &str = "root/cimv2";
 const WQL_DIALECT: &str = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
 
 /// Une instance WMI : propriété → valeur textuelle.
@@ -39,12 +41,14 @@ pub fn xml_escape(text: &str) -> String {
 }
 
 fn envelope(
+    namespace: &str,
     endpoint: &str,
     action: &str,
     message_id: &str,
     timeout_secs: u64,
     body: &str,
 ) -> String {
+    let resource = format!("{WMI_URI}{namespace}/*");
     format!(
         concat!(
             r#"<?xml version="1.0" encoding="UTF-8"?>"#,
@@ -66,7 +70,7 @@ fn envelope(
         ),
         ns = NS_ENUMERATION,
         to = xml_escape(endpoint),
-        resource = RESOURCE_URI,
+        resource = resource,
         action = action,
         id = message_id,
         timeout = timeout_secs.max(1),
@@ -74,8 +78,21 @@ fn envelope(
     )
 }
 
-/// `Enumerate` d'une requête WQL.
+/// `Enumerate` d'une requête WQL sur `root/cimv2`.
+#[cfg(test)]
 pub fn enumerate_request(
+    endpoint: &str,
+    message_id: &str,
+    timeout_secs: u64,
+    wql: &str,
+    max_elements: u32,
+) -> String {
+    enumerate_request_in(CIMV2, endpoint, message_id, timeout_secs, wql, max_elements)
+}
+
+/// `Enumerate` d'une requête WQL dans l'espace de noms `namespace`.
+pub fn enumerate_request_in(
+    namespace: &str,
     endpoint: &str,
     message_id: &str,
     timeout_secs: u64,
@@ -91,11 +108,25 @@ pub fn enumerate_request(
         dialect = WQL_DIALECT,
         wql = xml_escape(wql),
     );
-    envelope(endpoint, &format!("{NS_ENUMERATION}/Enumerate"), message_id, timeout_secs, &body)
+    let action = format!("{NS_ENUMERATION}/Enumerate");
+    envelope(namespace, endpoint, &action, message_id, timeout_secs, &body)
 }
 
-/// `Pull` de la suite d'une énumération.
+/// `Pull` de la suite d'une énumération sur `root/cimv2`.
+#[cfg(test)]
 pub fn pull_request(
+    endpoint: &str,
+    message_id: &str,
+    timeout_secs: u64,
+    context: &str,
+    max_elements: u32,
+) -> String {
+    pull_request_in(CIMV2, endpoint, message_id, timeout_secs, context, max_elements)
+}
+
+/// `Pull` de la suite d'une énumération de l'espace de noms `namespace`.
+pub fn pull_request_in(
+    namespace: &str,
     endpoint: &str,
     message_id: &str,
     timeout_secs: u64,
@@ -107,7 +138,8 @@ pub fn pull_request(
          <n:MaxElements>{max_elements}</n:MaxElements></n:Pull>",
         xml_escape(context)
     );
-    envelope(endpoint, &format!("{NS_ENUMERATION}/Pull"), message_id, timeout_secs, &body)
+    let action = format!("{NS_ENUMERATION}/Pull");
+    envelope(namespace, endpoint, &action, message_id, timeout_secs, &body)
 }
 
 /// Nom local d'un élément, sans préfixe d'espace de noms.

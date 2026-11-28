@@ -32,6 +32,7 @@ import { needsAttention, type RackRow } from './rack.ts';
 const HOST_RANK: Record<string, number> = {
 	agent: 0,
 	winrm: 1,
+	hyperv: 1,
 	proxmox: 1,
 	xcpng: 1,
 	nutanix: 1,
@@ -68,6 +69,7 @@ const NOT_A_HOST = new Set([
 	'ip_blacklist',
 	'mail_blacklist',
 	'aws',
+	'gcp',
 	'azure',
 	'm365',
 	'entra',

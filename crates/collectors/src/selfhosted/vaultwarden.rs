@@ -117,9 +117,8 @@ fn net(error: &reqwest::Error, timeout: Duration, path: &str) -> ProbeError {
 /// Un client qui ne suit aucune redirection : la connexion à `/admin` répond
 /// par un `303` dont c'est précisément le cookie qu'on veut lire.
 fn admin_http(options: &Options) -> Result<reqwest::Client, ProbeError> {
-    reqwest::Client::builder()
+    crate::http::tls_policy(reqwest::Client::builder(), options.insecure_tls)
         .redirect(reqwest::redirect::Policy::none())
-        .danger_accept_invalid_certs(options.insecure_tls)
         .connect_timeout(Duration::from_secs(10))
         .user_agent(concat!("DumbMonit/", env!("CARGO_PKG_VERSION")))
         .build()

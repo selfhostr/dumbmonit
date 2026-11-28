@@ -102,12 +102,8 @@ impl Principal {
 #[derive(Clone)]
 pub struct CurrentPrincipal(pub Principal);
 
-/// Écritures que chacun peut faire sans être admin : sur son propre compte, et
-/// les gestes d'un écran mural, qui tourne volontiers sous un compte lecteur —
-/// rapporter l'état de son enceinte Spotify, faire jouer le compte Spotify
-/// dessus (« Play here »), mettre en pause et reprendre. Ces gestes n'ouvrent
-/// rien de neuf : le mur d'un lecteur reçoit déjà un jeton d'accès Spotify qui
-/// les permet (`/music/spotify/token`). Ces routes refusent les jetons d'API.
+/// Écritures que chacun peut faire sans être admin : sur son propre compte.
+/// Ces routes refusent les jetons d'API.
 const SELF_SERVICE: &[&str] = &[
     "/auth/logout",
     "/auth/password",
@@ -120,9 +116,6 @@ const SELF_SERVICE: &[&str] = &[
     "/auth/totp/recovery-codes",
     "/auth/notifications",
     "/auth/notifications/test",
-    "/music/speaker/report",
-    "/music/speaker/play",
-    "/music/spotify/playback",
 ];
 
 /// Écritures ouvertes au rôle `operator`, en plus de [`SELF_SERVICE`] : le
@@ -292,6 +285,11 @@ pub async fn require_session(
     // comprise, est refusé avant même le calcul de ses droits.
     if user.role.is_wall() && !wall::is_wall_route(request.method(), request.uri().path()) {
         return AuthError::Forbidden(wall::WALL_ONLY_MESSAGE.into()).into_response();
+    }
+
+    // Mode mural coupé (réglage « Modules ») : ses comptes n'ont plus rien à lire.
+    if user.role.is_wall() && !crate::features::load(&state.pool).await.wall {
+        return AuthError::Forbidden("The wall module is turned off.".into()).into_response();
     }
 
     // Politique « second facteur obligatoire » : un administrateur ou un
@@ -675,10 +673,6 @@ mod tests {
         assert!(is_self_service("/api/auth/passkeys/3"));
         assert!(!is_self_service("/auth/passkeys/"));
         assert!(!is_self_service("/auth/passkeys/3/../../users"));
-        assert!(is_self_service("/api/music/speaker/report"));
-        assert!(is_self_service("/music/spotify/playback"));
-        assert!(!is_self_service("/music/spotify/authorize"));
-        assert!(!is_self_service("/music/link"));
         assert!(is_self_service("/api/auth/sessions/revoke-others"));
         assert!(is_self_service("/auth/sessions/0123abcdef"));
         assert!(!is_self_service("/auth/sessions/"));

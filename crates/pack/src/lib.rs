@@ -22,6 +22,7 @@ mod describe;
 mod extract;
 pub mod fixture;
 mod http;
+pub mod import;
 pub mod manifest;
 pub mod prom;
 pub mod template;

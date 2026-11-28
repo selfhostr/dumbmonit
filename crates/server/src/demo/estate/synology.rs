@@ -28,7 +28,7 @@ const STORAGE: &str =
 
 /// `task_id → (nom, type de source, appareils)` des tâches Active Backup.
 const TASKS: &[(i64, &str, i64, &[&str])] = &[
-    (5, "Laptops", 2, &["laptop-alex", "laptop-sam"]),
+    (5, "Laptops", 2, &["laptop-alex", "laptop-ops2"]),
     (6, "Home VMs", 1, &["nextcloud", "home-assistant", "immich"]),
     (7, "Family photos", 4, &["photos-share"]),
 ];

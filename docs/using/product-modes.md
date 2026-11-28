@@ -7,8 +7,9 @@ interface; there is only one now, and nothing was lost in the merge.
 ## The console
 
 - An **icon rail** on the left lists every destination, status pages and reports
-  included. At its foot sit the documentation, GitHub, your account (the round
-  button with your initials) and Settings. A phone gets a tab bar with the
+  included. At its foot sit the documentation and GitHub links (both can be hidden
+  in *Settings → My account → Appearance*), your account (the round button with
+  your initials) and Settings. A phone gets a tab bar with the
   essentials and **More**.
 - The **header** shows where you are (instance name, page, monitor), a **LIVE**
   switch that pauses the console's own refreshes, the time range on the
@@ -36,19 +37,42 @@ States are always written next to a shape (circle up, diamond degraded, square
 down), never shown by colour alone. Public status pages keep their own light and
 dark themes.
 
+## Density
+
+*Settings → My account → Appearance* offers two densities, **Comfortable**
+(default) and **Compact**. Compact tightens the spacing and row heights of the
+whole console so more monitors, alerts and log lines fit on one screen. Like the
+time format and the week start, it is kept in the browser: each person picks
+their own.
+
+## Optional modules
+
+Wall mode, SLA reports, status pages, SLOs and the threat map are optional
+modules, **off on a new installation** and switched on in *Settings → System →
+Modules* (or in the setup wizard). A module that is off disappears from the
+navigation and its API answers `404`; its data is kept. An instance that is
+upgraded keeps on the modules it already uses. Details in
+[Settings](settings.md#modules).
+
 ## Setup wizard
 
-The wizard opens after the first administrator signs in on a new instance. Run
-it again any time from **Settings → General → Run the setup wizard**.
+The wizard opens after the first administrator signs in on a new instance. It is a
+full-page screen without the console around it: one step at a time, a step
+counter, **Back** and **Continue**, and the step is kept in the address
+(`/welcome?step=monitors`) so the browser's Back button works. Run it again any
+time from **Settings → General → Run the setup wizard**.
 
-1. **Instance**: name shown in the header, default language and time zone.
-2. **Notifications**: add a channel (the same form as in Settings, so every
-   channel type is there) and send a test.
-3. **First monitors**: scan your network in place, or open the import and
-   add-by-hand pages in a new tab.
+1. **Your first alert**: something to watch, where the alert should reach you
+   (the same channel form as in Settings, so every channel type is there), and a
+   test that proves it arrives.
+2. **Instance**: name shown in the header, default language and time zone.
+3. **First monitors**: scan your network in place, import from another tool, or
+   add one by hand.
 4. **Agent**: the install command for a machine to watch.
-5. Three optional steps: **single sign-on and teams**, **on-call**
-   (notification policy and roles) and **retention**.
+5. **Modules**: tick the optional modules you want (wall mode, SLA reports,
+   status pages, SLOs, threat map). All start off.
+6. Three optional steps: **single sign-on and teams**, **on-call** (shown only
+   while on-call schedules are on) and **retention**.
 
 Every step can be skipped, and **Skip setup** ends the wizard at once. The
 wizard is marked done on the server, so it does not come back in another

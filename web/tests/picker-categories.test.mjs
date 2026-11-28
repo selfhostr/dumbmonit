@@ -15,7 +15,7 @@ const choice = (o = {}) => ({ category: 'network', beta: false, pack: false, noL
 
 test('every kind of the catalogue snapshot has a category, except the ones made for tests', () => {
 	const snapshot = JSON.parse(readFileSync(new URL('../../crates/server/tests/fixtures/collectors_catalog.json', import.meta.url), 'utf8'));
-	const unplaced = snapshot.map((k) => k.kind).filter((kind) => categoryOf(kind) === 'other');
+	const unplaced = snapshot.map((k) => k.kind).filter((kind) => !Object.values(CATEGORY_KINDS).flat().includes(kind) && !kind.startsWith('pack.'));
 	assert.deepEqual(unplaced.sort(), ['agent_service', 'dummy', 'zz-inconnu']);
 });
 
@@ -27,7 +27,7 @@ test('a kind sits in one category only, and every category is listed', () => {
 
 test('packs and unknown kinds', () => {
 	assert.equal(categoryOf('pack.printer'), 'packs');
-	assert.equal(categoryOf('brand_new'), 'other');
+	assert.equal(categoryOf('brand_new'), 'apps');
 	assert.equal(categoryOf('agent:relay'), 'machines');
 	assert.ok(rankInCategory('snmp') < rankInCategory('proxmox') + 1000);
 	assert.ok(rankInCategory('agent') < rankInCategory('agent:relay'));

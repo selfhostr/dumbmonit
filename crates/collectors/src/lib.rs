@@ -28,12 +28,14 @@ pub mod duplicati;
 pub mod elasticsearch;
 pub mod entra;
 pub mod fortigate;
+pub mod gcp;
 pub mod hetzner;
 pub mod homeassistant;
 pub mod http;
 pub mod ifaddr;
 pub mod influxdb;
 pub mod infomaniak;
+pub mod ipmi;
 pub mod kafka;
 pub mod kopia;
 pub mod kubernetes;
@@ -141,10 +143,12 @@ pub use duplicati::DuplicatiCollector;
 pub use elasticsearch::ElasticsearchCollector;
 pub use entra::EntraCollector;
 pub use fortigate::FortigateCollector;
+pub use gcp::GcpCollector;
 pub use hetzner::HetznerCollector;
 pub use homeassistant::HomeAssistantCollector;
 pub use influxdb::InfluxdbCollector;
 pub use infomaniak::InfomaniakCollector;
+pub use ipmi::IpmiCollector;
 pub use kafka::KafkaCollector;
 pub use kopia::KopiaCollector;
 pub use kubernetes::KubernetesCollector;
@@ -178,7 +182,7 @@ pub use redis::RedisCollector;
 pub use selfhosted::{
     ArrCollector, AuthentikCollector, ForgejoCollector, FrigateCollector, GitlabCollector,
     ImmichCollector, JellyfinCollector, KeycloakCollector, MailcowCollector, NextcloudCollector,
-    PaperlessCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector,
+    PaperlessCollector, PapraCollector, PlexCollector, QbittorrentCollector, VaultwardenCollector,
 };
 pub use snmp::SnmpCollector;
 pub use socket::DEFAULT_TIMEOUT as SOCKET_DEFAULT_TIMEOUT;
@@ -198,6 +202,7 @@ pub use uptime::{
 pub use veeam::VeeamCollector;
 pub use vsphere::VsphereCollector;
 pub use winrm::WinrmCollector;
+pub use winrm::hyperv::HypervCollector;
 pub use xcpng::XcpngCollector;
 
 /// Les collecteurs connus, par type de cible.
@@ -250,6 +255,7 @@ impl Registry {
         registry.register(Arc::new(NextcloudCollector::new()));
         registry.register(Arc::new(ImmichCollector::new()));
         registry.register(Arc::new(PaperlessCollector::new()));
+        registry.register(Arc::new(PapraCollector::new()));
         registry.register(Arc::new(JellyfinCollector::new()));
         registry.register(Arc::new(PlexCollector::new()));
         registry.register(Arc::new(GitlabCollector::new()));
@@ -298,11 +304,14 @@ impl Registry {
         registry.register(Arc::new(EntraCollector::new()));
         registry.register(Arc::new(AzureCollector::new()));
         registry.register(Arc::new(AwsCollector::new()));
+        registry.register(Arc::new(GcpCollector::new()));
+        registry.register(Arc::new(IpmiCollector::new()));
         registry.register(Arc::new(CloudflareCollector::new()));
         registry.register(Arc::new(HetznerCollector::new()));
         registry.register(Arc::new(OvhCollector::new()));
         registry.register(Arc::new(InfomaniakCollector::new()));
         registry.register(Arc::new(WinrmCollector::new()));
+        registry.register(Arc::new(HypervCollector::new()));
         registry.register(Arc::new(KopiaCollector::new()));
         registry.register(Arc::new(DuplicatiCollector::new()));
         registry.register(Arc::new(TailscaleCollector::new()));

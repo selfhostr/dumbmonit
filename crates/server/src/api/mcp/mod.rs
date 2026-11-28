@@ -214,7 +214,7 @@ pub async fn post(
         }
     }
 
-    let parsed: Value = match serde_json::from_slice(&body) {
+    let parsed: Value = match crate::untrusted::from_slice(&body) {
         Ok(value) => value,
         Err(error) => {
             return Failure::new(

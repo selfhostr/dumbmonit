@@ -498,6 +498,38 @@ pub(super) fn view(kind: &str) -> Option<CollectorView> {
             },
             options: PAPERLESS_OPTIONS,
         },
+        "papra" => CollectorView {
+            kind: "papra",
+            label: "Papra",
+            summary: "Server and database health, organisations, document count and storage used per organisation.",
+            examples: &["Papra"],
+            credential_types: &["api_token"],
+            credentials: &[PAPRA_KEY],
+            address_hint: "papra.lan",
+            default_port: 1221,
+            setup: Setup {
+                title: "Create an API key in Papra",
+                steps: &[
+                    "In Papra, open Settings → API keys → Create API key and name it as follows.\ndumbmonit",
+                    "Tick only the permissions listed below, and copy the key (it starts with ppapi_).",
+                    "In DumbMonit, enter Papra's address and paste the key.",
+                ],
+                ports: &[
+                    to_device!(1221, "tcp", "API (HTTP, default)"),
+                    to_device_optional!(
+                        443,
+                        "tcp",
+                        "Only with the https scheme behind a reverse proxy",
+                    ),
+                ],
+                permissions: &[
+                    "organizations:read\nList of organisations",
+                    "documents:read\nDocument counts and sizes, never the documents themselves",
+                ],
+                warning: "A Papra API key acts as its owner: keep it only in DumbMonit. DumbMonit reads counts and sizes only, never a document name or file.",
+            },
+            options: PAPRA_APP_OPTIONS,
+        },
         "jellyfin" => CollectorView {
             kind: "jellyfin",
             label: "Jellyfin",

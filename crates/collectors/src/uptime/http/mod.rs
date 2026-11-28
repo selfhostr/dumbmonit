@@ -123,8 +123,7 @@ impl HttpCollector {
         allow_private: bool,
     ) -> Result<(Client, Arc<PhaseClock>), ProbeError> {
         let clock = Arc::new(PhaseClock::default());
-        let client = Client::builder()
-            .danger_accept_invalid_certs(insecure_tls)
+        let client = crate::http::tls_policy(Client::builder(), insecure_tls)
             .redirect(Policy::none())
             .pool_max_idle_per_host(0)
             .dns_resolver(Arc::new(TimedResolver::new(allow_private, Arc::clone(&clock))))
