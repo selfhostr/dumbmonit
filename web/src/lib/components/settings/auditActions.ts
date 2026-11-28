@@ -62,6 +62,7 @@ export const AUDIT_ACTION_LABEL: Record<string, () => string> = {
 	'client.updated': () => m.w2ops_audit_action_client_updated(),
 	'config.applied': () => m.w2ops_audit_action_config_applied(),
 	'config.released': () => m.w2ops_audit_action_config_released(),
+	'flows.settings': () => m.w2ops_audit_action_flows_settings(),
 	'instance.settings': () => m.w2ops_audit_action_instance_settings(),
 	'features.settings': () => m.w2ops_audit_action_features_settings(),
 	'invitation.accepted': () => m.w6accounts_audit_invitation_accepted(),

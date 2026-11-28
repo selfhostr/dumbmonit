@@ -87,6 +87,7 @@
 	import DockerStrip from '#lib/components/devices/docker/DockerStrip.svelte';
 	import { isDockerDevice } from '#lib/components/devices/agent/services.js';
 	import TargetDeadlines from '#lib/components/deadlines/TargetDeadlines.svelte';
+	import TrafficSection from '#lib/components/flows/TrafficSection.svelte';
 	import {
 		Button,
 		EmptyState,
@@ -692,6 +693,11 @@
 
 	<!-- Expiry dates this monitor reports (certificates, domain, licences…); absent when it has none. -->
 	<TargetDeadlines target={target.id} class="mt-6" />
+
+	<!-- Top talkers of a flow exporter (NetFlow, IPFIX, sFlow); absent when it sends none. -->
+	{#key target.id}
+		<TrafficSection target={target.id} class="mt-6" />
+	{/key}
 
 	<!-- Containers at a glance, with the fleet-wide policies; the list itself sits with the metrics.
 	     Docker is a device of its own under the machine whose agent found it. -->
