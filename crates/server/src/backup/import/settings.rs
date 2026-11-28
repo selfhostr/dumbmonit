@@ -375,6 +375,52 @@ pub(super) async fn restore_features(
     Ok(report)
 }
 
+/// Lot d'avant les modules facultatifs (sans section `features`) : chaque module
+/// dont les données viennent d'être restaurées est rallumé, comme le fait la
+/// migration 0309 pour une instance existante. Rien n'est jamais éteint ici.
+pub(super) async fn enable_restored_features(
+    tx: &mut Transaction<'_, Sqlite>,
+    bundle: &Bundle,
+) -> Result<()> {
+    if bundle.features.is_some() {
+        return Ok(());
+    }
+    async fn any(tx: &mut Transaction<'_, Sqlite>, sql: &str) -> Result<bool> {
+        let row = sqlx::query(sql).fetch_one(&mut **tx).await.context("modules utilisés")?;
+        Ok(row.try_get::<i64, _>(0)? != 0)
+    }
+    let existing = sqlx::query("SELECT value FROM settings WHERE key = ?")
+        .bind(crate::features::KEY)
+        .fetch_optional(&mut **tx)
+        .await
+        .context("lecture des modules facultatifs")?;
+    let mut features: crate::features::Features = match &existing {
+        Some(row) => {
+            serde_json::from_slice(&row.try_get::<Vec<u8>, _>("value")?).unwrap_or_default()
+        }
+        None => crate::features::Features::default(),
+    };
+    let before = features;
+    features.wall |= any(tx, "SELECT EXISTS (SELECT 1 FROM users WHERE role = 'wall')").await?;
+    features.sla_reports |= any(tx, "SELECT EXISTS (SELECT 1 FROM report_schedules)").await?;
+    features.status_pages |= any(tx, "SELECT EXISTS (SELECT 1 FROM status_pages)").await?;
+    features.slo |= any(tx, "SELECT EXISTS (SELECT 1 FROM slos)").await?;
+    if existing.is_some() && features == before {
+        return Ok(());
+    }
+    sqlx::query(
+        "INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')",
+    )
+    .bind(crate::features::KEY)
+    .bind(serde_json::to_vec(&features)?)
+    .execute(&mut **tx)
+    .await
+    .context("écriture des modules facultatifs")?;
+    Ok(())
+}
+
 /// Politique d'authentification (`auth::policy`) : remplacée par celle du lot.
 /// Un réglage illisible est signalé et laissé de côté ; un lot d'avant cette
 /// section, ou qui n'en a pas, ne touche pas à celle de l'instance.
