@@ -164,6 +164,7 @@ mod tests {
             kind: "snmp".to_string(),
             parent_id: parent,
             via_agent: None,
+            interval_secs: 0,
             tags: BTreeMap::new(),
             enabled: true,
             unreachable: false,

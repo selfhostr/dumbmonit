@@ -437,7 +437,7 @@ pub fn plan_cycle(input: CycleInput, baselines: &mut BaselineStore) -> CycleOutc
         }
 
         for Candidate { fingerprint, target, point } in candidates {
-            let effective = overrides.effective(rule, target.map(|t| t.id));
+            let effective = effective_for(&overrides, rule, target);
             // Règle retirée pour cet équipement : la série est ignorée, ce qui
             // résout proprement une alerte en cours par le passage « séries
             // disparues » plus bas.
@@ -554,13 +554,12 @@ pub fn plan_cycle(input: CycleInput, baselines: &mut BaselineStore) -> CycleOutc
                 continue;
             }
             seen.insert(stored.fingerprint.clone());
+            let target = stored.target_id.and_then(|id| index.by_id.get(&id));
             evaluated.push(Evaluated {
                 fingerprint: stored.fingerprint.clone(),
                 rule_index,
                 target_id: stored.target_id,
-                target_name: stored
-                    .target_id
-                    .and_then(|id| index.by_id.get(&id))
+                target_name: target
                     .map(|t| t.name.clone())
                     .or_else(|| stored.labels.get(model::SLO_LABEL).cloned())
                     .unwrap_or_else(|| UNKNOWN_TARGET.to_string()),
@@ -570,7 +569,7 @@ pub fn plan_cycle(input: CycleInput, baselines: &mut BaselineStore) -> CycleOutc
                 transition,
                 value: None,
                 score: None,
-                threshold: overrides.effective(rule, stored.target_id).threshold,
+                threshold: effective_for(&overrides, rule, target).threshold,
                 recurred: false,
                 detail: None,
                 dismissed_by,
@@ -695,6 +694,21 @@ pub fn plan_cycle(input: CycleInput, baselines: &mut BaselineStore) -> CycleOutc
         }
     }
     CycleOutcome { alerts, groups, history, carried_over }
+}
+
+/// Seuils effectifs d'une règle pour une série : surcharge par équipement,
+/// puis, pour « Monitor unreachable », le plancher qui suit la période
+/// d'interrogation de la cible ([`model::host_down_threshold`]). Sans lui, une
+/// cible sondée toutes les heures passait pour injoignable trois minutes après
+/// chaque sonde réussie.
+fn effective_for(overrides: &OverrideIndex, rule: &Rule, target: Option<&TargetNode>) -> Effective {
+    let mut effective = overrides.effective(rule, target.map(|t| t.id));
+    if rule.is_host_down()
+        && let Some(target) = target
+    {
+        effective.threshold = model::host_down_threshold(effective.threshold, target.interval_secs);
+    }
+    effective
 }
 
 /// Auteur de l'écartement d'une occurrence encore en cours, vide s'il est inconnu.
@@ -875,6 +889,7 @@ mod tests {
             kind: "snmp".to_string(),
             parent_id: parent,
             via_agent: None,
+            interval_secs: 0,
             tags: BTreeMap::new(),
             enabled: true,
             unreachable: false,
@@ -2056,6 +2071,39 @@ mod tests {
             assert_eq!(cycle.alerts[0].fingerprint, cycle1.alerts[0].fingerprint);
             assert!(cycle.groups.is_empty());
         }
+    }
+
+    /// Démo 0.22.0 : un nom de domaine consulté toutes les heures sonnait
+    /// « Monitor unreachable » dix minutes après sa première sonde, réussie.
+    /// L'âge du dernier échantillon se compare à trois périodes de la cible.
+    #[test]
+    fn une_cible_lente_n_est_pas_injoignable_entre_deux_sondes() {
+        let down = rule(crate::alerting::model::RULE_HOST_DOWN, RuleKind::Threshold, 180.0, 0);
+        let mut baselines = BaselineStore::default();
+        let mut hourly = node(1, None);
+        hourly.interval_secs = 3600;
+        let mut minutely = node(2, None);
+        minutely.interval_secs = 60;
+        let targets = vec![hourly, minutely];
+
+        let obs = RuleObservations {
+            rule: down.clone(),
+            series: Some(vec![point(1, 658.0), point(2, 658.0)]),
+        };
+        let first = input(at(0), vec![obs], targets.clone(), Vec::new());
+        let cycle = plan_cycle(first, &mut baselines);
+        let phase = |cycle: &CycleOutcome, id: TargetId| {
+            cycle.alerts.iter().find(|a| a.target_id == Some(id)).map(|a| a.state.phase)
+        };
+        assert_ne!(phase(&cycle, 1), Some(Phase::Firing), "an hour between probes is normal");
+        assert_eq!(phase(&cycle, 2), Some(Phase::Firing), "the default period is unchanged");
+
+        // Trois heures sans mesure : la cible lente est bien tombée.
+        let obs = RuleObservations { rule: down, series: Some(vec![point(1, 10_900.0)]) };
+        let cycle = plan_cycle(input(at(30), vec![obs], targets, Vec::new()), &mut baselines);
+        let alert = cycle.alerts.iter().find(|a| a.target_id == Some(1)).expect("alert");
+        assert_eq!(alert.state.phase, Phase::Firing);
+        assert_eq!(alert.threshold, 10_800.0, "the message cites the limit actually applied");
     }
 
     /// Cas du labo : une option (`port`) cesse d'être exportée en `tag_port`.

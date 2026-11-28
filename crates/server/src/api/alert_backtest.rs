@@ -357,6 +357,7 @@ mod tests {
             kind: "agent".to_string(),
             parent_id: None,
             via_agent: None,
+            interval_secs: 0,
             tags: BTreeMap::new(),
             enabled,
             unreachable: false,

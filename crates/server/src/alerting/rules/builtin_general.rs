@@ -30,8 +30,14 @@ pub(super) fn rules() -> Vec<Rule> {
         // manquées à la période par défaut) ; le `for` ne fait que confirmer au
         // cycle suivant, trente secondes suffisent. Une minute de plus retardait
         // chaque première alerte sans écarter de fausse panne.
+        //
+        // Le seuil suit la période de chaque cible (trois périodes manquées, voir
+        // `model::host_down_threshold`) : un nom de domaine consulté toutes les
+        // heures n'est pas injoignable trois minutes après une sonde réussie.
         Rule {
-            description: "No measurement received for more than three minutes.".to_string(),
+            description: "No measurement received for more than three minutes, or three probe \
+                          intervals for monitors checked less often."
+                .to_string(),
             operator: Operator::Gt,
             threshold: 180.0,
             for_duration: Duration::from_secs(30),
