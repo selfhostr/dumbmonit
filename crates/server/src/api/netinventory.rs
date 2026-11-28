@@ -481,7 +481,7 @@ pub async fn bulk(
     let schedules = store::list_schedules(&state.pool).await?;
     let mut existing = monitored(&state).await?;
     let mut seen = HashSet::new();
-    let mut results = Vec::with_capacity(payload.device_ids.len().min(MAX_BULK));
+    let mut results = Vec::new();
     for id in payload.device_ids {
         // Un identifiant répété n'est traité qu'une fois.
         if !seen.insert(id) {
