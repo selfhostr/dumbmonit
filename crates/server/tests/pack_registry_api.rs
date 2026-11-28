@@ -47,7 +47,8 @@ async fn the_registry_is_off_until_an_address_is_set_and_admin_only() {
     assert_eq!(off.body["packs"], json!([]));
     let denied = app.get("/api/packs/registry", Some(&viewer)).await;
     assert_eq!(denied.status, StatusCode::FORBIDDEN);
-    let bad = app.put("/api/packs/registry/settings", json!({ "url": "ftp://x" }), Some(&admin)).await;
+    let bad =
+        app.put("/api/packs/registry/settings", json!({ "url": "ftp://x" }), Some(&admin)).await;
     assert_eq!(bad.status, StatusCode::BAD_REQUEST);
 }
 
@@ -61,7 +62,8 @@ async fn a_pack_is_browsed_then_installed_from_the_registry() {
     assert_eq!(listing.body["error"], json!(null), "{}", listing.body);
     assert_eq!(listing.body["packs"][0]["status"], "available");
 
-    let done = app.post("/api/packs/registry/install", json!({ "id": "shelly-plug" }), Some(&admin)).await;
+    let done =
+        app.post("/api/packs/registry/install", json!({ "id": "shelly-plug" }), Some(&admin)).await;
     assert_eq!(done.status, StatusCode::CREATED, "{}", done.body);
 
     let after = app.get("/api/packs/registry", Some(&admin)).await;
@@ -82,7 +84,8 @@ async fn a_wrong_checksum_or_licence_is_refused() {
     configure(&app, &admin, &fake_registry("GPL-3.0", sha_of_pack()).await).await;
     let bad_licence = app.post("/api/packs/registry/install", body, Some(&admin)).await;
     assert_eq!(bad_licence.status, StatusCode::BAD_REQUEST);
-    let none = app.post("/api/packs/registry/install", json!({ "id": "other" }), Some(&admin)).await;
+    let none =
+        app.post("/api/packs/registry/install", json!({ "id": "other" }), Some(&admin)).await;
     assert_eq!(none.status, StatusCode::NOT_FOUND);
     assert_eq!(app.get("/api/packs/shelly-plug", Some(&admin)).await.status, StatusCode::NOT_FOUND);
 }
@@ -90,8 +93,8 @@ async fn a_wrong_checksum_or_licence_is_refused() {
 #[tokio::test]
 async fn the_registry_address_travels_with_the_backup() {
     use dumbmonit_server::backup::{ExportOptions, collect, restore};
-    use dumbmonit_server::packs::registry::{self, Settings};
     use dumbmonit_server::db;
+    use dumbmonit_server::packs::registry::{self, Settings};
 
     let secret = "secret-de-test-suffisamment-long";
     let dir = tempfile::tempdir().unwrap();

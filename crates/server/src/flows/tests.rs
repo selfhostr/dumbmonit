@@ -23,7 +23,10 @@ fn be32(out: &mut Vec<u8>, value: u32) {
 
 // ------------------------------------------------------------------ NetFlow v5
 
-fn v5(records: &[([u8; 4], [u8; 4], u16, u16, u8, u32, u32)], sampling: u16) -> Vec<u8> {
+/// Un enregistrement v5 : source, destination, ports, protocole, octets, paquets.
+type V5Record = ([u8; 4], [u8; 4], u16, u16, u8, u32, u32);
+
+fn v5(records: &[V5Record], sampling: u16) -> Vec<u8> {
     let mut out = Vec::new();
     be16(&mut out, 5);
     be16(&mut out, records.len() as u16);
@@ -120,7 +123,7 @@ fn v9_data_is_read_with_the_template_of_its_exporter_and_source_id() {
     let data_set = set(256, &data);
 
     // Les données avant le gabarit : rien à lire, mais comptées.
-    let early = netflow::decode(&v9(1, &[data_set.clone()]), exporter, 0, &mut templates).unwrap();
+    let early = netflow::decode(&v9(1, std::slice::from_ref(&data_set)), exporter, 0, &mut templates).unwrap();
     assert!(early.records.is_empty());
     assert_eq!(early.missing_template, 1);
 
@@ -132,9 +135,9 @@ fn v9_data_is_read_with_the_template_of_its_exporter_and_source_id() {
     assert_eq!((record.bytes, record.packets), (4000, 3));
 
     // Un autre source_id, ou un autre exportateur, n'a pas ce gabarit.
-    let other_id = netflow::decode(&v9(2, &[data_set.clone()]), exporter, 20, &mut templates);
+    let other_id = netflow::decode(&v9(2, std::slice::from_ref(&data_set)), exporter, 20, &mut templates);
     assert_eq!(other_id.unwrap().missing_template, 1);
-    let other_ip = netflow::decode(&v9(1, &[data_set.clone()]), ip("10.0.0.9"), 20, &mut templates);
+    let other_ip = netflow::decode(&v9(1, std::slice::from_ref(&data_set)), ip("10.0.0.9"), 20, &mut templates);
     assert_eq!(other_ip.unwrap().missing_template, 1);
 
     // Sans rafraîchissement, le gabarit expire.

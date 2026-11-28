@@ -151,12 +151,9 @@ pub async fn install(
         return Err(ApiError::BadRequest("No pack registry is configured.".into()));
     }
     let (entries, _) = read_index(&url).await.map_err(ApiError::BadGateway)?;
-    let entry = entries
-        .into_iter()
-        .find(|entry| entry.id == payload.id)
-        .ok_or_else(|| {
-            ApiError::NotFound(format!("Pack \"{}\" is not in the registry.", payload.id))
-        })?;
+    let entry = entries.into_iter().find(|entry| entry.id == payload.id).ok_or_else(|| {
+        ApiError::NotFound(format!("Pack \"{}\" is not in the registry.", payload.id))
+    })?;
     if !registry::license_allowed(&entry.license) {
         return Err(ApiError::BadRequest(format!(
             "The licence \"{}\" is not accepted: packs must be MIT, Apache-2.0, BSD, ISC, \

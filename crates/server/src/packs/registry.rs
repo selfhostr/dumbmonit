@@ -56,7 +56,8 @@ pub fn validate_url(raw: &str) -> Result<String, String> {
     if raw.len() > 2048 {
         return Err("The registry address is too long.".into());
     }
-    let url = Url::parse(raw).map_err(|_| "The registry address is not a valid URL.".to_string())?;
+    let url =
+        Url::parse(raw).map_err(|_| "The registry address is not a valid URL.".to_string())?;
     if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none() {
         return Err("The registry address must start with http:// or https://.".into());
     }
@@ -94,8 +95,9 @@ struct RawIndex {
 /// Lit un index. Une ligne illisible est écartée et signalée, elle ne fait pas
 /// tomber les autres ; un index qui n'est pas du tout un index est refusé.
 pub fn parse_index(bytes: &[u8]) -> Result<(Vec<Entry>, Vec<String>), String> {
-    let raw: RawIndex = serde_json::from_slice(bytes)
-        .map_err(|_| "The registry index is not a valid index.json (expected {\"packs\": [...]}).")?;
+    let raw: RawIndex = serde_json::from_slice(bytes).map_err(
+        |_| "The registry index is not a valid index.json (expected {\"packs\": [...]}).",
+    )?;
     let mut entries: Vec<Entry> = Vec::new();
     let mut skipped = Vec::new();
     for value in raw.packs {
@@ -171,8 +173,10 @@ pub fn verify_sha256(bytes: &[u8], expected: &str) -> Result<(), String> {
 
 /// Résout l'adresse d'un paquet par rapport à celle de l'index.
 pub fn resolve(index_url: &str, entry_url: &str) -> Result<Url, String> {
-    let base = Url::parse(index_url).map_err(|_| "The registry address is not valid.".to_string())?;
-    let url = base.join(entry_url.trim()).map_err(|_| "The pack address is not valid.".to_string())?;
+    let base =
+        Url::parse(index_url).map_err(|_| "The registry address is not valid.".to_string())?;
+    let url =
+        base.join(entry_url.trim()).map_err(|_| "The pack address is not valid.".to_string())?;
     if !matches!(url.scheme(), "http" | "https") {
         return Err("The pack address must use http or https.".into());
     }

@@ -20,7 +20,9 @@ use crate::auth::audit;
 use crate::auth::client_ip::ClientIp;
 use crate::auth::middleware::AdminIdentity;
 use crate::db;
-use crate::flows::{self, CountersView, Exporter, ListenerStatus, Protocol, Settings, UnknownSource};
+use crate::flows::{
+    self, CountersView, Exporter, ListenerStatus, Protocol, Settings, UnknownSource,
+};
 use crate::state::AppState;
 use crate::tsdb::InstantSeries;
 
@@ -195,8 +197,7 @@ async fn target_flows(
             RANGES.join(", ")
         )));
     }
-    let [bytes, packets, talkers, conversations, conversation_packets, ports] =
-        queries(id, &range);
+    let [bytes, packets, talkers, conversations, conversation_packets, ports] = queries(id, &range);
     let victoria = &state.victoria;
     let (bytes, packets, talkers, conversations, conversation_packets, ports) = tokio::try_join!(
         victoria.query(&bytes),

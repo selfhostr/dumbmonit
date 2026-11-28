@@ -97,11 +97,7 @@ pub struct Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Self {
-            enabled: false,
-            netflow_port: DEFAULT_NETFLOW_PORT,
-            sflow_port: DEFAULT_SFLOW_PORT,
-        }
+        Self { enabled: false, netflow_port: DEFAULT_NETFLOW_PORT, sflow_port: DEFAULT_SFLOW_PORT }
     }
 }
 
