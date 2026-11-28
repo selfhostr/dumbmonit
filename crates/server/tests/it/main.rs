@@ -51,6 +51,7 @@ mod demo_estate;
 mod discovery_jobs_api;
 mod docker_labels_api;
 mod features_api;
+mod flows_api;
 mod forecasts_api;
 mod gitops_api;
 mod https_api;

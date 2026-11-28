@@ -16,6 +16,7 @@
 	import { Button, Confirm, EmptyState, ErrorNotice, Field, Panel, Plate, Skeleton, Toggle, Disclosure } from '#lib/ui/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import TemplateImportSection from './TemplateImportSection.svelte';
+	import PackRegistrySection from './PackRegistrySection.svelte';
 
 	let packs = $state<PackView[]>([]);
 	let loading = $state(true);
@@ -399,6 +400,7 @@
 			</Disclosure>
 
 			<TemplateImportSection oninstalled={upsert} />
+			<PackRegistrySection oninstalled={upsert} />
 		</div>
 	{/if}
 </Panel>

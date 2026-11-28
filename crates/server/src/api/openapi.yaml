@@ -209,6 +209,10 @@ tags:
     description: >-
       Security score per device: checks derived from vendor best practices,
       evaluated on the data collectors already gather.
+  - name: Flows
+    description: >-
+      Beta. NetFlow v5/v9, IPFIX and sFlow v5 receivers, and the top talkers
+      of each exporting device.
   - name: Remediation
     description: >-
       Runbooks linked to alerts, remediation actions (closed catalogue), automatic
@@ -9145,6 +9149,112 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /api/packs/registry:
+    get:
+      operationId: browsePackRegistry
+      tags: [Integration packs]
+      summary: Packs offered by the configured registry
+      description: >-
+        Administrator session, or any API token. Reads the registry's `index.json`
+        (nothing is fetched while no address is set). `status` is `available`,
+        `installed`, `update` or `incompatible` (licence outside the allowed list,
+        or DumbMonit too old). A registry that cannot be read is reported in `error`.
+      x-token-scope: read
+      responses:
+        "200":
+          description: The registry and its packs.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url, configured, packs, skipped]
+                properties:
+                  url: { type: string }
+                  configured: { type: boolean }
+                  error: { type: [string, "null"] }
+                  skipped: { type: array, items: { type: string } }
+                  packs:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, name, version, license, status]
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        version: { type: string }
+                        description: { type: string }
+                        author: { type: string }
+                        license: { type: string }
+                        min_version: { type: [string, "null"] }
+                        installed_version: { type: [string, "null"] }
+                        status:
+                          type: string
+                          enum: [available, installed, update, incompatible]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/packs/registry/settings:
+    put:
+      operationId: setPackRegistry
+      tags: [Integration packs]
+      summary: Set the registry address
+      description: An empty `url` turns the registry off. Audited as `pack.registry_settings`.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string }
+      responses:
+        "200":
+          description: The stored setting.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/packs/registry/install:
+    post:
+      operationId: installRegistryPack
+      tags: [Integration packs]
+      summary: Install or update a pack from the registry
+      description: >-
+        Downloads the pack, checks its SHA-256 against the index, requires an
+        allowed licence, then installs it like `POST /api/packs`. Audited as
+        `pack.registry_installed`. `400` for a checksum, licence, version or
+        validation failure, `404` if the id is not in the index, `502` if the
+        registry cannot be reached.
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        "200":
+          description: Updated or unchanged.
+        "201":
+          description: Installed.
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "502":
+          description: The registry could not be reached.
+
   /api/packs/{id}/enable:
     parameters:
       - $ref: "#/components/parameters/PackId"
@@ -11134,6 +11244,81 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/flows/settings:
+    get:
+      operationId: getFlowSettings
+      tags: [Flows]
+      summary: Flow receiver settings, state and counters (admin only)
+      description: >-
+        Beta. Whether the NetFlow v5/v9 + IPFIX and sFlow v5 receivers are on,
+        their UDP ports, whether each one listens (or why not), the datagrams
+        received and dropped since the start (unknown exporter, malformed,
+        data without its template, exchanges folded by the global series cap),
+        the recognised exporters and the last unknown source addresses.
+      x-token-scope: read
+      responses:
+        "200":
+          description: The receiver overview.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowOverview" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    put:
+      operationId: setFlowSettings
+      tags: [Flows]
+      summary: Turn the flow receivers on or off and choose their ports
+      description: >-
+        Off by default. Only datagrams whose source address is the address of
+        a monitored device are read; the others are counted and dropped. The
+        two ports must differ. Administrators only; recorded in the audit log
+        (`flows.settings`).
+      x-token-scope: write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FlowSettings" }
+      responses:
+        "200":
+          description: The receiver overview with the new settings.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FlowOverview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/targets/{id}/flows:
+    parameters:
+      - $ref: "#/components/parameters/TargetId"
+    get:
+      operationId: getTargetFlows
+      tags: [Flows]
+      summary: Top talkers, conversations and ports of one flow exporter
+      description: >-
+        Beta. Read from the `dumbmonit_flow_bytes_total` and
+        `dumbmonit_flow_packets_total` series of the device (one point per
+        minute, top 50 exchanges per minute plus `other`). `available` is true
+        when the device exported flows in the last 24 hours (or in the window
+        when it is longer). Can answer 502 when VictoriaMetrics is unreachable.
+      x-token-scope: read
+      parameters:
+        - name: range
+          in: query
+          description: Window. 1h by default.
+          schema: { type: string, enum: [1h, 6h, 24h, 7d] }
+      responses:
+        "200":
+          description: The device's flows over the window.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TargetFlows" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /api/security/cves:
     get:
@@ -18870,6 +19055,94 @@ components:
         scheduler_idle_seconds: { type: integer }
         scheduler_backlog: { type: integer }
         heartbeat: { $ref: "#/components/schemas/Heartbeat" }
+    FlowSettings:
+      type: object
+      properties:
+        enabled: { type: boolean }
+        netflow_port: { type: integer, minimum: 1, maximum: 65535, description: "NetFlow v5/v9 and IPFIX. 2055 by default." }
+        sflow_port: { type: integer, minimum: 1, maximum: 65535, description: "sFlow v5. 6343 by default." }
+    FlowOverview:
+      type: object
+      required: [settings, listeners, counters, exporters, unknown_sources]
+      properties:
+        settings: { $ref: "#/components/schemas/FlowSettings" }
+        listeners:
+          type: array
+          items:
+            type: object
+            required: [protocol, port, listening]
+            properties:
+              protocol: { type: string, enum: [netflow, sflow] }
+              port: { type: integer }
+              listening: { type: boolean }
+              error: { type: [string, "null"] }
+        counters:
+          type: object
+          required: [datagrams, flows, dropped_unknown, dropped_malformed, missing_template, series_capped]
+          properties:
+            datagrams: { type: integer }
+            flows: { type: integer }
+            dropped_unknown: { type: integer }
+            dropped_malformed: { type: integer }
+            missing_template: { type: integer }
+            series_capped: { type: integer }
+        exporters:
+          type: array
+          items:
+            type: object
+            required: [target_id, target_name, address, protocol, datagrams, last_seen]
+            properties:
+              target_id: { type: integer }
+              target_name: { type: string }
+              address: { type: string }
+              protocol: { type: string, enum: [netflow, sflow] }
+              datagrams: { type: integer }
+              last_seen: { type: string, description: "UTC, without suffix." }
+        unknown_sources:
+          type: array
+          items:
+            type: object
+            required: [address, last_seen]
+            properties:
+              address: { type: string }
+              last_seen: { type: string }
+    TargetFlows:
+      type: object
+      required: [range, available, total_bytes, total_packets, talkers, conversations, ports]
+      properties:
+        range: { type: string }
+        available: { type: boolean }
+        total_bytes: { type: number }
+        total_packets: { type: number }
+        talkers:
+          type: array
+          items:
+            type: object
+            required: [address, bytes]
+            properties:
+              address: { type: string }
+              bytes: { type: number }
+        conversations:
+          type: array
+          items:
+            type: object
+            required: [src, dst, proto, port, bytes]
+            properties:
+              src: { type: string }
+              dst: { type: string }
+              proto: { type: string, description: "tcp, udp, icmp… or the IP protocol number." }
+              port: { type: string, description: "Lower of the two ports (usually the service); 0 without ports." }
+              bytes: { type: number }
+              packets: { type: [number, "null"] }
+        ports:
+          type: array
+          items:
+            type: object
+            required: [proto, port, bytes]
+            properties:
+              proto: { type: string }
+              port: { type: string }
+              bytes: { type: number }
     SecuritySettings:
       type: object
       required: [enabled]

@@ -290,6 +290,8 @@ async fn run(mut config: Config, startup: Startup) -> Result<()> {
         dumbmonit_server::logs::attach::spawn(state.pool.clone());
         dumbmonit_server::logs::syslog::spawn();
         dumbmonit_server::logs::traps::spawn();
+        // Flux réseau (bêta) : récepteurs NetFlow/IPFIX et sFlow, coupés par défaut.
+        dumbmonit_server::flows::spawn(state.clone());
     }
 
     scheduler::spawn(state.clone());

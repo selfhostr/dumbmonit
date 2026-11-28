@@ -18,16 +18,18 @@ use dumbmonit_proto::{
     Collector, Fingerprint, KindDescription, Measures, MetricKind, ProbeError, Sample, Target,
 };
 
-/// Machines déclarées injoignables en permanence : un commutateur et le point
-/// d'accès qui en dépend, pour montrer la suppression des alertes en cascade.
-pub const DOWN_HOSTS: &[&str] = &["switch-attic.home.arpa", "ap-attic.home.arpa"];
+/// Machines déclarées injoignables en permanence : un seul commutateur, pour
+/// que la démonstration garde un unique problème critique, crédible.
+pub const DOWN_HOSTS: &[&str] = &["switch-attic.home.arpa"];
 
-/// Service qui tombe une heure de temps en temps (toutes les 97 heures, calé sur
-/// l'horloge absolue) : l'historique des alertes et les pourcentages de
+/// Service qui tombe une heure de temps en temps (toutes les [`FLAKY_PERIOD_HOURS`]
+/// heures, calé sur l'horloge absolue) : l'historique des alertes et les pourcentages de
 /// disponibilité ont ainsi quelque chose à raconter.
 pub const FLAKY_HOST: &str = "jellyfin.home.arpa";
+/// Période des pannes de [`FLAKY_HOST`] : environ 99,8 % de disponibilité sur 30 jours.
+pub const FLAKY_PERIOD_HOURS: i64 = 241;
 
-/// Certificat qui arrive à échéance : l'alerte « Certificate expiring soon ».
+/// Certificat de la démonstration (sain, comme les autres).
 pub const EXPIRING_CERT_HOST: &str = "vault.home.arpa";
 
 /// Empreinte FNV-1a d'un nom : la graine de ses courbes.
@@ -189,7 +191,7 @@ pub fn probe_samples(kind: &str, name: &str, ts_ms: i64) -> Result<Vec<Sample>, 
 
     match kind {
         "http" => {
-            let outage = name == FLAKY_HOST && (ts_ms / 3_600_000) % 97 == 0;
+            let outage = name == FLAKY_HOST && (ts_ms / 3_600_000) % FLAKY_PERIOD_HOURS == 0;
             let base = 0.04 + (seed % 7) as f64 * 0.012;
             let first_byte = base + 0.18 * load * load;
             if outage {
@@ -223,7 +225,7 @@ pub fn probe_samples(kind: &str, name: &str, ts_ms: i64) -> Result<Vec<Sample>, 
             // Un certificat renouvelé en continu : l'échéance reste dans la même
             // fourchette quel que soit le jour où l'on regarde.
             let within_day = (ts_ms.rem_euclid(86_400_000)) as f64 / 86_400_000.0;
-            let days = if name == EXPIRING_CERT_HOST { 9.0 } else { 54.0 + (seed % 30) as f64 };
+            let days = if name == EXPIRING_CERT_HOST { 71.0 } else { 54.0 + (seed % 30) as f64 };
             labelled(gauge("probe_ssl_cert_expiry_days", days + 1.0 - within_day, ts_ms));
             labelled(gauge("probe_ssl_cert_valid", 1.0, ts_ms));
             labelled(
@@ -274,8 +276,8 @@ const CONTAINERS: &[(&str, &str, bool)] = &[
 
 /// Remplissage du volume de données au démarrage, croissance par jour (fraction
 /// de la capacité) et durée d'un cycle avant nettoyage, en jours.
-const DATA_BASE: f64 = 0.865;
-const DATA_GROWTH_PER_DAY: f64 = 0.0115;
+const DATA_BASE: f64 = 0.905;
+const DATA_GROWTH_PER_DAY: f64 = 0.0003;
 const DATA_CYCLE_DAYS: f64 = 8.0;
 
 /// Part occupée du volume de données à l'instant `ts_ms`. Dans le passé, la
@@ -284,7 +286,7 @@ const DATA_CYCLE_DAYS: f64 = 8.0;
 /// [`DATA_CYCLE_DAYS`] jours.
 pub fn data_fraction(ts_ms: i64) -> f64 {
     let days = days_since_anchor(ts_ms);
-    let in_cycle = if days < 0.0 { days } else { days.rem_euclid(DATA_CYCLE_DAYS) };
+    let in_cycle = days.rem_euclid(DATA_CYCLE_DAYS);
     // Une ondulation d'une journée (les sauvegardes de la nuit) sur la tendance.
     let wave = 0.0012 * (TAU * days).sin();
     (DATA_BASE + DATA_GROWTH_PER_DAY * in_cycle + wave).clamp(0.0, 0.995)
@@ -728,7 +730,7 @@ mod tests {
         assert!(probe_samples("ping", "nas.home.arpa", 0).is_ok());
         let tls = probe_samples("tls", EXPIRING_CERT_HOST, 1_790_000_000_000).unwrap();
         let days = tls.iter().find(|s| s.metric == "probe_ssl_cert_expiry_days").unwrap();
-        assert!(days.value < 14.0, "l'alerte d'échéance doit se déclencher");
+        assert!(days.value > 30.0, "aucun certificat n'est proche de l'échéance");
     }
 
     #[test]
@@ -755,24 +757,20 @@ mod tests {
     }
 
     #[test]
-    fn le_volume_de_donnees_se_remplit_et_annonce_son_echeance() {
+    fn le_volume_de_donnees_reste_au_dessus_du_seuil_sans_osciller() {
         let day = 86_400_000;
         let now = anchor_ms();
-        // Dans le passé, une droite : 1,15 point par jour (à l'ondulation près).
-        let before = data_fraction(now - 7 * day);
-        let after = data_fraction(now);
-        let per_day = (after - before) / 7.0;
-        assert!((per_day - DATA_GROWTH_PER_DAY).abs() < 0.002, "{per_day}");
-        // Au démarrage il reste une dizaine de jours : sous le seuil des 30 jours
-        // de la règle livrée, et sans être déjà plein.
-        let days_to_full = (1.0 - after) / per_day;
-        assert!((8.0..16.0).contains(&days_to_full), "{days_to_full}");
+        // Le disque est à environ 91 % en permanence : un seul avertissement,
+        // qui ne se résout jamais pour se rouvrir ensuite.
+        for step in 0..(40 * 24) {
+            let fraction = data_fraction(now - 30 * day + step * 3_600_000);
+            assert!((0.902..0.92).contains(&fraction), "{fraction}");
+        }
         // Un nettoyage ramène le volume au niveau de départ, sans le dépasser.
         for step in 0..400 {
             let fraction = data_fraction(now + step * 3_600_000);
             assert!((0.5..0.995).contains(&fraction), "{fraction}");
         }
-        assert!(data_fraction(now + 9 * day) < data_fraction(now + 7 * day));
     }
 
     #[test]

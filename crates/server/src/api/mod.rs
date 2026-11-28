@@ -28,6 +28,7 @@ mod deadlines;
 pub(crate) mod discovery;
 mod error;
 mod features;
+mod flows;
 mod forecasts;
 mod geocode;
 mod gitops;
@@ -64,6 +65,7 @@ mod opnsense_live;
 mod otlp;
 mod overview_widgets;
 mod packs;
+mod packs_registry;
 mod passkeys;
 mod pbs;
 mod pdm;
@@ -316,6 +318,8 @@ pub fn router_with(state: AppState, weather_hub: crate::weather::WeatherHub) -> 
         .merge(agent_sentinel::routes())
         // Panneau Synology : vue d'ensemble et appareils Active Backup (`synology.rs`).
         .merge(synology::routes())
+        // Flux réseau (bêta) : réglage du récepteur, échanges d'une cible (`flows.rs`).
+        .merge(flows::routes())
         // Prévisions de remplissage d'un équipement (`forecasts.rs`).
         .merge(forecasts::routes())
         // LUN iSCSI et zvols d'un NAS, et leur consommateur (`luns.rs`).
@@ -389,6 +393,7 @@ pub fn router_with(state: AppState, weather_hub: crate::weather::WeatherHub) -> 
         .merge(self_monitoring::routes())
         // Paquets d'intégration : types d'équipement décrits en YAML (`packs.rs`).
         .merge(packs::routes())
+        .merge(packs_registry::routes())
         // Import de modèles (Zabbix, snmp_exporter) en paquets (`template_import.rs`).
         .merge(template_import::routes())
         // Changements d'un site web : pages, diff et captures (`webchange.rs`).

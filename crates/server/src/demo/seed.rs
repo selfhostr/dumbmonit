@@ -37,7 +37,7 @@ const CHECKS: &[(&str, &str, &str, Option<&str>)] = &[
     ("nextcloud.home.arpa (TLS)", "tls", "nextcloud.home.arpa:443", None),
     ("printer.home.arpa", "ping", "printer.home.arpa", None),
     ("switch-attic.home.arpa", "ping", "switch-attic.home.arpa", None),
-    ("ap-attic.home.arpa", "ping", "ap-attic.home.arpa", Some("switch-attic.home.arpa")),
+    ("ap-attic.home.arpa", "ping", "ap-attic.home.arpa", None),
     (extras::SWITCH_HOST, "snmp", "switch-core.home.arpa", None),
     (extras::CROWDSEC_HOST, "crowdsec", "http://crowdsec.home.arpa:8080", None),
     (extras::CLOUDFLARE_HOST, "cloudflare", "api.cloudflare.com", None),
@@ -441,7 +441,7 @@ async fn seed_status_pages(
         .bind(office)
         .execute(pool)
         .await?;
-        let started = hour_floor(Utc::now()) - chrono::Duration::hours(2);
+        let started = hour_floor(Utc::now()) - chrono::Duration::days(4);
         let incident = db::status_pages::create_incident(
             pool,
             &IncidentInput {
@@ -455,13 +455,26 @@ async fn seed_status_pages(
             },
         )
         .await?;
-        db::status_pages::add_update(
+        // Incident clos depuis quatre jours : de l'information, rien d'ouvert.
+        let stamp =
+            |after: chrono::Duration| (started + after).format("%Y-%m-%dT%H:%M:%SZ").to_string();
+        db::status_pages::add_update_at(
             pool,
             incident,
             "monitoring",
             "Microsoft reports a degradation of Exchange Online in Europe; mail arrives with \
              up to 20 minutes of delay. Nothing to do on your side.",
+            false,
+            Some(&stamp(chrono::Duration::minutes(30))),
+        )
+        .await?;
+        db::status_pages::add_update_at(
+            pool,
+            incident,
+            "resolved",
+            "Microsoft confirms the Exchange Online issue is fixed; mail is delivered normally.",
             true,
+            Some(&stamp(chrono::Duration::hours(3))),
         )
         .await?;
         let window = hour_floor(Utc::now()) + chrono::Duration::days(3);
@@ -588,8 +601,8 @@ async fn seed_alert_history(
     let mut events: Vec<PastAlert> = Vec::new();
 
     if let Some(jellyfin) = find(FLAKY_HOST) {
-        for hour in (now_h - 7 * 24)..now_h {
-            if hour % 97 == 0 {
+        for hour in (now_h - 30 * 24)..now_h {
+            if hour % synthetic::FLAKY_PERIOD_HOURS == 0 {
                 let start = DateTime::from_timestamp(hour * 3600 + 180, 0).unwrap_or(now);
                 let end = DateTime::from_timestamp(hour * 3600 + 3660, 0).unwrap_or(now);
                 events.push(("service_down", Some(jellyfin), "critical", start, end, 0.0));
