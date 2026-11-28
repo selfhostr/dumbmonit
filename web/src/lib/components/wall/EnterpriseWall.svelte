@@ -7,8 +7,8 @@
 	 * down, a thunderstorm in a real outage. On top of it, readable across the
 	 * room: the verdict in a few huge words ("All good" / "N problems"), the
 	 * clock and the date, the problems as tiles, then every monitor as a small
-	 * tile. The fleet figures lie in a quiet strip along the foot,
-	 * on the stone of the rooftop.
+	 * tile. Two fleet figures lie at the foot of the left column,
+	 * under the problems, on the stone of the rooftop.
 	 *
 	 * Reads the same stores as the console (monitors, probes and alerts every
 	 * 30 s; the figures from the fleet store). Escape or Exit
@@ -226,20 +226,14 @@
 	);
 	const total = $derived(statuses.filter((r) => r.status !== 'paused').length);
 	const up = $derived(statuses.filter((r) => r.status === 'up' || r.status === 'degraded').length);
-	const down = $derived(statuses.filter((r) => r.status === 'down').length);
-	const paused = $derived(statuses.filter((r) => r.status === 'paused').length);
 	const availability = $derived(mean(fleetStore.figures.uptime30.values()));
 
 	const figures = $derived(
 		buildBandFigures({
 			up,
 			total,
-			down,
-			paused,
 			availability,
-			availabilityCount: fleetStore.figures.uptime30.size,
-			availabilitySeries: widgetsStore.data?.availability?.days.map((d) => d.pct) ?? [],
-			opened: widgetsStore.data?.alerts_opened?.days.map((d) => d.count) ?? null
+			availabilitySeries: widgetsStore.data?.availability?.days.map((d) => d.pct) ?? []
 		})
 	);
 
@@ -696,9 +690,11 @@
 			min-height: 0;
 		}
 		.board-band {
-			grid-column: 1 / -1;
+			/* Under the problems only: the rest of the foot is the scene's. */
+			grid-column: 1;
 			grid-row: 2;
 			--band-pad: 3.5rem;
+			margin-right: 0;
 		}
 		.headline {
 			font-size: clamp(4.25rem, 5vw, 6rem);

@@ -4,10 +4,7 @@
 		label: string;
 		value: string;
 		unit: string;
-		note: string;
-		/** Text colour class of the note (the figure itself stays in ink). */
-		tone: string;
-		/** Small graph under the figure (null = gap). Tiles without one keep the row empty. */
+		/** Small graph beside the figure (null = gap). */
 		series?: (number | null)[];
 		seriesMin?: number;
 		seriesMax?: number;
@@ -16,10 +13,10 @@
 
 <script lang="ts">
 	/**
-	 * The strip along the foot of the wall: the fleet figures. Quiet on
-	 * purpose (the picture and the verdict come first): it sits on the stone
-	 * face of the rooftop, under the pigeons, on a veil that keeps its figures
-	 * readable. On a phone it is the last block of the page.
+	 * The foot of the wall: two fleet figures, monitors up and availability.
+	 * From 1024 px they sit under the problems, in the left column, low on the
+	 * stone of the quay; the rest of the foot belongs to the scene. On a phone
+	 * it is the last block of the page.
 	 *
 	 * Same numbers as the console (`fleetStore`); the wall computes them.
 	 */
@@ -39,12 +36,11 @@
 			<li class="figure">
 				<span class="label">{figure.label}</span>
 				<span class="value tnum">{figure.value}{#if figure.unit}<span class="unit">{figure.unit}</span>{/if}</span>
-				<span class="graph">
-					{#if figure.series}
-						<Spark values={figure.series} height={28} min={figure.seriesMin} max={figure.seriesMax} color="var(--color-info)" />
-					{/if}
-				</span>
-				<span class="note {figure.tone}">{figure.note}</span>
+				{#if figure.series}
+					<span class="graph">
+						<Spark values={figure.series} height={24} min={figure.seriesMin} max={figure.seriesMax} color="var(--color-info)" />
+					</span>
+				{/if}
 			</li>
 		{/each}
 	</ul>
@@ -52,9 +48,6 @@
 
 <style>
 	.band {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
 		min-width: 0;
 		padding: 1rem var(--band-pad, 1rem);
 		/* A veil, not a panel: the stone shows through and the figures stay readable. */
@@ -63,16 +56,15 @@
 	}
 	.figures {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
 		align-items: start;
-		gap: 0.75rem 1rem;
+		gap: 0.75rem 1.5rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 	.figure {
 		display: grid;
-		grid-template-rows: auto auto 1.75rem auto;
 		gap: 0.125rem;
 		min-width: 0;
 		align-content: start;
@@ -80,14 +72,16 @@
 	.graph {
 		display: block;
 		min-width: 0;
-		height: 1.75rem;
+		height: 1.5rem;
+		margin-top: 0.25rem;
 	}
 	.label {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		font-size: 0.8125rem;
-		color: var(--c-ink-2);
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--c-ink);
 	}
 	.value {
 		font-family: var(--font-code, ui-monospace, monospace);
@@ -105,42 +99,31 @@
 		letter-spacing: 0;
 		color: var(--c-ink-2);
 	}
-	.note {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: 0.75rem;
-	}
 	/*
-	 * From 1024 px the strip lies along the foot of the screen, on the stone face
-	 * of the rooftop (about a tenth of the height): the figures, left.
+	 * From 1024 px: no veil, the figures sit low on the quay under the problems,
+	 * a soft halo keeps them readable over the stone like the headline.
 	 */
 	@media (min-width: 1024px) {
 		.band {
-			padding: 0.625rem var(--band-pad, 3.5rem);
+			padding: 0 0 1rem var(--band-pad, 3.5rem);
 			border-top: 0;
-			background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--c-canvas) 78%, transparent) 38%);
+			background: none;
 		}
-		.figures {
-			gap: 1.5rem;
+		.label,
+		.value {
+			text-shadow: 0 0 14px color-mix(in srgb, var(--c-canvas) 90%, transparent);
 		}
 		.value {
 			font-size: 2.25rem;
 		}
 	}
-	/* A short screen (720p to 900p): the figures lose their notes to stay on the stone. */
+	/* A short screen (720p to 900p): smaller figures, closer to the edge. */
 	@media (min-width: 1024px) and (max-height: 940px) {
-		.note {
-			display: none;
-		}
-		.figure {
-			grid-template-rows: auto auto 1.75rem;
-		}
 		.value {
 			font-size: 1.75rem;
 		}
 		.band {
-			padding-block: 0.375rem;
+			padding-bottom: 0.625rem;
 		}
 	}
 </style>
