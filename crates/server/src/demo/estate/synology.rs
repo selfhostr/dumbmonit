@@ -38,6 +38,8 @@ const FAILED_TASK: i64 = 5;
 /// Les NAS du parc fictif : le premier est sain, les autres montrent chacun un
 /// état de la vue « Parc NAS ».
 #[derive(Clone, Copy, PartialEq)]
+// `Degraded` et `Down` ne sont plus utilisés par le parc calme, mais restent disponibles.
+#[allow(dead_code)]
 pub enum Variant {
     Healthy,
     UpdateAvailable,

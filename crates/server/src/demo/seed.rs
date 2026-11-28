@@ -37,7 +37,7 @@ const CHECKS: &[(&str, &str, &str, Option<&str>)] = &[
     ("nextcloud.home.arpa (TLS)", "tls", "nextcloud.home.arpa:443", None),
     ("printer.home.arpa", "ping", "printer.home.arpa", None),
     ("switch-attic.home.arpa", "ping", "switch-attic.home.arpa", None),
-    ("ap-attic.home.arpa", "ping", "ap-attic.home.arpa", Some("switch-attic.home.arpa")),
+    ("ap-attic.home.arpa", "ping", "ap-attic.home.arpa", None),
     (extras::SWITCH_HOST, "snmp", "switch-core.home.arpa", None),
     (extras::CROWDSEC_HOST, "crowdsec", "http://crowdsec.home.arpa:8080", None),
     (extras::CLOUDFLARE_HOST, "cloudflare", "api.cloudflare.com", None),
@@ -88,6 +88,19 @@ pub async fn run(
     .context("demo account already exists in a fresh database")?;
 
     db::alerts::seed_builtin_rules(pool).await?;
+    // Une démonstration publique reste calme : seules les règles de base sont
+    // actives (service, processeur, disque, certificats), le reste est livré
+    // désactivé. Le parc simulé garde ses pannes de vitrine dans les pages
+    // d'équipement, sans alerte ouverte.
+    sqlx::query(
+        "UPDATE alert_rules SET enabled = 0
+         WHERE builtin = 1
+           AND uid NOT IN ('service_down', 'cpu_high', 'disk_almost_full',
+                           'tls_cert_expiring', 'tls_cert_expired')",
+    )
+    .execute(pool)
+    .await
+    .context("demo builtin rules")?;
     // La note de sécurité est facultative ; la démonstration la montre.
     crate::security::set_setting_enabled(pool, true).await?;
 
@@ -588,8 +601,8 @@ async fn seed_alert_history(
     let mut events: Vec<PastAlert> = Vec::new();
 
     if let Some(jellyfin) = find(FLAKY_HOST) {
-        for hour in (now_h - 7 * 24)..now_h {
-            if hour % 97 == 0 {
+        for hour in (now_h - 30 * 24)..now_h {
+            if hour % synthetic::FLAKY_PERIOD_HOURS == 0 {
                 let start = DateTime::from_timestamp(hour * 3600 + 180, 0).unwrap_or(now);
                 let end = DateTime::from_timestamp(hour * 3600 + 3660, 0).unwrap_or(now);
                 events.push(("service_down", Some(jellyfin), "critical", start, end, 0.0));

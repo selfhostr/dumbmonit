@@ -25,7 +25,7 @@ pub const CLOUDFLARE_HOST: &str = "Cloudflare edge";
 pub const DOMAINS: &[(&str, f64, &str)] = &[
     ("example.com", 212.0, "Example Registrar Ltd"),
     ("example.net", 41.0, "Example Registrar Ltd"),
-    ("example.org", 6.0, "OVH sas"),
+    ("example.org", 188.0, "OVH sas"),
 ];
 
 /// Vrai pour les types de cible que [`samples`] simule.
@@ -448,6 +448,5 @@ mod tests {
             assert!((at(now) - days).abs() < 1e-9, "{name}");
             assert!((at(now - 10 * day) - (days + 10.0)).abs() < 1e-9, "{name}");
         }
-        assert!(DOMAINS.iter().any(|(_, days, _)| *days < 14.0), "une échéance proche");
     }
 }

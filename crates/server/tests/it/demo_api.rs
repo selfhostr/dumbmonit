@@ -205,7 +205,7 @@ async fn chaque_page_cle_a_des_donnees() {
     assert_eq!(cves.body["enabled"], true, "{}", cves.body);
     assert!(cves.body.to_string().contains("CVE-2025-32463"), "{}", cves.body);
 
-    // La page publique du bureau a son incident en cours.
+    // La page publique du bureau a son incident, suivi de près.
     let office = app.get("/api/public/status/larkspur", None).await;
     assert_eq!(office.status, StatusCode::OK, "{:?}", office.body);
     assert!(office.body.to_string().contains("Delays on incoming email"), "{}", office.body);
