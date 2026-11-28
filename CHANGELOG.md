@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.22.0 — 2026-11-28
+
+### Added
+
+- **Network flows (beta).** DumbMonit can receive NetFlow v5/v9, IPFIX and sFlow from your routers
+  and switches (off by default, Settings → Flows). A Traffic section on each device lists its top
+  talkers, conversations and ports. Only packets from monitored devices are read, and only the
+  busiest conversations of each minute are kept.
+- **Community pack registry.** Point DumbMonit at a registry index and install or update
+  integration packs from it; each pack is checked against its checksum and an open-source licence
+  list before it is installed. The registry address travels with the backup.
+- Docs: running DumbMonit resiliently (cold standby, external VictoriaMetrics, restore drill) and
+  the registry format.
+
+### Changed
+
+- The demo mode is calmer: one device down and one warning, with realistic history.
+
 ## 0.21.1 — 2026-11-28
 
 ### Fixed
