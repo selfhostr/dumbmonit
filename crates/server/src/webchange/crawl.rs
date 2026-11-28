@@ -313,10 +313,9 @@ impl Client {
                 attempt.follow()
             }
         });
-        let http = reqwest::Client::builder()
+        let http = dumbmonit_collectors::http::tls_policy(reqwest::Client::builder(), insecure_tls)
             .dns_resolver(Arc::new(guard::GuardedResolver { allow_private }))
             .redirect(redirects)
-            .danger_accept_invalid_certs(insecure_tls)
             .connect_timeout(dumbmonit_collectors::http::CONNECT_TIMEOUT)
             .timeout(REQUEST_TIMEOUT)
             .user_agent(user_agent.unwrap_or(USER_AGENT))

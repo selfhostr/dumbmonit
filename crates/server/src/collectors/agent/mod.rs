@@ -28,6 +28,7 @@ pub mod modules;
 pub mod policy;
 mod receive;
 pub mod rollout;
+pub mod scripts;
 pub mod selfupdate;
 pub mod selfupdate_compat;
 pub mod sentinel;
@@ -49,6 +50,7 @@ pub use policy::spawn_policy_scheduler;
 pub use receive::{
     AGENT_TOO_OLD, BINDING_MISMATCH, IngestError, NOT_BOUND, enrol, ingest, token_client_of,
 };
+pub use scripts::AgentScriptCollector;
 pub use store::{
     HostInfo, KeyAuth, MAX_SITE_LEN, REBIND_WINDOW_MINUTES, Registration, TokenMachine,
     TokenPolicy, TokenRecord, ad_folder, allow_rebind, authorise_key, clean_ad_domain,

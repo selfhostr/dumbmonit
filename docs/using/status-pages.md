@@ -1,5 +1,8 @@
 # Status pages
 
+!!! note "Optional module"
+    Status pages are an optional module, off on a new installation: switch them on in *Settings → System → Modules* ([Settings](settings.md#modules)). While it is off, public pages answer `404`; the data is kept.
+
 A status page is the public face of your monitoring: a page anyone can open —
 no sign-in, no cookie — that says whether your services are up, shows up to 90 days
 of daily history for each of them, carries your incident and maintenance

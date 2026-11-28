@@ -7,8 +7,8 @@
 //!   nombre de murs, Open-Meteo reçoit au plus une requête par lieu et par
 //!   période. En cas d'échec, la dernière valeur connue sert encore une heure,
 //!   puis le mur n'affiche plus rien (jamais de message d'erreur à l'écran).
-//! - Adresses fixes, sans surcharge par l'environnement (comme
-//!   `music::spotify`) ; les tests les injectent par [`Endpoints`].
+//! - Adresses fixes, sans surcharge par l'environnement ; les tests les
+//!   injectent par [`Endpoints`].
 //!
 //! Le réglage (lieu et unité) vit dans la table `settings`, clé
 //! [`SETTINGS_KEY`], et voyage avec la sauvegarde.

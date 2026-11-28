@@ -116,7 +116,7 @@ md4 = "0.11"
 #
 # `sqlite` reste hors de cette liste : ce serait la même bibliothèque C que le
 # serveur, pour une base de données qu'aucune sonde réseau ne peut atteindre.
-sqlx = { version = "0.9", default-features = false, features = [
+sqlx = { version = "0.9.1", default-features = false, features = [
     "runtime-tokio", "postgres", "mysql", "tls-rustls-ring-native-roots",
 ] }
 
@@ -127,6 +127,13 @@ sqlx = { version = "0.9", default-features = false, features = [
 # préparation SASLprep du mot de passe (déjà tirée par le pilote PostgreSQL).
 ring = "0.17"
 stringprep = "0.1"
+
+# --- IPMI (`ipmi/`) ---
+#
+# IPMI v2.0 sur le réseau (RMCP+, UDP 623) en Rust pur, sans `ipmitool` : le
+# serveur n'exécute aucun programme externe. MIT OR Apache-2.0. Sans la
+# fonctionnalité `unix-file` (accès local à /dev/ipmi0, `nix`) : seul le LAN sert.
+ipmi-rs = { version = "0.6", default-features = false, features = ["md5"] }
 
 # --- Active Directory (`activedirectory/`) ---
 #
@@ -155,7 +162,7 @@ tokio-util = { version = "0.7", default-features = false, features = ["compat"] 
 # l'agent. `rsa` : beaucoup d'équipements réseau n'ont qu'une clé d'hôte RSA ;
 # elle ne sert qu'à vérifier leur signature (opération publique), jamais à
 # déchiffrer ni signer avec une clé privée (voir `deny.toml`).
-russh = { version = "0.65", default-features = false, features = ["flate2", "ring", "rsa"] }
+russh = { version = "0.65.1", default-features = false, features = ["flate2", "ring", "rsa"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "test-util"] }

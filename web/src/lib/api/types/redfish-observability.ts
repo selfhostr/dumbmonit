@@ -217,3 +217,71 @@ export interface PackInstallReport {
 	/** The pack brings SNMP profiles: they are read at start-up only. */
 	restart_required: boolean;
 }
+
+// --- Template import (crates/server/src/api/template_import.rs) ---------------
+
+/** Format recognised in an imported file (`SourceFormat`). */
+export type TemplateFormat =
+	| 'zabbix_yaml'
+	| 'zabbix_xml'
+	| 'snmp_exporter_generator'
+	| 'snmp_exporter_snmp';
+
+/** Body of `POST /api/import/templates/preview` and `/apply`. */
+export interface TemplateImportRequest {
+	/** The file's text, at most 2 MiB. */
+	content: string;
+	filename?: string;
+	/** Pack id; derived from the template name when omitted. */
+	id?: string;
+	label?: string;
+	/** sysObjectID prefixes the SNMP profiles apply to. */
+	sysobjectid?: string[];
+}
+
+/** One element of the imported file and what became of it (`ReportEntry`). */
+export interface TemplateImportEntry {
+	element: string;
+	name: string;
+	outcome: 'converted' | 'partial' | 'ignored';
+	/** English text from the server. */
+	reason: string;
+}
+
+export interface TemplateImportSummary {
+	snmp_profiles: string[];
+	snmp_metrics: number;
+	http_sources: number;
+	http_metrics: number;
+	/** Rule uids. */
+	rules: string[];
+	options: number;
+	converted: number;
+	partial: number;
+	ignored: number;
+}
+
+/** Answer to the preview (`Preview`): nothing is stored yet. */
+export interface TemplateImportPreview {
+	format: TemplateFormat;
+	pack_id: string;
+	label: string;
+	/** The pack that applying installs. */
+	yaml: string;
+	summary: TemplateImportSummary;
+	report: TemplateImportEntry[];
+	/** Why the pack cannot be installed; empty when it can. */
+	errors: string[];
+	installable: boolean;
+	/** A pack with this id is installed: applying updates it. */
+	exists: boolean;
+}
+
+/** Answer to the apply (`Applied`). */
+export interface TemplateImportApplied {
+	pack_id: string;
+	kind: string | null;
+	snmp_profiles: string[];
+	rules: string[];
+	install: PackInstallReport;
+}

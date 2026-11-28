@@ -18,6 +18,7 @@ export const SECTION_TAB: Record<string, SettingsTab> = {
 	// Former anchor of the Homelab / Enterprise choice.
 	'product-mode': 'system',
 	'setup-wizard': 'system',
+	modules: 'system',
 	'oncall-schedules': 'system',
 	appearance: 'account',
 	accent: 'system',
@@ -43,7 +44,6 @@ export const SECTION_TAB: Record<string, SettingsTab> = {
 	'email-server': 'notifications',
 	'quiet-hours': 'notifications',
 	wall: 'wall',
-	music: 'wall',
 	// Former anchors of the wall's news and widgets.
 	news: 'wall',
 	widgets: 'wall',
@@ -111,6 +111,7 @@ export function searchIndex(): SearchEntry[] {
 	});
 	return [
 		entry('general', m.settings_general_instance_title(), m.settings_search_kw_instance()),
+		entry('modules', m.settings_modules_title(), m.settings_modules_search_kw()),
 		entry('oncall-schedules', m.settings_oncall_title(), m.settings_oncall_text()),
 		entry('appearance', m['settings.section.appearance'](), m.settings_search_kw_appearance()),
 		entry('security', m['settings.section.security'](), m.settings_search_kw_security()),
@@ -132,7 +133,6 @@ export function searchIndex(): SearchEntry[] {
 		entry('notifications-policy', m.notifications_policy_title(), m.settings_search_kw_policy()),
 		entry('email-server', m.settings_mail_title(), m.settings_mail_search_kw()),
 		entry('wall', m.settings_appearance_wall_title(), m.settings_search_kw_wall()),
-		entry('music', m.settings_music_title(), m.settings_search_kw_music()),
 		entry('backup', m['settings.section.backup'](), m.settings_search_kw_backup()),
 		entry('config-files', m.settings_config_title(), m.settings_config_search_kw()),
 		entry('self-monitoring', m.settings_selfmon_title(), m.settings_search_kw_selfmon()),

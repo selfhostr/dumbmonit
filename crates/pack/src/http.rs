@@ -37,8 +37,7 @@ pub(crate) fn client(insecure_tls: bool, allow_private: bool) -> Result<Client, 
     if let Some(existing) = cache.get(&(insecure_tls, allow_private)) {
         return Ok(existing.clone());
     }
-    let client = Client::builder()
-        .danger_accept_invalid_certs(insecure_tls)
+    let client = dumbmonit_collectors::http::tls_policy(Client::builder(), insecure_tls)
         .redirect(Policy::none())
         .dns_resolver(Arc::new(guard::GuardedResolver { allow_private }))
         .connect_timeout(CONNECT_TIMEOUT)

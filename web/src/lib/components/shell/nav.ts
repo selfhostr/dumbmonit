@@ -10,7 +10,9 @@
 import type { Icon as LucideIcon } from 'lucide-svelte';
 import { Activity, Bell, Building2, Globe, House, Settings } from 'lucide-svelte';
 import { m } from '#lib/paraglide/messages.js';
+import type { Features } from '#lib/api/types.js';
 import { auth } from '#lib/stores/auth.svelte.js';
+import { featuresStore } from '#lib/stores/features.svelte.js';
 
 export interface NavEntry {
 	href: string;
@@ -22,6 +24,8 @@ export interface NavEntry {
 	also?: string[];
 	/** Needs the admin role (the server enforces it too). */
 	admin?: boolean;
+	/** Optional modules behind the entry: shown while at least one is on (Settings → System → Modules). */
+	modules?: (keyof Features)[];
 	/** Carries the active alert count. */
 	badge?: boolean;
 	/** Hidden from accounts limited by their teams or clients (the server refuses the page's API). */
@@ -38,7 +42,7 @@ export const NAV: NavEntry[] = [
 	{ href: '/', label: () => m.misc_nav_overview(), icon: House, exact: true, unscoped: true },
 	{ href: '/targets', label: () => m.misc_nav_devices(), icon: Activity, also: ['/map', '/logs', '/security'], tour: 'nav-devices' },
 	{ href: '/alerts', label: () => m.misc_nav_alerts(), icon: Bell, badge: true, also: ['/actions', '/runbooks'], tour: 'nav-alerts' },
-	{ href: '/status', label: () => m.shell_nav_status(), icon: Globe, also: ['/reports', '/sla'] },
+	{ href: '/status', label: () => m.shell_nav_status(), icon: Globe, also: ['/reports', '/sla'], modules: ['status_pages', 'sla_reports', 'slo'] },
 	{ href: '/settings', label: () => m.misc_nav_settings(), icon: Settings, tour: 'nav-settings', foot: true }
 ];
 
@@ -49,6 +53,7 @@ export const CLIENTS_ENTRY: NavEntry = { href: '/clients', label: () => m.msp_na
 export function visible(entry: NavEntry): boolean {
 	if (entry.admin && !auth.isAdmin) return false;
 	if (entry.unscoped && auth.scoped) return false;
+	if (entry.modules && !entry.modules.some((key) => featuresStore.on(key))) return false;
 	if (entry.msp && !(auth.mspOn && (auth.msp?.admin || (auth.msp?.clients.length ?? 0) > 0))) return false;
 	return true;
 }

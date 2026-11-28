@@ -120,3 +120,6 @@ directory read-write and run with `--user "$(id -u)"` so the file stays yours).
 
 Next: [write your first pack](first-pack.md) in about ten minutes, or read the
 [format reference](format.md).
+
+Already have a Zabbix template or a snmp_exporter configuration? [Import
+it](../integrations/template-import.md) and DumbMonit writes the pack for you.

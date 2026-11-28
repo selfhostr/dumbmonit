@@ -216,3 +216,20 @@ export interface RestoreReport {
 	skipped: number;
 	warnings: string[];
 }
+
+/** The optional modules. Mirrors `Features` in `crates/server/src/features.rs`. */
+export interface Features {
+	/** Wall mode (`/wall` and wall-display accounts). */
+	wall: boolean;
+	/** Scheduled reports and SLA reports. */
+	sla_reports: boolean;
+	/** Status pages and their incidents, public pages included. */
+	status_pages: boolean;
+	/** Service level objectives. */
+	slo: boolean;
+	/** World map of attacks in the Security area. */
+	threat_map: boolean;
+}
+
+/** `PUT /api/settings/features`: an omitted field keeps its value. */
+export type FeaturesPatch = Partial<Features>;

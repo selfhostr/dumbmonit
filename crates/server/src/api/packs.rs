@@ -34,7 +34,7 @@ pub fn routes() -> Router<AppState> {
 
 /// Un compte administrateur, ou un jeton d'API (dont la portée est vérifiée par
 /// le garde pour les écritures).
-fn admin(principal: &Principal) -> ApiResult<String> {
+pub(crate) fn admin(principal: &Principal) -> ApiResult<String> {
     match principal {
         Principal::User(user) if user.role.is_admin() => Ok(user.username.clone()),
         Principal::User(_) => {
@@ -189,6 +189,18 @@ pub async fn install(
             error.errors.join("\n- ")
         ))
     })?;
+    let (status, report) = install_parsed(&state, pack, &actor, ip).await?;
+    Ok((status, Json(report)))
+}
+
+/// Installe un paquet déjà vérifié : enregistrement, règles, type de cible et
+/// audit. Partagé avec l'import de modèles (`template_import.rs`).
+pub(crate) async fn install_parsed(
+    state: &AppState,
+    pack: Pack,
+    actor: &str,
+    ip: Option<std::net::IpAddr>,
+) -> ApiResult<(StatusCode, InstallReport)> {
     if state.collectors.get(pack.kind()).is_some()
         && !state.collectors.runtime_kinds().iter().any(|kind| &**kind == pack.kind())
     {
@@ -208,7 +220,7 @@ pub async fn install(
         tracing::info!(actor = %actor, pack = pack.id(), version = pack.version(), ?outcome, "integration pack installed");
         audit::record(
             &state.pool,
-            Some(&actor),
+            Some(actor),
             "pack.installed",
             Some(&format!("{} {}", pack.id(), pack.version())),
             ip,
@@ -218,12 +230,7 @@ pub async fn install(
     let status = if outcome == Saved::Created { StatusCode::CREATED } else { StatusCode::OK };
     Ok((
         status,
-        Json(InstallReport {
-            outcome,
-            pack: view(&state, row).await?,
-            rules_added,
-            restart_required,
-        }),
+        InstallReport { outcome, pack: view(state, row).await?, rules_added, restart_required },
     ))
 }
 

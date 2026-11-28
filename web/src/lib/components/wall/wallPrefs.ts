@@ -2,7 +2,7 @@
  * What a wall display remembers beyond its scene: the clock's format, a sound
  * for a new critical problem, and the rotation of the monitor pages. Kept per
  * browser, like the scene. Also the address parameters that configure one
- * display without touching what is remembered (`?theme=`, `?scene=`, `?music=`).
+ * display without touching what is remembered (`?theme=`, `?scene=`).
  *
  * Pure module (no Svelte): also loaded by `tests/wall-prefs.test.mjs`.
  */
@@ -74,18 +74,14 @@ export function clockText(date: Date, locale: string, prefs: Pick<WallPrefs, 'cl
 export interface WallParams {
 	theme: 'dark' | 'light' | null;
 	scene: WallSceneChoice | null;
-	/** `?music=0` hides the music dock and its controls on this display; null leaves it as is. */
-	music: boolean | null;
 }
 
 /** The address parameters of one display; unknown values are ignored. */
 export function parseWallParams(params: Pick<URLSearchParams, 'get'>): WallParams {
 	const theme = params.get('theme');
-	const music = params.get('music');
 	return {
 		theme: theme === 'dark' || theme === 'light' ? theme : null,
-		scene: toWallSceneChoice(params.get('scene')?.trim().toLowerCase() ?? null),
-		music: music === '0' || music === 'off' || music === 'false' ? false : music === '1' || music === 'on' || music === 'true' ? true : null
+		scene: toWallSceneChoice(params.get('scene')?.trim().toLowerCase() ?? null)
 	};
 }
 

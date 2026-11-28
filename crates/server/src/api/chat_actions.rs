@@ -184,7 +184,7 @@ pub async fn telegram_update(
     }
     // Telegram réessaie tant qu'il n'a pas un 2xx : tout ce qui ne se lit pas
     // est accusé et ignoré.
-    let update: Value = serde_json::from_slice(&body).unwrap_or(Value::Null);
+    let update: Value = crate::untrusted::from_slice(&body).unwrap_or(Value::Null);
     let Some(callback) = telegram::parse_update(&update) else {
         return Ok(StatusCode::OK.into_response());
     };

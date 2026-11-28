@@ -1,0 +1,15 @@
+name: DumbMonit CodeQL config
+
+# Test code only: fixtures (fake passwords, published RFC test vectors, sample
+# tokens) and assertion messages are not shipped and would otherwise raise
+# rust/hard-coded-cryptographic-value and rust/cleartext-logging alerts.
+# Unit tests live in `tests.rs` files next to the code they test (never inline
+# `mod tests { … }` in a source file), integration tests in `crates/*/tests/`.
+paths-ignore:
+  - "crates/*/tests/**"
+  - "**/tests.rs"
+  - "**/testdata/**"
+  - "**/fixtures/**"
+  - "fuzz/**"
+  - "web/e2e/**"
+  - "web/tests/**"

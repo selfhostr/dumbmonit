@@ -59,6 +59,7 @@ Health series are 0 (OK), 1 (Warning) or 2 (Critical). An empty slot (`Absent`) 
 |---|---|---|---|---|---|
 | Service down | The service has not responded correctly for two minutes (`dumbmonit_probe_success{probe!="push"} == bool 0`). | > 0 | 2 min | Warning (`critical`) | 30 min |
 | Heartbeat missed | The job has not called in within its expected interval plus grace period, or reported a failure itself (`dumbmonit_probe_success{probe="push"} == bool 0`; the delay is set per monitor, see [Heartbeat](../devices/push.md)). | > 0 | 2 min | Advisory (`warning`) | 6 h |
+| Custom check warning | The custom check returned WARNING (exit code 1 of a Nagios plugin, or `"status": "warning"`; `dumbmonit_script_warning`). A CRITICAL makes the monitor unreachable instead, see [Custom checks](../devices/custom-scripts.md). | > 0 | 2 min | Advisory (`warning`) | 6 h |
 | Service flapping | The service changed state more than six times in thirty minutes (`changes(dumbmonit_probe_success{probe!="push"}[30m])`). | > 6 | 5 min | Advisory (`warning`) | 1 h |
 | Slow service | The service takes more than three seconds to respond; failed checks are left out (`dumbmonit_probe_duration_seconds and dumbmonit_probe_success == 1`). | > 3 s | 10 min | Advisory (`warning`) | 6 h |
 | Certificate expiring soon | The certificate expires in less than fourteen days. | < 14 d | 1 h | Advisory (`warning`) | 24 h |
@@ -871,6 +872,24 @@ See [Microsoft Azure](../devices/azure.md). Rules for an Azure subscription read
 | Azure resource degraded | Resource Health reports a resource of the subscription as degraded for 15 minutes. (`dumbmonit_azure_resources_degraded`) | > 0 | 15 min | Advisory (`warning`) | 6 h |
 | Azure Monitor alert Sev0 or Sev1 | An Azure Monitor alert of severity Sev0 (critical) or Sev1 (error) is fired and not closed. (`dumbmonit_azure_alerts_high_active`) | > 0 | 5 min | Advisory (`warning`) | 6 h |
 
+### IPMI
+
+See [Server hardware (IPMI)](../devices/ipmi.md). Rules for the sensors and power supplies of a BMC read over IPMI.
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| IPMI power supply fault | A power supply reports a fault, a lost input or a predicted failure for 5 minutes. (`dumbmonit_ipmi_psus_faulty`) | > 0 | 5 min | Warning (`critical`) | 6 h |
+| IPMI sensor out of limits | A BMC sensor (temperature, fan, voltage) is past its critical threshold for 10 minutes. (`dumbmonit_ipmi_sensors_out_of_limits`) | > 0 | 10 min | Advisory (`warning`) | 6 h |
+
+### Google Cloud
+
+See [Google Cloud](../devices/gcp.md). Rules for the Compute Engine and Cloud SQL instances of a Google Cloud project.
+
+| Rule | What | Default threshold | Hold | Severity | Reminder |
+|---|---|---|---|---|---|
+| Google Cloud instance failed | Google reports a Compute Engine instance as repairing for 10 minutes (instances stopped by their owner are not counted). (`dumbmonit_gcp_instances_failed`) | > 0 | 10 min | Warning (`critical`) | 6 h |
+| Google Cloud SQL instance failed | A Cloud SQL instance is in the FAILED or unknown state for 10 minutes. (`dumbmonit_gcp_sql_instances_failed`) | > 0 | 10 min | Warning (`critical`) | 6 h |
+
 ### AWS CloudWatch
 
 See [AWS (CloudWatch)](../devices/aws.md). AWS alarms, EC2 instances and RDS databases read through CloudWatch.
@@ -1161,7 +1180,7 @@ What the built-in rules let you set:
 | Maintenance age | PBS garbage collection, PBS and Proxmox scheduled jobs, NAS and Synology scrub, Unraid parity check, NAS snapshots, Proxmox and vSphere snapshots, Pi-hole and AdGuard lists, mail gateway signatures, Jellyfin library scan, Nextcloud background jobs, krbtgt password | 2 to 200 days | The age, in hours or days |
 | Time left before expiry | Certificates (probes, proxies, Proxmox VE/PBS/PDM/PMG, Synology, TrueNAS, OPNsense, AdGuard, Cloudflare), domains, licences and support (GitLab, Veeam, FortiGate, Unraid), Tailscale keys, Entra secrets, Infomaniak products, PBS datastore filling up, Storage filling up | 7 to 30 days; `0` for "expired" | The time left, in hours or days |
 | Down, silent or stale for | Monitor unreachable (3 min), WireGuard peer silent and Tailscale device offline (15 min), DumbMonit scheduler stalled (2 min) | minutes | The delay, in seconds to days |
-| Delay or lag | Replication lag (Redis, MongoDB, PostgreSQL, Oracle Data Guard), blocked or long transactions, mail stuck in a queue (MDaemon, mailcow, mail gateway), Entra directory sync, Proxmox replication overdue, Frigate detector stuck, PostgreSQL restarted | 30 s to 6 h | The delay, in seconds to days |
+| Delay or lag | Replication lag (Redis, MongoDB, PostgreSQL, MySQL, Oracle Data Guard), blocked or long transactions, mail stuck in a queue (MDaemon, mailcow, mail gateway), Entra directory sync, Proxmox replication overdue, Frigate detector stuck, PostgreSQL and MySQL restarted | 30 s to 6 h | The delay, in seconds to days |
 | Response time | Slow service, website slow, gateway slow (OPNsense), AdGuard and Pi-hole upstream | 0.3 to 5 s | Seconds (pfSense gateway latency stays in milliseconds) |
 | Client device stale | Client device stale (Immich, PBS, Veeam devices) | `0`: any time past the window | The window itself is set on each monitor (`device_stale_days`) |
 | Learned rhythm | Active Backup device overdue | the device's own habits | Nothing: an on/off signal. Use *Active Backup device backup too old* for a fixed limit |

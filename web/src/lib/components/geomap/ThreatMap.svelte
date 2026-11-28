@@ -7,6 +7,9 @@
 	 * Everything comes aggregated from `GET /api/security/threats`: countries
 	 * only, never an address. On the Security page it shows every source; in
 	 * a device's panel (`target`), only that device's.
+	 *
+	 * An optional module (Settings → System → Modules), and nothing is drawn
+	 * unless a source feeds it: no empty map.
 	 */
 	import { untrack } from 'svelte';
 	import { m } from '#lib/paraglide/messages.js';
@@ -14,20 +17,19 @@
 	import { getThreatMap } from '#lib/api/security.js';
 	import { getBasemap } from '#lib/api/locations.js';
 	import type { Basemap, TargetId, ThreatMap, ThreatSourceKind } from '#lib/api/types.js';
-	import { ErrorNotice, Panel, Plate, Skeleton } from '#lib/ui/index.js';
+	import { ErrorNotice, Panel, Plate } from '#lib/ui/index.js';
 	import { countryName } from '#lib/map/live.js';
 	import GeoMap from './GeoMap.svelte';
 	import { startPolling } from '#lib/poll.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 
 	interface Props {
 		/** One device's sources only (its own panel); every source when omitted. */
 		target?: TargetId;
-		/** Shown when that device feeds nothing (how to turn the map on). */
-		emptyHint?: string;
 		class?: string;
 	}
 
-	let { target, emptyHint, class: className = '' }: Props = $props();
+	let { target, class: className = '' }: Props = $props();
 
 	let data = $state<ThreatMap | null>(null);
 	let error = $state<unknown>(null);
@@ -47,6 +49,7 @@
 	$effect(() => {
 		void target;
 		data = null;
+		if (!featuresStore.on('threat_map')) return;
 		const controller = new AbortController();
 		void getBasemap(controller.signal)
 			.then((b) => (basemap = b))
@@ -57,6 +60,9 @@
 			stop();
 		};
 	});
+
+	/** Module on and at least one source (or an error to report); otherwise nothing at all. */
+	const shown = $derived(featuresStore.on('threat_map') && (data ? data.sources.length > 0 || data.partial : error !== null));
 
 	const names = $derived(new Intl.DisplayNames([getLocale()], { type: 'region' }));
 	const fmt = $derived(new Intl.NumberFormat(getLocale()));
@@ -92,6 +98,7 @@
 	}
 </script>
 
+{#if shown}
 <Panel title={m.threatmap_title()} description={m.threatmap_description()} padded={false} class={`rise-in ${className}`}>
 	{#snippet aside()}
 		{#if data && data.sources.length > 0}
@@ -100,14 +107,7 @@
 	{/snippet}
 	{#if error && !data}
 		<div class="px-4 py-4 sm:px-5"><ErrorNotice {error} title={m.threatmap_err_load()} onretry={() => void load()} /></div>
-	{:else if !data}
-		<div class="px-4 py-4 sm:px-5"><Skeleton class="h-64 w-full rounded-lg" /></div>
-	{:else if data.sources.length === 0 && !data.partial}
-		<div class="space-y-1 px-4 py-4 text-sm text-ink-2 sm:px-5">
-			<p class="font-semibold text-ink">{m.threatmap_empty_title()}</p>
-			<p>{emptyHint ?? m.threatmap_empty_body()}</p>
-		</div>
-	{:else}
+	{:else if data}
 		<div class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_19rem]">
 			<div class="min-w-0 p-3">
 				<GeoMap {basemap} choropleth={values} tone="warning" world {valueLabel} label={m.threatmap_map_label()} class="h-[46vh] min-h-[280px]" />
@@ -156,3 +156,4 @@
 		</div>
 	{/if}
 </Panel>
+{/if}

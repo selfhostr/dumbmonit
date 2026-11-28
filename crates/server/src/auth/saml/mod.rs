@@ -30,6 +30,8 @@ use crate::auth::settings;
 const SETTINGS_KEY: &str = "saml";
 
 pub const DEFAULT_BUTTON_LABEL: &str = "SAML";
+/// Certificats de fournisseur gardés au plus (rotation : ancien et nouveau, avec marge).
+const MAX_IDP_CERTIFICATES: usize = 8;
 /// Chemins des routes, relatifs à l'URL publique.
 pub const METADATA_PATH: &str = "/api/auth/saml/metadata";
 pub const ACS_PATH: &str = "/api/auth/saml/acs";
@@ -151,10 +153,13 @@ impl SamlConfig {
         if self.button_label.chars().count() > 64 {
             return Err("The button label must be 64 characters or fewer.".into());
         }
-        if self.idp_certificates.len() > 8 {
-            return Err("At most 8 identity provider certificates can be stored.".into());
+        if self.idp_certificates.len() > MAX_IDP_CERTIFICATES {
+            return Err(format!(
+                "At most {MAX_IDP_CERTIFICATES} identity provider certificates can be stored."
+            ));
         }
-        let mut certificates = Vec::with_capacity(self.idp_certificates.len());
+        let mut certificates =
+            Vec::with_capacity(self.idp_certificates.len().min(MAX_IDP_CERTIFICATES));
         for (index, pem) in self.idp_certificates.iter().enumerate() {
             let der = certificate_der(pem).ok_or_else(|| {
                 format!(

@@ -96,12 +96,11 @@ async fn vet(host: &str, port: u16) -> Result<(), String> {
 // --------------------------------------------------------------------------
 
 pub fn http_client(insecure_tls: bool) -> Result<reqwest::Client, String> {
-    reqwest::Client::builder()
+    dumbmonit_collectors::http::tls_policy(reqwest::Client::builder(), insecure_tls)
         .timeout(SEND_TIMEOUT)
         .user_agent(concat!("DumbMonit/", env!("CARGO_PKG_VERSION")))
         // Les identifiants ne partent que vers l'adresse saisie.
         .redirect(reqwest::redirect::Policy::none())
-        .danger_accept_invalid_certs(insecure_tls)
         .build()
         .map_err(|error| format!("HTTP client: {error}"))
 }

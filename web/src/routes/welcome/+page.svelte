@@ -5,20 +5,21 @@
 	 * Settings → General). It opens on "Your first alert": one thing to watch,
 	 * where the alert goes and a test that proves it, the whole road from a
 	 * fresh instance to a message on the phone. Then name and language, more
-	 * monitors, an agent, and three optional steps (single sign-on and teams,
-	 * on-call, retention).
+	 * monitors, an agent, the optional modules, and three optional steps
+	 * (single sign-on and teams, on-call, retention).
 	 *
-	 * Every step can be skipped; "Skip setup" ends it at once. The step lives
-	 * in the URL (`?step=monitors`), so Back works and a language change, which
-	 * reloads the page, lands on the next step. Finishing marks the wizard done
-	 * on the server, for every browser.
+	 * One step per page, full screen, no app shell: the step and its counter on
+	 * top, Back / Continue in a footer that stays in view. Enter outside a form
+	 * means Continue. "Skip setup" ends it at once. The step lives in the URL
+	 * (`?step=monitors`), so the browser's Back works and a language change,
+	 * which reloads the page, lands on the next step. Finishing marks the
+	 * wizard done on the server, for every browser.
 	 */
 	import { tick } from 'svelte';
 	import { goto } from '#lib/navigation.js';
 	import { page } from '$app/state';
-	import { Check } from 'lucide-svelte';
 	import { getInstanceSettings, updateInstanceSettings } from '#lib/api/instance.js';
-	import { updateOnboarding } from '#lib/api/index.js';
+	import { getFeatures, updateFeatures, updateOnboarding, type Features } from '#lib/api/index.js';
 	import { m } from '#lib/paraglide/messages.js';
 	import { getLocale, setLocale, type Locale } from '#lib/paraglide/runtime.js';
 	import { auth } from '#lib/stores/auth.svelte.js';
@@ -31,12 +32,13 @@
 	import WizardMonitors from '#lib/components/wizard/WizardMonitors.svelte';
 	import WizardOnCall from '#lib/components/wizard/WizardOnCall.svelte';
 	import WizardPigeon from '#lib/components/wizard/WizardPigeon.svelte';
+	import WizardModules from '#lib/components/wizard/WizardModules.svelte';
 	import AgentEnroll from '#lib/components/device-form/AgentEnroll.svelte';
 	import SsoSection from '#lib/components/settings/SsoSection.svelte';
 	import UsersSection from '#lib/components/settings/UsersSection.svelte';
 	import StorageSection from '#lib/components/settings/StorageSection.svelte';
 
-	type StepId = 'start' | 'instance' | 'monitors' | 'agent' | 'sso' | 'oncall' | 'retention';
+	type StepId = 'start' | 'instance' | 'monitors' | 'agent' | 'modules' | 'sso' | 'oncall' | 'retention';
 	interface Step {
 		id: StepId;
 		title: () => string;
@@ -44,16 +46,19 @@
 		/** What the pigeon says on this step. */
 		say: () => string;
 		optional?: boolean;
+		/** Choice grids and tables take the wide column; forms keep a reading width. */
+		wide?: boolean;
 	}
 
 	const STEPS: Step[] = [
 		{ id: 'start', title: () => m.wizard_start_title(), text: () => m.wizard_start_text(), say: () => m.wizard_pigeon_start() },
 		{ id: 'instance', title: () => m.wizard_instance_title(), text: () => m.wizard_instance_text(), say: () => m.wizard_pigeon_instance() },
-		{ id: 'monitors', title: () => m.wizard_monitors_title(), text: () => m.wizard_monitors_text(), say: () => m.wizard_pigeon_monitors() },
-		{ id: 'agent', title: () => m.wizard_agent_title(), text: () => m.wizard_agent_text(), say: () => m.wizard_pigeon_agent() },
-		{ id: 'sso', title: () => m.wizard_sso_title(), text: () => m.wizard_sso_text(), say: () => m.wizard_pigeon_sso(), optional: true },
+		{ id: 'monitors', title: () => m.wizard_monitors_title(), text: () => m.wizard_monitors_text(), say: () => m.wizard_pigeon_monitors(), wide: true },
+		{ id: 'agent', title: () => m.wizard_agent_title(), text: () => m.wizard_agent_text(), say: () => m.wizard_pigeon_agent(), wide: true },
+		{ id: 'modules', title: () => m.wizard_modules_title(), text: () => m.wizard_modules_text(), say: () => m.wizard_pigeon_modules() },
+		{ id: 'sso', title: () => m.wizard_sso_title(), text: () => m.wizard_sso_text(), say: () => m.wizard_pigeon_sso(), optional: true, wide: true },
 		{ id: 'oncall', title: () => m.wizard_oncall_title(), text: () => m.wizard_oncall_text(), say: () => m.wizard_pigeon_oncall(), optional: true },
-		{ id: 'retention', title: () => m.wizard_retention_title(), text: () => m.wizard_retention_text(), say: () => m.wizard_pigeon_retention(), optional: true }
+		{ id: 'retention', title: () => m.wizard_retention_title(), text: () => m.wizard_retention_text(), say: () => m.wizard_pigeon_retention(), optional: true, wide: true }
 	];
 
 	// On-call schedules are optional (Settings → System): their step only shows while they are on.
@@ -63,6 +68,7 @@
 	const index = $derived(Math.max(0, steps.findIndex((s) => s.id === asked)));
 	const step = $derived(steps[index]);
 	const last = $derived(index === steps.length - 1);
+	const progress = $derived(((index + 1) / steps.length) * 100);
 	/** Happy on the last step: after it, the rounds start. */
 	const pigeonMood = $derived(last ? 'happy' : 'watch');
 
@@ -72,6 +78,16 @@
 	let busy = $state(false);
 	let error = $state<unknown>(null);
 	let heading = $state<HTMLHeadingElement | null>(null);
+	// Optional modules: all off until the server says otherwise.
+	let features = $state<Features>({ wall: false, sla_reports: false, status_pages: false, slo: false, threat_map: false });
+
+	$effect(() => {
+		const controller = new AbortController();
+		getFeatures(controller.signal)
+			.then((saved) => (features = { ...features, ...saved }))
+			.catch(() => {});
+		return () => controller.abort();
+	});
 
 	$effect(() => {
 		getInstanceSettings()
@@ -112,6 +128,9 @@
 		busy = true;
 		error = null;
 		try {
+			if (step.id === 'modules') {
+				features = { ...features, ...(await updateFeatures({ ...features })) };
+			}
 			if (step.id === 'instance') {
 				const settings = await updateInstanceSettings({ name: name.trim(), language, timezone });
 				instanceStore.name = settings.name;
@@ -129,6 +148,19 @@
 		} finally {
 			busy = false;
 		}
+	}
+
+	/**
+	 * Enter means Continue, unless it already does something where it was
+	 * pressed: a form (it submits), a text area, a button or link, a menu or a dialog.
+	 */
+	function onkeydown(event: KeyboardEvent) {
+		if (event.key !== 'Enter' || event.defaultPrevented || event.isComposing) return;
+		if (event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+		const target = event.target instanceof Element ? event.target : null;
+		if (target?.closest('form, textarea, button, a, select, summary, [contenteditable], [role="combobox"], [role="listbox"], [role="menu"], [role="switch"], [role="dialog"], dialog')) return;
+		event.preventDefault();
+		void advance();
 	}
 
 	/** Marks the wizard done (and the overview's three-step guide with it), then opens the app. */
@@ -149,101 +181,77 @@
 </script>
 
 <svelte:head><title>{docTitle(m.wizard_title())}</title></svelte:head>
+<svelte:window {onkeydown} />
 
-<div class="min-h-dvh bg-canvas text-ink">
-	<header class="border-b border-line">
-		<div class="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4 sm:px-6">
-			<Logo class="size-7" />
-			<span class="truncate font-semibold">{m.wizard_title()}</span>
-			<Button variant="ghost" size="sm" class="ml-auto !h-10" disabled={busy} onclick={finish}>{m.wizard_skip_all()}</Button>
+<!-- The whole screen, no app shell: header, one step centred in the free space, footer always in view. -->
+<div class="flex min-h-dvh flex-1 flex-col bg-canvas text-ink">
+	<header class="relative border-b border-line bg-canvas">
+		<div class="mx-auto flex h-14 w-full max-w-5xl items-center gap-3 px-4 sm:px-6">
+			<Logo class="size-7 shrink-0" />
+			<span class="min-w-0 truncate font-semibold">{m.wizard_title()}</span>
+			<Button variant="ghost" size="sm" class="ml-auto !h-10 shrink-0" disabled={busy} onclick={finish}>{m.wizard_skip_all()}</Button>
+		</div>
+		<!-- Progress: a hairline along the header's foot; the counter above the title says it in words. -->
+		<div class="absolute inset-x-0 -bottom-px h-0.5" aria-hidden="true">
+			<div class="progress-ink h-full bg-ink transition-[width] duration-500 ease-out-expo" style={`width: ${progress}%`}></div>
 		</div>
 	</header>
 
-	<!-- Two columns from `lg`: the steps (a fixed width, never squeezed or overflowing) and the step itself (`minmax(0, 1fr)`: it shrinks, it never pushes). -->
-	<div class="mx-auto grid max-w-5xl gap-8 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10">
-		<div class="min-w-0 max-lg:hidden">
-			<nav aria-label={m.wizard_steps_label()}>
-				<!-- One explicit column: an implicit one grows to the widest title and spills over the step. -->
-				<ol class="grid grid-cols-1 gap-1">
-					{#each steps as s, i (s.id)}
-						{@const done = i < index}
-						{@const current = i === index}
-						<li class="min-w-0">
-							<button
-								type="button"
-								onclick={() => go(i)}
-								aria-current={current ? 'step' : undefined}
-								class={`flex min-h-10 w-full items-start gap-3 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-surface-2 ${current ? 'font-semibold text-ink' : 'text-ink-2'}`}
-							>
-								<span aria-hidden="true" class={`grid size-6 shrink-0 place-items-center rounded-full border font-mono text-xs ${current ? 'border-ink bg-ink text-canvas' : done ? 'border-line-strong text-ink' : 'border-line text-ink-3'}`}>
-									{#if done}<Check class="size-3.5" />{:else}{i + 1}{/if}
-								</span>
-								<span class="min-w-0 flex-1">
-									<span class="block py-0.5 leading-5 [overflow-wrap:anywhere]">{s.title()}</span>
-									{#if s.optional}<span class="block text-[0.6875rem] leading-4 font-normal text-ink-3">{m.wizard_optional()}</span>{/if}
-								</span>
-							</button>
-						</li>
-					{/each}
-				</ol>
-				<p class="mt-6 px-2 text-[0.8125rem] text-ink-2">{m.wizard_intro()}</p>
-			</nav>
-			<!-- Under the steps, where the eye rests; phones and tablets keep the progress bar only. -->
-			<WizardPigeon class="mt-8 px-2" message={step.say()} mood={pigeonMood} />
-		</div>
+	<main class="flex-1 px-4 pt-8 pb-10 sm:px-6 sm:pt-14 sm:pb-16">
+		{#key step.id}
+			<section class={`rise-in mx-auto w-full min-w-0 ${step.wide ? 'max-w-5xl' : 'max-w-3xl'}`} aria-labelledby="wizard-step-title">
+				<p class="text-[0.8125rem] text-ink-2">
+					{m.wizard_step_of({ current: index + 1, total: steps.length })}
+					{#if step.optional}<span class="text-ink-3"> · {m.wizard_optional()}</span>{/if}
+				</p>
+				<h1 id="wizard-step-title" bind:this={heading} tabindex="-1" class="display mt-2 text-3xl break-words text-ink outline-none max-sm:text-2xl">
+					{step.title()}
+				</h1>
+				<p class="mt-3 max-w-[65ch] break-words text-ink-2">{step.text()}</p>
+				{#if index === 0}<p class="mt-1 max-w-[65ch] text-[0.8125rem] break-words text-ink-3">{m.wizard_intro()}</p>{/if}
+				<WizardPigeon class="mt-6 max-w-lg max-sm:hidden" message={step.say()} mood={pigeonMood} />
 
-		<section class="min-w-0" aria-labelledby="wizard-step-title">
-			<div class="lg:hidden">
-				<p class="text-[0.8125rem] text-ink-2">{m.wizard_step_of({ current: index + 1, total: steps.length })}</p>
-				<div class="mt-2 h-1 overflow-hidden rounded-full bg-line" aria-hidden="true">
-					<div class="progress-ink h-full rounded-full bg-ink transition-[width] duration-500 ease-out-expo" style={`width: ${((index + 1) / steps.length) * 100}%`}></div>
+				<div class="mt-8 min-w-0">
+					{#if step.id === 'start'}
+						<WizardQuickStart />
+					{:else if step.id === 'instance'}
+						<InstanceFields bind:name bind:language bind:timezone idPrefix="wizard-instance" />
+					{:else if step.id === 'monitors'}
+						<WizardMonitors />
+					{:else if step.id === 'agent'}
+						<AgentEnroll cancelHref={`/welcome?step=${steps[index + 1]?.id ?? 'agent'}`} />
+					{:else if step.id === 'modules'}
+						<WizardModules bind:value={features} disabled={busy} />
+					{:else if step.id === 'sso'}
+						<div class="grid min-w-0 gap-6">
+							<SsoSection />
+							<UsersSection />
+						</div>
+					{:else if step.id === 'oncall'}
+						<WizardOnCall {timezone} />
+					{:else if step.id === 'retention'}
+						<StorageSection />
+					{/if}
 				</div>
-			</div>
 
-			{#key step.id}
-				<div class="rise-in mt-4 lg:mt-0">
-					<h1 id="wizard-step-title" bind:this={heading} tabindex="-1" class="display text-3xl text-ink outline-none max-sm:text-2xl">
-						{step.title()}
-						{#if step.optional}<span class="ml-2 align-middle text-sm font-normal text-ink-3">{m.wizard_optional()}</span>{/if}
-					</h1>
-					<p class="mt-2 max-w-[65ch] text-ink-2">{step.text()}</p>
+				{#if error}<ErrorNotice {error} class="mt-6" />{/if}
+			</section>
+		{/key}
+	</main>
 
-					<div class="mt-6 min-w-0">
-						{#if step.id === 'start'}
-							<WizardQuickStart />
-						{:else if step.id === 'instance'}
-							<InstanceFields bind:name bind:language bind:timezone idPrefix="wizard-instance" />
-						{:else if step.id === 'monitors'}
-							<WizardMonitors />
-						{:else if step.id === 'agent'}
-							<AgentEnroll cancelHref={`/welcome?step=${steps[index + 1]?.id ?? 'agent'}`} />
-						{:else if step.id === 'sso'}
-							<div class="grid gap-6">
-								<SsoSection />
-								<UsersSection />
-							</div>
-						{:else if step.id === 'oncall'}
-							<WizardOnCall {timezone} />
-						{:else if step.id === 'retention'}
-							<StorageSection />
-						{/if}
-					</div>
-				</div>
-			{/key}
-
-			{#if error}<ErrorNotice {error} class="mt-6" />{/if}
-
-			<div class="sticky bottom-0 mt-8 flex flex-wrap items-center gap-2 border-t border-line bg-canvas py-4 pb-[calc(1rem+var(--safe-bottom))]">
-				{#if index > 0}
-					<Button variant="ghost" class="!h-10" disabled={busy} onclick={() => go(index - 1)}>{m.wizard_back()}</Button>
-				{/if}
-				<div class="ml-auto flex flex-wrap items-center gap-2">
+	<footer class="sticky bottom-0 z-20 border-t border-line bg-canvas pb-[var(--safe-bottom)]">
+		<div class="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6">
+			{#if index > 0}
+				<Button variant="ghost" class="!h-10" disabled={busy} onclick={() => go(index - 1)}>{m.wizard_back()}</Button>
+			{/if}
+			<div class="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+				{#if step.optional}
 					<Button variant="ghost" class="!h-10" disabled={busy} onclick={() => (last ? finish() : go(index + 1))}>{m.wizard_skip_step()}</Button>
-					<Button variant="primary" class="!h-10" loading={busy} onclick={advance}>{last ? m.wizard_finish() : m.wizard_next()}</Button>
-				</div>
+				{/if}
+				<Button variant="primary" class="!h-10" loading={busy} onclick={advance}>{last ? m.wizard_finish() : m.wizard_next()}</Button>
 			</div>
-		</section>
-	</div>
+		</div>
+	</footer>
 </div>
 
 <style>

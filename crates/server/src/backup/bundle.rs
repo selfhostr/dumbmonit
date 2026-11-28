@@ -189,6 +189,10 @@ pub struct Bundle {
     /// Réglages d'instance : mode produit, nom, langue, fuseau (migration 0180).
     #[serde(default)]
     pub instance: Option<crate::instance::InstanceSettings>,
+    /// Modules facultatifs activés (mode mural, rapports SLA, pages de statut, SLO,
+    /// carte des menaces). Absent d'un lot ancien : l'instance garde les siens.
+    #[serde(default)]
+    pub features: Option<crate::features::Features>,
     /// Mode MSP : clients, leurs membres et leur marque (migration 0185).
     #[serde(default)]
     pub clients: Vec<BundleClient>,

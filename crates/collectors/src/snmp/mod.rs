@@ -34,6 +34,7 @@ use oid::ObjectId;
 use session::Session;
 
 pub use discovery::{DiscoveredDevice, Identity, ScanOptions, scan_network};
+pub use pattern::Pattern;
 pub use profile::{Catalog, Profile};
 // Type d'un champ public de `ScanOptions` : il doit être nommable par l'appelant.
 pub use session::CommunityVersion;

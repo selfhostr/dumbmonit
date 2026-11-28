@@ -46,6 +46,7 @@
 //! | `event_logs` | `System,Application` | Journaux comptés ; `none` = aucun. |
 //! | `event_minutes` | `60` | Fenêtre de comptage des erreurs. |
 
+pub mod hyperv;
 mod ntlm;
 mod wsman;
 
@@ -266,8 +267,7 @@ struct Session {
 
 impl Session {
     fn new(options: Options, username: String, password: String) -> Result<Self, ProbeError> {
-        let http = reqwest::Client::builder()
-            .danger_accept_invalid_certs(options.insecure_tls)
+        let http = crate::http::tls_policy(reqwest::Client::builder(), options.insecure_tls)
             .connect_timeout(Duration::from_secs(10))
             // L'authentification NTLM vaut pour la connexion : une seule, gardée.
             .pool_max_idle_per_host(1)
@@ -428,17 +428,29 @@ impl Session {
         }
     }
 
-    /// Une requête WQL, pages suivantes comprises (au plus `max_pages`).
+    /// Une requête WQL sur `root/cimv2` (au plus `max_pages` pages).
     async fn query(
         &mut self,
         wql: &str,
         page_size: u32,
         max_pages: usize,
     ) -> Result<Vec<Row>, ProbeError> {
+        self.query_in(wsman::CIMV2, wql, page_size, max_pages).await
+    }
+
+    /// Une requête WQL dans l'espace de noms `namespace`.
+    async fn query_in(
+        &mut self,
+        namespace: &str,
+        wql: &str,
+        page_size: u32,
+        max_pages: usize,
+    ) -> Result<Vec<Row>, ProbeError> {
         let operation_secs = self.options.timeout.as_secs().saturating_sub(1).max(1);
         let endpoint = self.options.endpoint.clone();
+        let id = message_id();
         let mut request =
-            wsman::enumerate_request(&endpoint, &message_id(), operation_secs, wql, page_size);
+            wsman::enumerate_request_in(namespace, &endpoint, &id, operation_secs, wql, page_size);
         let mut rows = Vec::new();
         for _ in 0..max_pages {
             let body = self.send(request).await?;
@@ -446,13 +458,9 @@ impl Session {
             rows.extend(page.rows);
             match page.context {
                 Some(context) => {
-                    request = wsman::pull_request(
-                        &endpoint,
-                        &message_id(),
-                        operation_secs,
-                        &context,
-                        page_size,
-                    );
+                    let id = message_id();
+                    let pull = wsman::pull_request_in;
+                    request = pull(namespace, &endpoint, &id, operation_secs, &context, page_size);
                 }
                 None => break,
             }

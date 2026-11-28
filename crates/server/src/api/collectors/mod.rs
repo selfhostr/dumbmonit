@@ -110,11 +110,14 @@ mod cloud;
 mod credentials;
 mod kinds_apps;
 mod kinds_devices;
+mod kinds_hyperv;
+mod kinds_ipmi;
 mod kinds_probes;
 mod kinds_services;
 mod options_apps;
 mod options_devices;
 mod options_probes;
+mod options_scripts;
 mod options_services;
 mod options_vendors;
 
@@ -123,6 +126,7 @@ use credentials::*;
 use options_apps::*;
 use options_devices::*;
 use options_probes::*;
+use options_scripts::*;
 use options_services::*;
 use options_vendors::*;
 
@@ -253,18 +257,21 @@ const BETA_KINDS: &[&str] = &[
     "ceph",
     "duplicati",
     "frigate",
+    "gcp",
+    "hyperv",
+    "ipmi",
     "keycloak",
     "kopia",
     "lidarr",
     "mailcow",
     "minio",
     "omada",
+    "papra",
     "prowlarr",
     "qbittorrent",
     "qnap",
     "radarr",
     "sonarr",
-    "vaultwarden",
 ];
 
 pub async fn list(State(state): State<AppState>) -> Json<Vec<KindDescription>> {
@@ -335,9 +342,11 @@ fn describe(kind: &str, own: Option<KindDescription>) -> KindDescription {
 /// fonction par famille (`kinds_*.rs`), puis les intégrations en nuage.
 fn compiled(kind: &str) -> Option<CollectorView> {
     kinds_devices::view(kind)
+        .or_else(|| kinds_ipmi::view(kind))
         .or_else(|| kinds_probes::view(kind))
         .or_else(|| kinds_apps::view(kind))
         .or_else(|| kinds_services::view(kind))
+        .or_else(|| kinds_hyperv::view(kind))
         .or_else(|| cloud::view(kind))
 }
 
@@ -359,6 +368,8 @@ fn guide_url(kind: &str) -> String {
     let page = match kind {
         "victorialogs" | "victoriametrics" => "victoriametrics",
         "agent" | "agent_service" => "agent",
+        "agent_script" => "custom-scripts",
+        "hyperv" => "hyper-v",
         "http_steps" => "http-scenario",
         "http" | "tcp" | "dns" | "ping" | "tls" | "ntp" | "smtp" | "mysql" | "mqtt"
         | "websocket" | "udp" | "ssh" | "imap" | "pop3" | "snmp_oid" | "radius" | "grpc" => {
@@ -368,16 +379,17 @@ fn guide_url(kind: &str) -> String {
         "snmp" | "proxmox" | "pbs" | "pdm" | "pmg" | "synology" | "opnsense" | "truenas"
         | "redfish" | "loki" | "graylog" | "mdaemon" | "securitygateway" | "nextcloud"
         | "immich" | "sonarr" | "radarr" | "lidarr" | "prowlarr" | "qbittorrent" | "frigate"
-        | "keycloak" | "authentik" | "vaultwarden" | "mailcow" | "paperless" | "jellyfin"
-        | "plex" | "gitlab" | "forgejo" | "pihole" | "adguard" | "nut" | "mikrotik" | "unifi"
-        | "homeassistant" | "vsphere" | "redis" | "mongodb" | "rabbitmq" | "crowdsec"
-        | "traefik" | "caddy" | "nginx" | "apache" | "npm" | "domain" | "provider"
+        | "keycloak" | "authentik" | "vaultwarden" | "mailcow" | "paperless" | "papra"
+        | "jellyfin" | "plex" | "gitlab" | "forgejo" | "pihole" | "adguard" | "nut"
+        | "mikrotik" | "unifi" | "homeassistant" | "vsphere" | "redis" | "mongodb" | "rabbitmq"
+        | "crowdsec" | "traefik" | "caddy" | "nginx" | "apache" | "npm" | "domain" | "provider"
         | "mail_blacklist" | "ip_blacklist" | "kubernetes" | "activedirectory" | "pfsense"
         | "unraid" | "veeam" | "winrm" | "tailscale" | "fortigate" | "sophos" | "omada"
         | "arubacentral" | "qnap" | "ceph" | "minio" | "kopia" | "duplicati" | "openvpn"
         | "xcpng" | "nutanix" | "mssql" | "oracle" | "elasticsearch" | "influxdb" | "kafka"
         | "push" | "webchange" | "website" | "netconfig" | "m365" | "entra" | "azure" | "aws"
-        | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus" | "otlp" => kind,
+        | "gcp" | "ipmi" | "cloudflare" | "hetzner" | "ovh" | "infomaniak" | "prometheus"
+        | "otlp" => kind,
         _ => return String::new(),
     };
     let anchor = match kind {

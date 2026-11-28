@@ -10,7 +10,7 @@ use axum::response::Response;
 use super::{GRAPH, instant, json, replay};
 
 /// Locataire : son domaine `onmicrosoft.com`.
-pub(super) const TENANT: &str = "mullerarchi.onmicrosoft.com";
+pub(super) const TENANT: &str = "larkspur.onmicrosoft.com";
 
 macro_rules! m365 {
     ($file:literal) => {
@@ -29,8 +29,8 @@ const CAPTURE: &str = "2026-10-26T09:00:00Z";
 const WORDS: &[(&str, &str)] = &[
     ("{{base}}", GRAPH),
     ("contoso.onmicrosoft.com", TENANT),
-    ("contoso.com", "muller-archi.ch"),
-    ("Contoso", "Muller Architectes"),
+    ("contoso.com", "www.example.com"),
+    ("Contoso", "Larkspur Freight"),
 ];
 
 const TOKEN: &str =

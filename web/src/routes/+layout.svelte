@@ -8,6 +8,7 @@
 	import { routePath } from '#lib/paths.js';
 	import { theme } from '#lib/stores/theme.svelte.js';
 	import { alertsStore } from '#lib/stores/alerts.svelte.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
 	import { palette } from '#lib/stores/palette.svelte.js';
 	import { auth, safeDestination, isPublicRoute, isStandaloneRoute } from '#lib/stores/auth.svelte.js';
 	import EnterpriseShell from '#lib/components/shell/EnterpriseShell.svelte';
@@ -97,7 +98,7 @@
 
 	// Display preferences (density, reduced motion) are classes on <html>.
 	$effect(() => {
-		displayPrefs.apply();
+		displayPrefs.apply(onWall);
 	});
 	// "Connection lost" banner: the browser's online state and the request layer's failures.
 	$effect(() => connection.watch());
@@ -222,7 +223,9 @@
 	$effect(() => {
 		if (!auth.demo || !auth.canUseApi) return;
 		demo.install();
-		if (!demo.tourSeen && !isPublicRoute(routePath(page.url))) demo.openTour();
+		// Only from the overview: a visitor landing on /wall (or any other page) is not
+		// pulled away; the tour opens when they reach the overview.
+		if (!demo.tourSeen && routePath(page.url) === '/') demo.openTour();
 	});
 
 	// Page changes cross-fade through the View Transitions API: the bars stay,
@@ -264,6 +267,12 @@
 	$effect(() => {
 		if (statusHost || !auth.canUseApi || !auth.isWall) return;
 		void instanceStore.loadSettings();
+	});
+
+	// Which optional modules are on (Settings → System → Modules), for the rail, the tabs and the pages.
+	$effect(() => {
+		if (statusHost || !auth.canUseApi || auth.totpSetupRequired) return;
+		void featuresStore.load();
 	});
 
 	// The alert count is shared by the whole app; it only polls once a session exists.

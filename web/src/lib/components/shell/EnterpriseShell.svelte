@@ -29,6 +29,8 @@
 	import { alertsStore } from '#lib/stores/alerts.svelte.js';
 	import { palette } from '#lib/stores/palette.svelte.js';
 	import { instanceStore } from '#lib/stores/instance.svelte.js';
+	import { featuresStore } from '#lib/stores/features.svelte.js';
+	import { displayPrefs } from '#lib/stores/prefs.svelte.js';
 	import { CONSOLE_RANGES, consoleState } from '#lib/stores/console.svelte.js';
 	import { calmMotion } from '#lib/ui/index.js';
 	import UserMenu from '#lib/components/UserMenu.svelte';
@@ -107,7 +109,7 @@
 	const onOverview = $derived(path === '/');
 	const home = $derived(homeHref());
 	// Accounts limited by their teams have no wall (the layout sends them back).
-	const showWall = $derived(!auth.scoped);
+	const showWall = $derived(!auth.scoped && featuresStore.on('wall'));
 	// Not on the wall (a kiosk with nothing to spare at its edges) nor on the Status pages.
 	const showVersion = $derived(!path.startsWith('/wall') && !path.startsWith('/status'));
 
@@ -245,18 +247,22 @@
 					</a>
 				</li>
 			{/if}
+			{#if displayPrefs.showDocs}
 			<li>
 				<a href={withBase(DOCS_URL)} target="_blank" rel="noopener" class={itemClass(false)}>
 					<BookOpen class="size-5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
 					<span class={labelClass}>{m.misc_nav_docs()}<span class="sr-only"> {m.shell_new_tab()}</span></span>
 				</a>
 			</li>
+			{/if}
+			{#if displayPrefs.showGithub}
 			<li>
 				<a href={withBase(GITHUB_URL)} target="_blank" rel="noopener" class={itemClass(false)}>
 					<GithubMark class="size-5 shrink-0" />
 					<span class={labelClass}>GitHub<span class="sr-only"> {m.shell_new_tab()}</span></span>
 				</a>
 			</li>
+			{/if}
 			<li><UserMenu placement="rail" wide={expanded} /></li>
 		</ul>
 	</nav>

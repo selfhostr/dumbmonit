@@ -40,6 +40,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::backup::local;
+use crate::untrusted;
 use transfer::Failure;
 
 /// Secrets d'une destination, par champ (`secret_access_key`, `password`,
@@ -156,11 +157,11 @@ impl Settings {
     /// Lit et normalise les réglages d'une sorte. Un champ inconnu est refusé :
     /// un secret glissé là serait enregistré en clair.
     pub fn parse(kind: Kind, value: &Value) -> Result<Self, String> {
-        let invalid = |error: serde_json::Error| format!("Invalid settings: {error}.");
+        let invalid = |error: untrusted::Rejected| format!("Invalid settings: {error}.");
         let settings = match kind {
-            Kind::S3 => Self::S3(serde_json::from_value(value.clone()).map_err(invalid)?),
-            Kind::Webdav => Self::Webdav(serde_json::from_value(value.clone()).map_err(invalid)?),
-            Kind::Sftp => Self::Sftp(serde_json::from_value(value.clone()).map_err(invalid)?),
+            Kind::S3 => Self::S3(untrusted::from_value(value.clone()).map_err(invalid)?),
+            Kind::Webdav => Self::Webdav(untrusted::from_value(value.clone()).map_err(invalid)?),
+            Kind::Sftp => Self::Sftp(untrusted::from_value(value.clone()).map_err(invalid)?),
         };
         Ok(settings.normalized())
     }

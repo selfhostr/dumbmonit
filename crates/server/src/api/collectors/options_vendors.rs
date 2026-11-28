@@ -375,6 +375,33 @@ pub(super) const WINRM_OPTIONS: &[OptionView] = &[
     ),
 ];
 
+/// Hôte Hyper-V (`collectors/winrm/hyperv.rs`) : le transport de WinRM, sans les
+/// réglages des services ni du journal d'événements.
+pub(super) const HYPERV_OPTIONS: &[OptionView] = &[
+    boolean(
+        "allow_unencrypted",
+        "Allow unencrypted traffic",
+        "Use HTTP on port 5985 instead of HTTPS on port 5986. Not recommended: the server must allow unencrypted WinRM, and everything that crosses the network, the login included, can be read. Leave it off whenever an HTTPS listener exists.",
+        false,
+    ),
+    number(
+        "port",
+        "Port",
+        "Used if the address does not give a port. 5986 for HTTPS, 5985 with unencrypted traffic.",
+        "5986",
+        "",
+    ),
+    select(
+        "auth",
+        "Authentication",
+        "NTLM works with local and domain accounts. Basic must be enabled on the server and is only accepted over HTTPS. Kerberos is not supported.",
+        "ntlm",
+        &["ntlm", "basic"],
+    ),
+    SELF_SIGNED_TLS,
+    VENDOR_TIMEOUT,
+];
+
 /// Identifiants du serveur Kopia (`--server-username` / `--server-password`),
 /// envoyés en authentification HTTP Basic (`collectors/kopia`).
 pub(super) const KOPIA_LOGIN: CredentialView = CredentialView {

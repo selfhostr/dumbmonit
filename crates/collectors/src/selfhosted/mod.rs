@@ -35,7 +35,8 @@
 //! * [`keycloak`] — sondes de santé, puis API d'administration (client de service) ;
 //! * [`authentik`] — santé, version, travailleurs, tâches (jeton d'API) ;
 //! * [`vaultwarden`] — `/alive`, `/api/config`, administration en option ;
-//! * [`mailcow`] — conteneurs, file Postfix, quotas (clé d'API).
+//! * [`mailcow`] — conteneurs, file Postfix, quotas (clé d'API) ;
+//! * [`papra`] — `/api/ping`, `/api/health`, organisations et statistiques de documents (clé d'API).
 //!
 //! # Principes
 //!
@@ -71,6 +72,7 @@ pub mod mailcow;
 pub mod nextcloud;
 pub(crate) mod options;
 pub mod paperless;
+pub mod papra;
 pub mod plex;
 pub mod qbittorrent;
 pub mod vaultwarden;
@@ -96,6 +98,7 @@ pub use mailcow::MailcowCollector;
 pub use nextcloud::NextcloudCollector;
 pub use options::DEFAULT_REQUEST_TIMEOUT;
 pub use paperless::PaperlessCollector;
+pub use papra::PapraCollector;
 pub use plex::PlexCollector;
 pub use qbittorrent::QbittorrentCollector;
 pub use vaultwarden::VaultwardenCollector;

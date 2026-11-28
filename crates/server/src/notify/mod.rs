@@ -109,10 +109,11 @@ pub fn http_client() -> reqwest::Client {
 fn insecure_http_client() -> &'static reqwest::Client {
     static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
     CLIENT.get_or_init(|| {
-        reqwest::Client::builder()
+        // Construit une seule fois, servi par `client_for` aux seuls canaux
+        // auto-hébergeables où `insecure_tls` a été coché.
+        dumbmonit_collectors::http::tls_policy(reqwest::Client::builder(), true)
             .timeout(SEND_TIMEOUT)
             .user_agent(concat!("DumbMonit/", env!("CARGO_PKG_VERSION")))
-            .danger_accept_invalid_certs(true)
             .redirect(guard::redirects())
             .dns_resolver(Arc::new(guard::Resolver))
             .build()

@@ -161,9 +161,13 @@ latest_tag() {
   fi
   if [ -z "$tag" ]; then
     [ -z "${GITHUB_TOKEN:-}" ] || auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
-    tag=$(curl -fsS ${auth[@]+"${auth[@]}"} "https://api.github.com/repos/$REPO/releases/latest" \
-      2>/dev/null | python3 -I -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])' \
-      2>/dev/null || true)
+    # La réponse est une donnée JSON, lue par un code Python fixe : rien de
+    # téléchargé n'est exécuté.
+    local release
+    release=$(curl -fsS ${auth[@]+"${auth[@]}"} \
+      "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null || true)
+    tag=$(python3 -I -c 'import json,sys; print(json.loads(sys.argv[1])["tag_name"])' \
+      "$release" 2>/dev/null || true)
   fi
   printf '%s' "$tag"
 }

@@ -3,6 +3,51 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 0.21.0 — 2026-11-28
+
+### Added
+
+- **Custom checks on the agent.** Run your own scripts or any Nagios plugin on a host that runs the
+  agent: Nagios exit codes and perfdata, JSON or Prometheus text output. Off until the agent
+  configuration allows it, and only from the directories it lists. See *Custom scripts*.
+- **Template import.** Import a Zabbix template (YAML or XML) or a snmp_exporter `snmp.yml` /
+  `generator.yml` file you have: SNMP items, discovery, HTTP items and simple triggers become an
+  integration pack, with a report of what was converted, partly converted or ignored.
+- **New integrations:** Hyper-V (WinRM, per-VM state, replication and checkpoints), IPMI (sensors,
+  power supplies, chassis power and event log over RMCP+), Google Cloud (Compute Engine, Cloud SQL,
+  Cloud Monitoring), Papra. MySQL and MariaDB now report connections, slow queries, replication,
+  buffer pool and schema sizes; PostgreSQL reports long-running queries. New integrations are beta.
+- **Optional modules.** Wall mode, SLA reports, status pages, SLOs and the threat map can be turned
+  on or off in Settings → System → Modules and in the setup wizard. New installs start with them
+  off; an upgrade keeps on every module already in use.
+- **A new setup wizard**, full page, one step per screen, with a Modules step.
+- **Compact density** now applies to the whole interface on a desktop.
+- Hide the GitHub and documentation links at the bottom of the sidebar (Appearance).
+- Docs: a comparison with other monitoring tools, Prometheus exporter recipes, Terraform and Ansible
+  examples, MySQL and PostgreSQL least-privilege setup.
+
+### Changed
+
+- **Add a monitor:** the network scan sits at the top and reopens its last results; one category
+  menu next to the search replaces the filter chips; badges stay on the title line.
+- The wall's bottom band shows availability over 30 days and alerts opened over 14 days, each with
+  a small chart, instead of repeating the problem count.
+- Vaultwarden is no longer beta. The "Other" category is gone.
+- The threat map only appears when a source feeds it.
+- The demo data uses a fictional company.
+
+### Removed
+
+- The music integration of the wall (Spotify, the wall player and its settings). Migration 0308
+  drops its tables.
+
+### Security
+
+- Untrusted input is size- and depth-limited before it is parsed; allocations driven by input are
+  capped; secrets never reach the logs; certificate checks can only be skipped per monitor.
+- Dependency updates for published advisories (sqlx, SQLite, russh, url, lettre) and newer
+  VictoriaMetrics and VictoriaLogs images.
+
 ## 0.20.2 — 2026-11-24
 
 ### Added

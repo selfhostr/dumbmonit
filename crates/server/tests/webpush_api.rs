@@ -5,6 +5,7 @@
 //! Aucun service de push réel n'est joint : les adresses acceptées sont sous
 //! `.invalid`, un domaine qui ne se résout jamais (RFC 2606).
 
+#[path = "it/common/mod.rs"]
 mod common;
 
 use axum::http::StatusCode;

@@ -1,6 +1,7 @@
 //! Serveur de courriel de l'instance : le réglage, son mot de passe qui ne
 //! revient jamais, et le courriel d'essai, reçu par un faux serveur SMTP local.
 
+#[path = "it/common/mod.rs"]
 mod common;
 
 use std::time::Duration;

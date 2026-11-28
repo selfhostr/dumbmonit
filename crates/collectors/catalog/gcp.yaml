@@ -1,0 +1,36 @@
+# Mesures et vues du type « gcp » (format : crates/collectors/src/catalog.rs).
+source: gcp
+prefixes: [gcp_]
+metrics:
+  - { name: gcp_instances, label: "Compute instances" }
+  - { name: gcp_instances_running, label: "Compute instances running", better: "higher" }
+  - { name: gcp_instances_stopped, label: "Compute instances stopped" }
+  - { name: gcp_instances_failed, label: "Compute instances failed", better: "lower" }
+  - { name: gcp_instance_unhealthy, label: "Compute instance unhealthy", better: "lower" }
+  - { name: gcp_sql_instances, label: "Cloud SQL instances" }
+  - { name: gcp_sql_instances_running, label: "Cloud SQL instances running", better: "higher" }
+  - { name: gcp_sql_instances_stopped, label: "Cloud SQL instances stopped" }
+  - { name: gcp_sql_instances_failed, label: "Cloud SQL instances failed", better: "lower" }
+  - { name: gcp_sql_unhealthy, label: "Cloud SQL instance unhealthy", better: "lower" }
+  - { name: gcp_sql_readable, label: "Cloud SQL readable", unit: "bool" }
+  - { name: gcp_monitoring_readable, label: "Monitoring readable", unit: "bool" }
+  - { name: gcp_metric, label: "Monitoring metric" }
+views:
+  - view: stat
+    title: "Current values"
+    metrics:
+      - gcp_instances_failed
+      - gcp_sql_instances_failed
+      - gcp_instance_unhealthy
+      - gcp_instances
+      - gcp_instances_running
+      - gcp_instances_stopped
+      - gcp_sql_instances
+      - gcp_sql_instances_running
+      - gcp_sql_instances_stopped
+      - gcp_sql_unhealthy
+      - gcp_sql_readable
+      - gcp_monitoring_readable
+  - view: timeseries
+    title: "Monitoring metrics"
+    metrics: [gcp_metric]

@@ -16,10 +16,11 @@ Every page lists what to prepare, what to type and what to do when it fails.
 | A machine at another site behind a firewall | Agent with a relay | [Monitor a remote site](../install/remote-site.md) |
 | A Synology NAS | **Synology DSM**: package or API | [Synology agent](synology-agent.md), [Synology DSM](synology.md) |
 | A switch, router, printer, UPS or any SNMP device | **SNMP device** | [SNMP](snmp.md) |
-| A hypervisor | Proxmox VE, VMware vSphere, XCP-ng, Nutanix | [Proxmox VE](proxmox.md), [vSphere](vsphere.md), [XCP-ng](xcpng.md), [Nutanix](nutanix.md) |
+| A hypervisor | Proxmox VE, VMware vSphere, Hyper-V, XCP-ng, Nutanix | [Proxmox VE](proxmox.md), [vSphere](vsphere.md), [Hyper-V](hyper-v.md), [XCP-ng](xcpng.md), [Nutanix](nutanix.md) |
 | A firewall | OPNsense, pfSense, FortiGate… | [OPNsense](opnsense.md), [pfSense](pfsense.md), [FortiGate](fortigate.md) |
 | A website, a port, a DNS name, a certificate, a host | Services | [Services](services.md) |
 | A job that must call in (backup, cron) | Heartbeat | [Heartbeat](push.md) |
+| Your own script or a Nagios plugin, run on a machine | Custom check | [Custom checks](custom-scripts.md) |
 | A list of devices on a network | Scan my network | [Add your first monitor](../install/first-device.md#scan-a-network) |
 | Monitors from another tool | Import | [Import](../using/imports.md) |
 
@@ -35,6 +36,7 @@ the type, fill in the form, **Add monitor**. See
 | [Proxmox Datacenter Manager](pdm.md) | `pdm` | API token | Console federating several PVE clusters and PBS instances |
 | [Proxmox Mail Gateway](pmg.md) | `pmg` | username/password | Mail gateway filtering spam and viruses |
 | [VMware vSphere](vsphere.md) | `vsphere` | username/password | vCenter or standalone ESXi: hosts, VMs, datastores, alarms |
+| [Microsoft Hyper-V](hyper-v.md) | `hyperv` | username/password (read-only WMI) | Hyper-V host through WinRM, no agent: host load, VM state, health, checkpoints, replication, integration services (beta) |
 | [XCP-ng / XenServer](xcpng.md) | `xcpng` | username/password (read-only XAPI role) | Pool through XAPI: hosts, VMs, storage repositories, high availability |
 | [Nutanix AHV](nutanix.md) | `nutanix` | username/password (Prism Viewer) | Prism Central v4 API: clusters, hosts, AHV VMs, storage containers, alerts |
 | [Synology DSM](synology.md) | `synology` | username/password | DiskStation, RackStation |
@@ -95,6 +97,8 @@ the type, fill in the form, **Add monitor**. See
 | [Tailscale](tailscale.md) | `tailscale` | OAuth client (devices:core:read) or API access token | Tailnet: servers offline, node keys expiring, devices awaiting approval |
 | [Microsoft 365](m365.md) | `m365` | Entra application (client ID and secret) | Service health, incidents, licenses, risky users |
 | [Microsoft Entra ID](entra.md) | `entra` | Entra application (client ID and secret) | Application secret expiry, directory sync, admin MFA |
+| [Server hardware (IPMI)](ipmi.md) | `ipmi` | BMC user with IPMI over LAN (UDP 623) | Temperatures, fans, voltages, power supplies, power state and event log (beta) |
+| [Google Cloud](gcp.md) | `gcp` | Service account JSON key with Compute Viewer, Cloud SQL Viewer and Monitoring Viewer roles | Compute Engine and Cloud SQL instance states and Cloud Monitoring metrics |
 | [Microsoft Azure](azure.md) | `azure` | Entra application (client ID and secret) with the Reader role on the subscription | Resource Health of every resource and active Azure Monitor alerts by severity |
 | [AWS (CloudWatch)](aws.md) | `aws` | Access key ID and secret (read-only IAM user, optional role) | CloudWatch alarms in ALARM, EC2 status checks and CPU, RDS CPU and free storage |
 | [Cloudflare](cloudflare.md) | `cloudflare` | API token (read-only) | Zones, tunnels, certificates, 5xx errors, load balancer pools |
@@ -103,6 +107,7 @@ the type, fill in the form, **Add monitor**. See
 | [Infomaniak](infomaniak.md) | `infomaniak` | Infomaniak API token with the Products scope | Expiry dates, locks and maintenance of domains, hosting and other products |
 | [Nextcloud](nextcloud.md) | `nextcloud` | monitoring token (NC-Token) | File sync: maintenance mode, pending upgrade, updates, active users, OPcache |
 | [Immich](immich.md) | `immich` | API key | Photo library: job queues, updates, disk, photo counts |
+| [Papra (beta)](papra.md) | `papra` | API key | Documents: server and database health, documents and storage per organisation |
 | [Paperless-ngx](paperless.md) | `paperless` | API token or username/password | Documents: Redis, Celery, index, failed imports, updates |
 | [Jellyfin](jellyfin.md) | `jellyfin` | API key | Media server: failed scheduled tasks, plugins, streams and transcodes |
 | [Plex Media Server](plex.md) | `plex` | X-Plex-Token, or none from an allowed network | Media server: streams, transcodes, libraries, updates |
@@ -117,7 +122,7 @@ the type, fill in the form, **Add monitor**. See
 | [Frigate NVR (beta)](frigate.md) | `frigate` | none or bearer token | NVR: cameras without frames, detector hangs, frame rates, recording storage |
 | [Keycloak (beta)](keycloak.md) | `keycloak` | none, or client ID and secret | Identity: readiness and database, realms, sessions, users |
 | [authentik (beta)](authentik.md) | `authentik` | API token | Identity: readiness, workers, failed tasks, outposts, updates |
-| [Vaultwarden (beta)](vaultwarden.md) | `vaultwarden` | none, or admin token | Password vault: liveness, version, open sign-ups, account counts |
+| [Vaultwarden](vaultwarden.md) | `vaultwarden` | none, or admin token | Password vault: liveness, version, open sign-ups, account counts |
 | [mailcow (beta)](mailcow.md) | `mailcow` | read-only API key | Mail server: stopped containers, queue, mail volume, mailbox quotas |
 | [Server with agent](agent.md) | `agent` | none (enrollment token) | Linux, Windows, Raspberry Pi, [Hyper-V host](agent.md#hyper-v-hosts) |
 | [Website or web API](services.md#http) | `http` | none, username/password or token | Health page, REST API |
@@ -135,6 +140,7 @@ the type, fill in the form, **Add monitor**. See
 | [RADIUS server](services.md#radius) | `radius` | shared secret and test account | FreeRADIUS, Windows NPS: a real authentication |
 | [gRPC service](services.md#grpc) | `grpc` | none | Microservice, etcd: the standard gRPC health check |
 | [Heartbeat](push.md) | `push` | none (secret URL) | Cron job, backup script, automation that must call in |
+| [Custom check](custom-scripts.md) | `agent_script` | none, token or username/password | Your own script or any Nagios plugin, run by the agent on its machine |
 | [Website changes](webchange.md) | `webchange` | none | A page or a whole site: text changes, new and removed pages, before/after text |
 | [Website health & SEO](website.md) | `website` | none | Sites in bulk: down, blank page, redirects, noindex, robots.txt, title/description/canonical changes, platform (CSV import) |
 | [Demo monitor](demo.md) | `dummy` | none | Explore the UI without hardware |

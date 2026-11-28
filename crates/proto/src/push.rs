@@ -302,6 +302,12 @@ pub struct PushBatch {
     /// `None` : Docker n'a pas pu être lu, le serveur ne touche à rien.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub declared_monitors: Option<Vec<DeclaredMonitor>>,
+    /// Résultats des contrôles personnalisés ([`PushAck::script_checks`])
+    /// exécutés depuis le lot précédent, le dernier de chacun. Absent quand il
+    /// n'y en a pas, et chez un agent antérieur ; un serveur antérieur ignore
+    /// le champ.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub script_results: Option<Vec<crate::ScriptResult>>,
 }
 
 impl PushBatch {
@@ -314,6 +320,7 @@ impl PushBatch {
             inventory: None,
             event_log: None,
             declared_monitors: None,
+            script_results: None,
         }
     }
 }
@@ -471,6 +478,13 @@ pub struct PushAck {
     /// `None` chez un serveur antérieur : l'agent ne surveille alors rien.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sentinel: Option<SentinelSetting>,
+    /// Contrôles personnalisés confiés à cette machine (`agent_script`).
+    /// `None` chez un serveur antérieur : l'agent garde ce qu'il avait.
+    /// `Some(vec![])` : plus aucun. L'agent n'en exécute aucun tant que
+    /// `scripts: true` n'est pas dans son agent.yaml ; un agent antérieur
+    /// ignore le champ.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub script_checks: Option<Vec<crate::ScriptCheck>>,
 }
 
 /// Mode relais tel que l'interface le règle pour une machine.
@@ -609,6 +623,7 @@ mod tests {
         assert_eq!(ack.relay, None, "un serveur ancien ne dit rien du relais");
         assert_eq!(ack.event_rules, None, "ni du journal d'événements");
         assert_eq!(ack.agent_update, None, "ni de mise à jour de l'agent");
+        assert_eq!(ack.script_checks, None, "ni de contrôles personnalisés");
 
         let issued = PushAck {
             target_id: 7,
@@ -623,6 +638,7 @@ mod tests {
             agent_update: None,
             logs: None,
             sentinel: None,
+            script_checks: None,
         };
         let json = serde_json::to_string(&issued).expect("sérialisation");
         assert!(json.contains(AGENT_SECRET_PREFIX));
@@ -726,6 +742,7 @@ mod tests {
             agent_update: None,
             logs: Some(LogsSetting { enabled: true, ..LogsSetting::default() }),
             sentinel: None,
+            script_checks: Some(Vec::new()),
         };
         let decoded: PushAck =
             serde_json::from_str(&serde_json::to_string(&ack).unwrap()).expect("désérialisation");
