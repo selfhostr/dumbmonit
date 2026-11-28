@@ -92,12 +92,12 @@ async fn chaque_equipement_du_parc_fictif_se_collecte() {
                     .iter()
                     .filter(|s| s.metric == "redfish_psu_health" && s.value == 2.0)
                     .collect();
-                assert_eq!(failed.len(), 1, "une alimentation en panne");
+                assert!(failed.is_empty(), "aucune alimentation en panne : la démo reste calme");
                 let healthy = samples
                     .iter()
                     .filter(|s| s.metric == "redfish_psu_health" && s.value == 0.0)
                     .count();
-                assert_eq!(healthy, 1, "l'autre alimentation est saine");
+                assert_eq!(healthy, 2, "les deux alimentations sont saines");
             }
             "pve" => {
                 let guests =

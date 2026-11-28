@@ -27,8 +27,7 @@ static RESOURCES: LazyLock<Map<String, Value>> = LazyLock::new(|| {
     if let Some(system) = resources.get_mut(SYSTEM) {
         system["HostName"] = json!("r740.home.arpa");
         system["Name"] = json!("r740");
-        system["Status"] =
-            json!({"Health": "OK", "HealthRollup": "OK", "State": "Enabled"});
+        system["Status"] = json!({"Health": "OK", "HealthRollup": "OK", "State": "Enabled"});
     }
     // Ventilateurs et températures sains : la panne est ailleurs.
     if let Some(thermal) = resources.get_mut(THERMAL) {

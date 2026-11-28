@@ -456,9 +456,8 @@ async fn seed_status_pages(
         )
         .await?;
         // Incident clos depuis quatre jours : de l'information, rien d'ouvert.
-        let stamp = |after: chrono::Duration| {
-            (started + after).format("%Y-%m-%dT%H:%M:%SZ").to_string()
-        };
+        let stamp =
+            |after: chrono::Duration| (started + after).format("%Y-%m-%dT%H:%M:%SZ").to_string();
         db::status_pages::add_update_at(
             pool,
             incident,
