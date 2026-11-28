@@ -385,10 +385,6 @@ pub(super) async fn enable_restored_features(
     if bundle.features.is_some() {
         return Ok(());
     }
-    async fn any(tx: &mut Transaction<'_, Sqlite>, sql: &str) -> Result<bool> {
-        let row = sqlx::query(sql).fetch_one(&mut **tx).await.context("modules utilisés")?;
-        Ok(row.try_get::<i64, _>(0)? != 0)
-    }
     let existing = sqlx::query("SELECT value FROM settings WHERE key = ?")
         .bind(crate::features::KEY)
         .fetch_optional(&mut **tx)
@@ -401,10 +397,19 @@ pub(super) async fn enable_restored_features(
         None => crate::features::Features::default(),
     };
     let before = features;
-    features.wall |= any(tx, "SELECT EXISTS (SELECT 1 FROM users WHERE role = 'wall')").await?;
-    features.sla_reports |= any(tx, "SELECT EXISTS (SELECT 1 FROM report_schedules)").await?;
-    features.status_pages |= any(tx, "SELECT EXISTS (SELECT 1 FROM status_pages)").await?;
-    features.slo |= any(tx, "SELECT EXISTS (SELECT 1 FROM slos)").await?;
+    let used = sqlx::query(
+        "SELECT EXISTS (SELECT 1 FROM users WHERE role = 'wall') AS wall,
+                EXISTS (SELECT 1 FROM report_schedules) AS sla_reports,
+                EXISTS (SELECT 1 FROM status_pages) AS status_pages,
+                EXISTS (SELECT 1 FROM slos) AS slo",
+    )
+    .fetch_one(&mut **tx)
+    .await
+    .context("modules utilisés")?;
+    features.wall |= used.try_get::<i64, _>("wall")? != 0;
+    features.sla_reports |= used.try_get::<i64, _>("sla_reports")? != 0;
+    features.status_pages |= used.try_get::<i64, _>("status_pages")? != 0;
+    features.slo |= used.try_get::<i64, _>("slo")? != 0;
     if existing.is_some() && features == before {
         return Ok(());
     }
