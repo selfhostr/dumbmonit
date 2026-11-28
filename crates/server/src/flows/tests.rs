@@ -123,7 +123,9 @@ fn v9_data_is_read_with_the_template_of_its_exporter_and_source_id() {
     let data_set = set(256, &data);
 
     // Les données avant le gabarit : rien à lire, mais comptées.
-    let early = netflow::decode(&v9(1, std::slice::from_ref(&data_set)), exporter, 0, &mut templates).unwrap();
+    let early =
+        netflow::decode(&v9(1, std::slice::from_ref(&data_set)), exporter, 0, &mut templates)
+            .unwrap();
     assert!(early.records.is_empty());
     assert_eq!(early.missing_template, 1);
 
@@ -135,9 +137,15 @@ fn v9_data_is_read_with_the_template_of_its_exporter_and_source_id() {
     assert_eq!((record.bytes, record.packets), (4000, 3));
 
     // Un autre source_id, ou un autre exportateur, n'a pas ce gabarit.
-    let other_id = netflow::decode(&v9(2, std::slice::from_ref(&data_set)), exporter, 20, &mut templates);
+    let other_id =
+        netflow::decode(&v9(2, std::slice::from_ref(&data_set)), exporter, 20, &mut templates);
     assert_eq!(other_id.unwrap().missing_template, 1);
-    let other_ip = netflow::decode(&v9(1, std::slice::from_ref(&data_set)), ip("10.0.0.9"), 20, &mut templates);
+    let other_ip = netflow::decode(
+        &v9(1, std::slice::from_ref(&data_set)),
+        ip("10.0.0.9"),
+        20,
+        &mut templates,
+    );
     assert_eq!(other_ip.unwrap().missing_template, 1);
 
     // Sans rafraîchissement, le gabarit expire.
