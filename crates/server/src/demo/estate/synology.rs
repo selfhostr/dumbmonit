@@ -32,8 +32,6 @@ const TASKS: &[(i64, &str, i64, &[&str])] = &[
     (6, "Home VMs", 1, &["nextcloud", "home-assistant", "immich"]),
     (7, "Family photos", 4, &["photos-share"]),
 ];
-/// La tâche dont la dernière nuit a échoué : un portable resté éteint.
-const FAILED_TASK: i64 = 5;
 
 /// Les NAS du parc fictif : le premier est sain, les autres montrent chacun un
 /// état de la vue « Parc NAS ».
@@ -41,8 +39,6 @@ const FAILED_TASK: i64 = 5;
 pub enum Variant {
     Healthy,
     UpdateAvailable,
-    Degraded,
-    Down,
 }
 
 impl Variant {
@@ -51,8 +47,6 @@ impl Variant {
         match self {
             Variant::Healthy => ("DS918+", "DSM 7.4.1-90080"),
             Variant::UpdateAvailable => ("DS923+", "DSM 7.2.2-72806"),
-            Variant::Degraded => ("DS220+", "DSM 7.3.1-86003"),
-            Variant::Down => ("DS1621+", "DSM 7.2.1-69057"),
         }
     }
 }
@@ -62,10 +56,6 @@ pub(super) fn router() -> Router {
 }
 
 pub(super) fn router_variant(variant: Variant) -> Router {
-    if variant == Variant::Down {
-        // Injoignable : le DSM répond, mais en erreur, à chaque requête.
-        return Router::new().fallback(|| async { StatusCode::SERVICE_UNAVAILABLE });
-    }
     Router::new().route(
         "/webapi/entry.cgi",
         get(move |q: RawQuery, b: String| entry(variant, q, b))
@@ -73,18 +63,9 @@ pub(super) fn router_variant(variant: Variant) -> Router {
     )
 }
 
-/// Le stockage capturé, avec un volume et son groupe dégradés pour la variante
-/// qui le demande.
-fn storage(variant: Variant) -> Value {
-    let mut data = capture(STORAGE);
-    if variant == Variant::Degraded {
-        for key in ["volumes", "storagePools"] {
-            if let Some(first) = data[key].get_mut(0) {
-                first["status"] = json!("degraded");
-            }
-        }
-    }
-    data
+/// Le stockage capturé.
+fn storage() -> Value {
+    capture(STORAGE)
 }
 
 fn ok(data: Value) -> Response {
@@ -132,7 +113,7 @@ async fn entry(variant: Variant, RawQuery(query): RawQuery, body: String) -> Res
             ok(capture(&info))
         }
         ("SYNO.Core.System.Utilization", "get") => ok(capture(UTILIZATION)),
-        ("SYNO.Storage.CGI.Storage", "load_info") => ok(storage(variant)),
+        ("SYNO.Storage.CGI.Storage", "load_info") => ok(storage()),
         ("SYNO.Core.Upgrade.Server", "check") => {
             ok(json!({"update": {"available": variant == Variant::UpdateAvailable}}))
         }
@@ -211,14 +192,12 @@ fn result(task_id: i64, start: i64, status: i64) -> Value {
     })
 }
 
-/// Historique d'une tâche, la plus récente en premier : la tâche en échec
-/// n'a raté que la dernière nuit.
+/// Historique d'une tâche, la plus récente en premier : toutes les nuits ont réussi.
 fn results(task_id: i64) -> Vec<Value> {
     (0..14)
         .map(|nights_ago| {
             let start = last_run() - nights_ago * 86_400;
-            let status = if task_id == FAILED_TASK && nights_ago == 0 { 4 } else { 2 };
-            result(task_id, start, status)
+            result(task_id, start, 2)
         })
         .collect()
 }

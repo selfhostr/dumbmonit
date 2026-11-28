@@ -84,6 +84,7 @@ nav:
       - Agents behind a proxy: install/agents-behind-proxy.md
       - Backup and restore: install/backup.md
       - High availability: install/high-availability.md
+      - Running resiliently: operating/high-availability.md
       - Watching DumbMonit itself: install/self-monitoring.md
       - Sentinel mode: install/sentinel.md
       - Server logs: install/logs.md
@@ -122,6 +123,7 @@ nav:
       - MinIO: devices/minio.md
       - MikroTik RouterOS: devices/mikrotik.md
       - UPS with NUT: devices/nut.md
+      - Network flows (beta): devices/flows.md
       - Server hardware (Redfish): devices/redfish.md
       - VictoriaMetrics and VictoriaLogs: devices/victoriametrics.md
       - Grafana Loki: devices/loki.md
@@ -209,6 +211,7 @@ nav:
       - What a pack is: packs/index.md
       - Write your first pack: packs/first-pack.md
       - Format reference: packs/format.md
+      - Community registry: packs/registry.md
       - Import templates: integrations/template-import.md
   - Alerting:
       - How alerting works: alerting/index.md

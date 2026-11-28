@@ -52,8 +52,8 @@ const GRAPH: &str = "http://graph.home.arpa";
 /// injoignable. Le NAS principal (`nas`) est le sain.
 pub const EXTRA_NAS: &[(&str, &str, synology::Variant)] = &[
     ("nas-office", "nas-office.home.arpa", synology::Variant::UpdateAvailable),
-    ("nas-archive", "nas-archive.home.arpa", synology::Variant::Degraded),
-    ("nas-offsite", "nas-offsite.home.arpa", synology::Variant::Down),
+    ("nas-archive", "nas-archive.home.arpa", synology::Variant::Healthy),
+    ("nas-offsite", "nas-offsite.home.arpa", synology::Variant::Healthy),
 ];
 
 /// Un équipement du parc fictif, tel que la base doit l'enregistrer.

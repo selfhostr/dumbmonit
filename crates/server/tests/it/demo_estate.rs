@@ -60,12 +60,6 @@ async fn chaque_equipement_du_parc_fictif_se_collecte() {
             group_name: String::new(),
             position: 0,
         };
-        // Le NAS injoignable doit échouer : c'est son état de démonstration.
-        if device.key == "nas-offsite" {
-            let reply = tokio::time::timeout(Duration::from_secs(30), collector.probe(&target));
-            assert!(matches!(reply.await, Ok(Err(_))), "le NAS hors ligne doit échouer");
-            continue;
-        }
         let samples =
             match tokio::time::timeout(Duration::from_secs(30), collector.probe(&target)).await {
                 Ok(Ok(samples)) => samples,
@@ -98,12 +92,12 @@ async fn chaque_equipement_du_parc_fictif_se_collecte() {
                     .iter()
                     .filter(|s| s.metric == "redfish_psu_health" && s.value == 2.0)
                     .collect();
-                assert_eq!(failed.len(), 1, "une alimentation en panne");
+                assert!(failed.is_empty(), "aucune alimentation en panne : la démo reste calme");
                 let healthy = samples
                     .iter()
                     .filter(|s| s.metric == "redfish_psu_health" && s.value == 0.0)
                     .count();
-                assert_eq!(healthy, 1, "l'autre alimentation est saine");
+                assert_eq!(healthy, 2, "les deux alimentations sont saines");
             }
             "pve" => {
                 let guests =
@@ -121,7 +115,6 @@ async fn chaque_equipement_du_parc_fictif_se_collecte() {
                     "le LUN iSCSI du NAS est lu"
                 );
             }
-            "nas-archive" => assert_eq!(value(&samples, "synology_storage_health"), Some(2.0)),
             "nas-office" => assert_eq!(value(&samples, "synology_update_available"), Some(1.0)),
             "unifi" => assert_eq!(value(&samples, "unifi_clients"), Some(31.0)),
             "kopia" => assert_eq!(value(&samples, "kopia_repo_connected"), Some(1.0)),

@@ -19,6 +19,9 @@ services:
       # - "5514:5514/udp"   # syslog (RFC 3164 / 5424)
       # - "5514:5514/tcp"
       # - "1162:1162/udp"   # SNMP traps (v1 / v2c)
+      # Network flows (beta, off by default; turn on in Settings > System).
+      # - "2055:2055/udp"   # NetFlow v5 / v9, IPFIX
+      # - "6343:6343/udp"   # sFlow v5
     volumes:
       - dumbmonit-data:/data
       # Or a host directory; on a SELinux host (Fedora, RHEL) add `:Z`:

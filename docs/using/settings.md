@@ -435,6 +435,14 @@ Admin-only, in **Settings → System**. Shows the certificate the web port serve
 
 Admin-only, in **Settings → System**. The ports DumbMonit listens on, computed from the running configuration: the web interface (HTTPS), the agent channel, syslog, SNMP traps, the bundled storage, and the gateway of each relay agent. For each one: who must reach it, whether it may face the Internet, and whether it is on, off or loopback only. Below the list, a ready-to-paste `ports:` block for Docker Compose and `ufw` rules. See [Network ports](../install/ports.md).
 
+## Network flows {#flows}
+
+Admin-only, in **Settings → System**, beta and off by default. Turns on the
+NetFlow v5/v9 + IPFIX (2055/UDP) and sFlow v5 (6343/UDP) receivers, and shows
+whether each one listens, the datagrams received and dropped since the start,
+the exporting devices and the last unknown senders. Changes are recorded in
+the audit log. See [Network flows](../devices/flows.md).
+
 ## Security score {#security-score}
 
 In **Settings → Monitoring**, below the agents: a score for how well the instance and its monitored hosts are hardened. See [Security score](security-score.md).

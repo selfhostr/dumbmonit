@@ -17,6 +17,7 @@ pub mod db;
 pub mod demo;
 pub mod features;
 pub mod first_run;
+pub mod flows;
 pub mod geoip;
 pub mod gitops;
 pub mod ha;

@@ -95,6 +95,11 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
         clients: clients(pool).await?,
         msp_settings: crate::auth::settings::get::<Value>(pool, crate::auth::clients::SETTINGS_KEY)
             .await?,
+        pack_registry: crate::auth::settings::get::<Value>(
+            pool,
+            crate::packs::registry::SETTINGS_KEY,
+        )
+        .await?,
         client_assignments: client_assignments(pool, &refs).await?,
         netscan_schedules: netscan_schedules(pool, &refs).await?,
         lun_links: lun_links(pool, &refs).await?,
@@ -129,6 +134,7 @@ pub async fn collect(pool: &SqlitePool, cipher: &Cipher, options: ExportOptions)
             .await?,
         backup_destinations: crate::backup::offsite::bundle::collect(pool, cipher).await?,
         accounts: crate::backup::accounts::collect(pool).await?,
+        flows: crate::auth::settings::get::<Value>(pool, crate::flows::SETTINGS_KEY).await?,
     })
 }
 
@@ -1221,6 +1227,7 @@ pub fn sections() -> BTreeMap<&'static str, &'static str> {
         ),
         ("instance", "Instance name, language, time zone and setup state."),
         ("features", "Which optional modules are turned on."),
+        ("flows", "Network flow receiver (beta): on or off, and its ports."),
         ("backup_schedule", "The schedule of the local backups, when you changed it."),
         ("backup_destinations", "Off-site backup destinations and their credentials."),
         ("clients", "MSP clients, their members, branding, and what belongs to each."),

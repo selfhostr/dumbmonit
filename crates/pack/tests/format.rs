@@ -579,3 +579,9 @@ session:
         "DELETE is only for session.logout",
     );
 }
+
+#[test]
+fn un_identifiant_de_sous_route_est_reserve() {
+    let yaml = BASE.replace("id: demo-app", "id: registry");
+    assert_refused(&yaml, "reserved and cannot be used as a pack id");
+}

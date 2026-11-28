@@ -122,6 +122,7 @@ pub async fn restore(
     let mut clients_report = restore_clients(&mut tx, bundle).await?;
     // Les paquets avant les équipements : ils en définissent les types.
     report.push(restore_packs(&mut tx, bundle).await?);
+    report.push(restore_pack_registry(&mut tx, bundle).await?);
     report.push(restore_targets(&mut tx, cipher, bundle).await?);
 
     let refs = target_ids(&mut tx).await?;
@@ -147,6 +148,7 @@ pub async fn restore(
     report.push(restore_backup_schedule(&mut tx, bundle).await?);
     report.push(restore_wall_weather(&mut tx, bundle).await?);
     report.push(restore_auth_policy(&mut tx, bundle).await?);
+    report.push(restore_flows(&mut tx, bundle).await?);
     report.push(restore_agent_update_rollout(&mut tx, bundle).await?);
     report.push(restore_mail_server(&mut tx, cipher, bundle).await?);
     let destinations = &bundle.backup_destinations;

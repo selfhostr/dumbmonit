@@ -22,6 +22,9 @@ use crate::{
     Pack, PackError, SnmpProfile, prefix_for,
 };
 
+/// Identifiants refusés : sous-routes littérales de `/api/packs/`.
+const RESERVED_IDS: &[&str] = &["registry"];
+
 /// Options de connexion que tout paquet HTTP reçoit ; un paquet ne peut pas
 /// déclarer les siennes sous ces noms.
 pub(crate) const CONNECTION_OPTIONS: &[&str] =
@@ -268,6 +271,12 @@ fn header(manifest: &Manifest, problems: &mut Problems) {
                 manifest.id
             ),
         );
+    }
+    // Ces noms sont des sous-routes littérales de `/api/packs/` : un paquet qui
+    // les porterait deviendrait injoignable.
+    if RESERVED_IDS.contains(&manifest.id.as_str()) {
+        let reason = format!("\"{}\" is reserved and cannot be used as a pack id", manifest.id);
+        problems.error("id", reason);
     }
     if semver::Version::parse(&manifest.version).is_err() {
         problems.error(

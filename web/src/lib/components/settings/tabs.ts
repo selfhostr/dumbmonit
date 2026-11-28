@@ -51,6 +51,7 @@ export const SECTION_TAB: Record<string, SettingsTab> = {
 	'config-files': 'system',
 	'self-monitoring': 'system',
 	logs: 'system',
+	flows: 'system',
 	https: 'system',
 	ports: 'system',
 	storage: 'system',

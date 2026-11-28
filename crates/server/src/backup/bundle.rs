@@ -199,6 +199,9 @@ pub struct Bundle {
     /// Réglage du mode MSP (clé `msp` de `settings`).
     #[serde(default)]
     pub msp_settings: Option<Value>,
+    /// Adresse du registre de paquets (clé `packs.registry` de `settings`).
+    #[serde(default)]
+    pub pack_registry: Option<Value>,
     /// Rattachement des objets aux clients, par clé naturelle : un objet
     /// absent de la liste reste au client par défaut (équipements, pages,
     /// jetons d'agent) ou à l'instance (le reste).
@@ -271,6 +274,10 @@ pub struct Bundle {
     /// personnelles et rôles personnalisés (migrations 0294, 0295 et 0297).
     #[serde(default, skip_serializing_if = "crate::backup::accounts::BundleAccounts::is_empty")]
     pub accounts: crate::backup::accounts::BundleAccounts,
+    /// Récepteur de flux réseau : activation et ports (clé `flows.settings`
+    /// de `settings`). Absent tant qu'il n'a jamais été réglé.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flows: Option<Value>,
 }
 
 /// Serveur de courriel enregistré et son mot de passe.
