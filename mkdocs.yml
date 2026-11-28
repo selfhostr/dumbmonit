@@ -123,6 +123,7 @@ nav:
       - MinIO: devices/minio.md
       - MikroTik RouterOS: devices/mikrotik.md
       - UPS with NUT: devices/nut.md
+      - Network flows (beta): devices/flows.md
       - Server hardware (Redfish): devices/redfish.md
       - VictoriaMetrics and VictoriaLogs: devices/victoriametrics.md
       - Grafana Loki: devices/loki.md

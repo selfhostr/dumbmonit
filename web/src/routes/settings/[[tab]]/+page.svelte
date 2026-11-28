@@ -57,6 +57,7 @@
 	import SelfMonitoringSection from '#lib/components/settings/SelfMonitoringSection.svelte';
 	import StorageSection from '#lib/components/settings/StorageSection.svelte';
 	import LogsSection from '#lib/components/settings/LogsSection.svelte';
+	import FlowsSection from '#lib/components/settings/FlowsSection.svelte';
 	import PacksSection from '#lib/components/settings/PacksSection.svelte';
 	import AboutSection from '#lib/components/settings/AboutSection.svelte';
 	import WallModeSection from '#lib/components/settings/WallModeSection.svelte';
@@ -101,7 +102,7 @@
 		monitoring: [AgentsSection, PacksSection, SecurityScoreSection, ...(auth.isAdmin ? [LocationsSection] : [])],
 		notifications: [ChannelsSection, ...(auth.isAdmin ? [MailServerSection] : []), NotificationPolicySection],
 		wall: [WallModeSection, WallWeatherSection],
-		system: [...(auth.isAdmin ? [GeneralSection, ModulesSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection] : []), AssistantSection, AboutSection]
+		system: [...(auth.isAdmin ? [GeneralSection, ModulesSection] : []), BackupSection, ...(auth.isAdmin ? [ConfigFilesSection] : []), SelfMonitoringSection, ...(auth.isAdmin ? [HttpsSection, PortsSection, StorageSection, LogsSection, FlowsSection] : []), AssistantSection, AboutSection]
 	});
 
 	const sections = $derived(SECTIONS[tab]);
