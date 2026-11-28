@@ -88,19 +88,6 @@ pub async fn run(
     .context("demo account already exists in a fresh database")?;
 
     db::alerts::seed_builtin_rules(pool).await?;
-    // Une démonstration publique reste calme : seules les règles de base sont
-    // actives (service, processeur, disque, certificats), le reste est livré
-    // désactivé. Le parc simulé garde ses pannes de vitrine dans les pages
-    // d'équipement, sans alerte ouverte.
-    sqlx::query(
-        "UPDATE alert_rules SET enabled = 0
-         WHERE builtin = 1
-           AND uid NOT IN ('service_down', 'cpu_high', 'disk_almost_full',
-                           'tls_cert_expiring', 'tls_cert_expired')",
-    )
-    .execute(pool)
-    .await
-    .context("demo builtin rules")?;
     // La note de sécurité est facultative ; la démonstration la montre.
     crate::security::set_setting_enabled(pool, true).await?;
 
@@ -454,7 +441,7 @@ async fn seed_status_pages(
         .bind(office)
         .execute(pool)
         .await?;
-        let started = hour_floor(Utc::now()) - chrono::Duration::hours(2);
+        let started = hour_floor(Utc::now()) - chrono::Duration::days(4);
         let incident = db::status_pages::create_incident(
             pool,
             &IncidentInput {
@@ -468,13 +455,27 @@ async fn seed_status_pages(
             },
         )
         .await?;
-        db::status_pages::add_update(
+        // Incident clos depuis quatre jours : de l'information, rien d'ouvert.
+        let stamp = |after: chrono::Duration| {
+            (started + after).format("%Y-%m-%dT%H:%M:%SZ").to_string()
+        };
+        db::status_pages::add_update_at(
             pool,
             incident,
             "monitoring",
             "Microsoft reports a degradation of Exchange Online in Europe; mail arrives with \
              up to 20 minutes of delay. Nothing to do on your side.",
+            false,
+            Some(&stamp(chrono::Duration::minutes(30))),
+        )
+        .await?;
+        db::status_pages::add_update_at(
+            pool,
+            incident,
+            "resolved",
+            "Microsoft confirms the Exchange Online issue is fixed; mail is delivered normally.",
             true,
+            Some(&stamp(chrono::Duration::hours(3))),
         )
         .await?;
         let window = hour_floor(Utc::now()) + chrono::Duration::days(3);

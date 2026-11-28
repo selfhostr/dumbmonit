@@ -1,7 +1,7 @@
 //! Faux Veeam Backup & Replication 13 (API REST, port 9419) : les réponses des
 //! tests du collecteur (`veeam/testdata`), dates recalées. Le serveur du
 //! bureau du client PME : une tâche de VM quotidienne, un serveur de fichiers
-//! dont la dernière nuit a échoué, une copie hors site en cours.
+//! et une copie hors site, tous en succès.
 
 use axum::Router;
 use axum::http::{Method, StatusCode, Uri};
@@ -31,6 +31,13 @@ const WORDS: &[(&str, &str)] = &[
     ("12.3.1.1139", "13.0.2.29"),
     ("nas.example.lan", "nas-wh.home.arpa"),
     ("Example Ltd", "Larkspur Freight"),
+    // Parc calme : tâches réussies, dépôt NAS à 69 %, licence valide longtemps.
+    ("\"lastResult\":\"Failed\"", "\"lastResult\":\"Success\""),
+    ("\"lastResult\":\"Warning\"", "\"lastResult\":\"Success\""),
+    ("\"result\":\"Failed\"", "\"result\":\"Success\""),
+    ("\"result\":\"Warning\"", "\"result\":\"Success\""),
+    ("\"freeGB\":298.0,\"usedSpaceGB\":7152.6", "\"freeGB\":2298.0,\"usedSpaceGB\":5152.6"),
+    ("2026-10-20T00:00:00", "2027-06-20T00:00:00"),
 ];
 
 pub(super) fn router() -> Router {

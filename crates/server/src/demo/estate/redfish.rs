@@ -28,7 +28,7 @@ static RESOURCES: LazyLock<Map<String, Value>> = LazyLock::new(|| {
         system["HostName"] = json!("r740.home.arpa");
         system["Name"] = json!("r740");
         system["Status"] =
-            json!({"Health": "Warning", "HealthRollup": "Warning", "State": "Enabled"});
+            json!({"Health": "OK", "HealthRollup": "OK", "State": "Enabled"});
     }
     // Ventilateurs et températures sains : la panne est ailleurs.
     if let Some(thermal) = resources.get_mut(THERMAL) {
@@ -40,7 +40,7 @@ static RESOURCES: LazyLock<Map<String, Value>> = LazyLock::new(|| {
             cpu["ReadingCelsius"] = json!(39);
         }
     }
-    // Deux alimentations, la première en panne.
+    // Deux alimentations saines, redondance complète.
     if let Some(power) = resources.get_mut(POWER)
         && let Some(first) = power.pointer("/PowerSupplies/0").cloned()
     {
@@ -51,7 +51,8 @@ static RESOURCES: LazyLock<Map<String, Value>> = LazyLock::new(|| {
         second["SerialNumber"] = json!("1Z0000002");
         second["LastPowerOutputWatts"] = json!(344);
         second["Status"] = json!({"Health": "OK", "State": "Enabled"});
-        power["PowerSupplies"][0]["LastPowerOutputWatts"] = json!(0);
+        power["PowerSupplies"][0]["Status"] = json!({"Health": "OK", "State": "Enabled"});
+        power["Redundancy"][0]["Status"] = json!({"Health": "OK", "State": "Enabled"});
         power["PowerSupplies"][1] = second;
     }
     // Le disque qui annonçait sa fin est sain dans le parc fictif.
