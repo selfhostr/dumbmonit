@@ -179,6 +179,9 @@ pub async fn restore(
     restore_client_assignments(&mut tx, bundle, &mut clients_report).await?;
     report.push(clients_report);
 
+    // Lot d'avant les modules facultatifs : rallume ceux dont les données reviennent.
+    enable_restored_features(&mut tx, bundle).await?;
+
     warnings(bundle, &mut report);
 
     if apply {

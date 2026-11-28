@@ -72,7 +72,7 @@ pub fn validate(payload: PostmortemPayload, incident: &Incident) -> ApiResult<Po
             "A timeline holds at most {MAX_TIMELINE} entries."
         )));
     }
-    let mut timeline = Vec::with_capacity(payload.timeline.len().min(MAX_TIMELINE));
+    let mut timeline = Vec::new();
     for entry in payload.timeline {
         let body = entry.text.trim().to_string();
         if body.is_empty() {
@@ -99,7 +99,7 @@ pub fn validate(payload: PostmortemPayload, incident: &Incident) -> ApiResult<Po
             "A post-mortem lists at most {MAX_ACTIONS} action items."
         )));
     }
-    let mut actions = Vec::with_capacity(payload.actions.len().min(MAX_ACTIONS));
+    let mut actions = Vec::new();
     for item in payload.actions {
         let body = item.text.trim().to_string();
         if body.is_empty() {

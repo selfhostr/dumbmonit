@@ -88,8 +88,8 @@ impl RoleInput {
                 "The description must be {MAX_DESCRIPTION_CHARS} characters or fewer."
             ));
         }
-        // Capacité bornée : au plus une entrée par permission connue, quoi qu'envoie le client.
-        let mut chosen = Vec::with_capacity(self.permissions.len().min(Permission::ALL.len()));
+        // Pas de préallocation : la taille vient du client.
+        let mut chosen = Vec::new();
         for raw in &self.permissions {
             match Permission::parse(raw.trim()) {
                 Some(permission) => chosen.push(permission),

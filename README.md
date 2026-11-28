@@ -1,18 +1,34 @@
 <div align="center">
 <a href="https://dumbmonit.selfhostr.io"><img src=".github/assets/banner.svg" alt="dumbmonit: monitoring in one container" width="100%"></a>
 
-**Self-hosted monitoring for homelabs, small teams and mid-sized companies.**
+**Self-hosted monitoring for your homelab or small team. One container, no assembly.**
 
-[Site](https://dumbmonit.selfhostr.io) · [Docs](https://dumbmonit.selfhostr.io/docs/) · [Demo](https://dumbmonit.selfhostr.io/demo/) · [Changelog](CHANGELOG.md)
+[Site](https://dumbmonit.selfhostr.io) · [Docs](https://dumbmonit.selfhostr.io/docs/) · [Live demo](https://dumbmonit.selfhostr.io/demo/) · [Changelog](CHANGELOG.md)
 
 [![CI](https://github.com/selfhostr/dumbmonit/actions/workflows/ci.yml/badge.svg)](https://github.com/selfhostr/dumbmonit/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+<img src="docs/assets/readme/hero.gif" alt="dumbmonit: overview, a monitor and the wall mode" width="900">
 </div>
 
-## Overview
+dumbmonit watches servers, network gear, hypervisors, storage, applications and websites from a single console. No Prometheus, Grafana and Alertmanager to assemble, no database to administer. MIT licence, no paid edition.
 
-dumbmonit watches servers, network gear, hypervisors, storage, applications and websites from a single console. No Zabbix to operate, no Prometheus, Grafana and Alertmanager to assemble. Free, for good: MIT licence, no paid edition.
+## What you get
+
+- **A first graph in minutes.** Pick a device type, fill a few fields. Over 100 integrations, each [documented](https://dumbmonit.selfhostr.io/docs/devices/).
+- **One notification instead of thirty.** When a switch dies, everything behind it is held back. Maintenance windows and silences included, 38 notification channels.
+- **Something to put on the wall.** A full-screen room monitor, plus public status pages for your users or family.
+- **Agents for Linux, Windows, macOS and FreeBSD,** deployable to a whole Windows domain with one group policy. Encrypted channel.
+- **Yours.** Data stays in your volume. Sign in with TOTP, passkeys, OIDC, SAML or LDAP. API and MCP server included. Native mobile apps are coming soon; the console is an installable PWA today.
+
+<p align="center">
+<img src="docs/assets/readme/wall.webp" alt="Wall mode on a spare screen" width="49%">
+<img src="docs/assets/readme/overview.webp" alt="Overview" width="49%">
+<br>
+<img src="docs/assets/readme/mobile.webp" alt="Overview on a phone" width="180">
+</p>
 
 ## Quick start
+
 
 ```bash
 mkdir dumbmonit && cd dumbmonit
@@ -25,16 +41,21 @@ Open https://localhost:8080 (self-signed certificate, accept the browser warning
 
 On Kubernetes: a Helm chart (`oci://ghcr.io/selfhostr/charts/dumbmonit`) and plain manifests live in [`deploy/`](deploy/); see the [Kubernetes guide](https://dumbmonit.selfhostr.io/docs/install/kubernetes/).
 
-## Features
+## How it compares
 
-- **Over 100 integrations.** SNMP, firewalls, Proxmox, vSphere, Synology, TrueNAS, Kubernetes, databases, HTTP/TCP/DNS/TLS checks and more, each [documented](https://dumbmonit.selfhostr.io/docs/devices/).
-- **Agent.** Linux, Windows, macOS and FreeBSD, deployable to a whole Windows domain with one group policy.
-- **Quiet alerting.** A parent that is down hides its children, maintenance windows, silences, forecasts.
-- **38 notification channels.** Discord, Slack, Telegram, Matrix, ntfy, email, PagerDuty, webhook and more.
-- **Public status pages.** History, incidents, email subscribers and badges.
-- **API and MCP server.** 28 tools, plus Prometheus and Grafana access.
-- **Access control.** TOTP, passkeys, OIDC, SAML and LDAP / Active Directory sign-in.
-- **Encrypted backup,** HTTPS only, installable phone app (PWA).
+Each of these is a good tool; the choice depends on what you watch.
+
+| | dumbmonit | Uptime Kuma | Beszel | Zabbix |
+|---|---|---|---|---|
+| Setup | One container | One container | Hub + agents | Server, database, frontend |
+| Website checks | Yes | Best in class | No | Yes |
+| Server metrics | Agent | No | Light and simple | Yes |
+| SNMP, NAS, hypervisors | Built-in profiles | Basic | No | Templates galore |
+| Alert grouping by topology | Yes | No | No | Yes (dependencies) |
+| Status pages | Yes | Yes | No | No |
+| Maturity | Young (0.x) | Large community | Young | Decades |
+
+Pick Uptime Kuma if you only need "is my site up", Beszel for lightweight host stats, Zabbix for proven scale and high availability. Pick dumbmonit for hosts, network gear, storage and sites in one small console.
 
 ## Architecture
 
@@ -55,4 +76,4 @@ MIT, see [LICENSE](LICENSE). Provided "as is", without warranty of any kind.
 
 ## Support
 
-dumbmonit is free and has no company behind it. If it saves you time: [sponsor us on GitHub](https://github.com/sponsors/selfhostr).
+dumbmonit is free and has no company behind it. If it saves you time: [sponsor us on GitHub Sponsors](https://github.com/sponsors/selfhostr).

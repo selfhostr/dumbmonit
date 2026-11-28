@@ -375,6 +375,57 @@ pub(super) async fn restore_features(
     Ok(report)
 }
 
+/// Lot d'avant les modules facultatifs (sans section `features`) : chaque module
+/// dont les données viennent d'être restaurées est rallumé, comme le fait la
+/// migration 0309 pour une instance existante. Rien n'est jamais éteint ici.
+pub(super) async fn enable_restored_features(
+    tx: &mut Transaction<'_, Sqlite>,
+    bundle: &Bundle,
+) -> Result<()> {
+    if bundle.features.is_some() {
+        return Ok(());
+    }
+    let existing = sqlx::query("SELECT value FROM settings WHERE key = ?")
+        .bind(crate::features::KEY)
+        .fetch_optional(&mut **tx)
+        .await
+        .context("lecture des modules facultatifs")?;
+    let mut features: crate::features::Features = match &existing {
+        Some(row) => {
+            serde_json::from_slice(&row.try_get::<Vec<u8>, _>("value")?).unwrap_or_default()
+        }
+        None => crate::features::Features::default(),
+    };
+    let before = features;
+    let used = sqlx::query(
+        "SELECT EXISTS (SELECT 1 FROM users WHERE role = 'wall') AS wall,
+                EXISTS (SELECT 1 FROM report_schedules) AS sla_reports,
+                EXISTS (SELECT 1 FROM status_pages) AS status_pages,
+                EXISTS (SELECT 1 FROM slos) AS slo",
+    )
+    .fetch_one(&mut **tx)
+    .await
+    .context("modules utilisés")?;
+    features.wall |= used.try_get::<i64, _>("wall")? != 0;
+    features.sla_reports |= used.try_get::<i64, _>("sla_reports")? != 0;
+    features.status_pages |= used.try_get::<i64, _>("status_pages")? != 0;
+    features.slo |= used.try_get::<i64, _>("slo")? != 0;
+    if existing.is_some() && features == before {
+        return Ok(());
+    }
+    sqlx::query(
+        "INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value,
+             updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')",
+    )
+    .bind(crate::features::KEY)
+    .bind(serde_json::to_vec(&features)?)
+    .execute(&mut **tx)
+    .await
+    .context("écriture des modules facultatifs")?;
+    Ok(())
+}
+
 /// Politique d'authentification (`auth::policy`) : remplacée par celle du lot.
 /// Un réglage illisible est signalé et laissé de côté ; un lot d'avant cette
 /// section, ou qui n'en a pas, ne touche pas à celle de l'instance.

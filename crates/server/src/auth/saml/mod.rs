@@ -158,8 +158,7 @@ impl SamlConfig {
                 "At most {MAX_IDP_CERTIFICATES} identity provider certificates can be stored."
             ));
         }
-        let mut certificates =
-            Vec::with_capacity(self.idp_certificates.len().min(MAX_IDP_CERTIFICATES));
+        let mut certificates = Vec::new();
         for (index, pem) in self.idp_certificates.iter().enumerate() {
             let der = certificate_der(pem).ok_or_else(|| {
                 format!(
