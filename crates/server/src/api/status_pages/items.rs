@@ -30,7 +30,7 @@ pub async fn set_items(
         .collect();
 
     let mut seen = HashSet::new();
-    let mut items = Vec::with_capacity(payload.len().min(MAX_ITEMS));
+    let mut items = Vec::new();
     for entry in payload {
         let Some(target) = targets.get(&entry.target_id) else {
             return Err(ApiError::BadRequest(format!(

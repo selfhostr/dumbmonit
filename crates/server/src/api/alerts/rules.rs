@@ -606,8 +606,8 @@ pub(super) async fn validate_channels(state: &AppState, wanted: Vec<i64>) -> Api
 
     let known = channels::existing_ids(&state.pool).await?;
     let mut seen = HashSet::new();
-    // Capacité bornée par les canaux existants : un doublon ou un fantôme n'y entre pas.
-    let mut channels = Vec::with_capacity(wanted.len().min(known.len()));
+    // Pas de préallocation : la taille vient du client.
+    let mut channels = Vec::new();
     for id in wanted {
         if !known.contains(&id) {
             return Err(ApiError::BadRequest(format!(
