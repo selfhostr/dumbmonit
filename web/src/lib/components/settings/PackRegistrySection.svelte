@@ -20,13 +20,20 @@
 	import type { PackView } from '#lib/api/index.js';
 	import { Button, Disclosure, ErrorNotice, Field, Plate } from '#lib/ui/index.js';
 	import { m } from '#lib/paraglide/messages.js';
+	import { withBase } from '#lib/paths.js';
+	import { OFFICIAL_REGISTRY_URL, filterRegistryPacks } from './pack-registry.js';
 
 	interface Props {
 		/** Called with the installed pack, so the list above can show it. */
 		oninstalled?: (pack: PackView) => void;
+		/**
+		 * Shown inside a dialog (Add monitor): no disclosure, no address form
+		 * (a link leads to Settings), a search box over the packs.
+		 */
+		embedded?: boolean;
 	}
 
-	let { oninstalled }: Props = $props();
+	let { oninstalled, embedded = false }: Props = $props();
 
 	let view = $state<RegistryView | null>(null);
 	let address = $state('');
@@ -51,10 +58,20 @@
 
 	async function save(event: SubmitEvent) {
 		event.preventDefault();
+		await saveAddress(address.trim());
+	}
+
+	/** Sets the address of the official registry, then reads it. */
+	async function useOfficial() {
+		address = OFFICIAL_REGISTRY_URL;
+		await saveAddress(OFFICIAL_REGISTRY_URL);
+	}
+
+	async function saveAddress(url: string) {
 		saving = true;
 		loadError = null;
 		try {
-			await setPackRegistry(address.trim());
+			await setPackRegistry(url);
 			await load();
 		} catch (cause) {
 			loadError = cause;
@@ -78,15 +95,41 @@
 	}
 
 	let opened = $state(false);
+	let query = $state('');
+	const listed = $derived(view ? filterRegistryPacks(view.packs, query) : []);
 	$effect(() => {
-		if (opened && !view && !loading) void load();
+		if ((embedded || opened) && !view && !loading) void load();
 	});
 </script>
 
-<Disclosure title={m.settings_packs_registry_title()} bind:open={opened}>
-	<div class="mt-4 grid gap-4">
+{#snippet official()}
+	<div class="grid gap-3 rounded-lg border border-line bg-surface-2 p-3">
+		<p class="max-w-[68ch] text-sm text-ink-2">{m.settings_packs_registry_off_hint()}</p>
+		<div class="flex flex-wrap items-center gap-2">
+			<Button variant="primary" loading={saving} onclick={() => void useOfficial()}>
+				{m.settings_packs_registry_use_official()}
+			</Button>
+			{#if embedded}
+				<a
+					class="inline-flex min-h-10 items-center text-sm font-semibold text-signal underline-offset-2 hover:underline"
+					href={withBase('/settings/monitoring#packs')}
+				>
+					{m.settings_packs_registry_other_address()}
+				</a>
+			{/if}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet body()}
+	<div class={embedded ? 'grid gap-4' : 'mt-4 grid gap-4'}>
 		<p class="max-w-[68ch] text-sm text-ink-2">{m.settings_packs_registry_intro()}</p>
 
+		{#if view && !view.configured}
+			{@render official()}
+		{/if}
+
+		{#if !embedded}
 		<form class="grid gap-3" onsubmit={save} novalidate>
 			<Field label={m.settings_packs_registry_url_label()} for="pack-registry-url">
 				<input
@@ -119,6 +162,14 @@
 				</a>
 			</div>
 		</form>
+		{:else if view?.configured}
+			<p class="flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-ink-2">
+				<span class="min-w-0 font-mono break-all">{view.url}</span>
+				<a class="inline-flex min-h-10 items-center font-semibold text-signal underline-offset-2 hover:underline" href={withBase('/settings/monitoring#packs')}>
+					{m.settings_packs_registry_other_address()}
+				</a>
+			</p>
+		{/if}
 
 		{#if loadError}
 			<ErrorNotice error={loadError} title={m.settings_packs_registry_error()} />
@@ -130,8 +181,16 @@
 			{#if view.packs.length === 0}
 				<p class="text-sm text-ink-2">{m.settings_packs_registry_empty()}</p>
 			{:else}
+				{#if embedded}
+					<Field label={m.settings_packs_registry_search()} for="pack-registry-search">
+						<input id="pack-registry-search" class="input" type="search" autocomplete="off" bind:value={query} />
+					</Field>
+				{/if}
+				{#if listed.length === 0}
+					<p class="text-sm text-ink-2">{m.settings_packs_registry_no_match()}</p>
+				{/if}
 				<ul class="grid gap-2">
-					{#each view.packs as pack (pack.id)}
+					{#each listed as pack (pack.id)}
 						<li class="grid gap-2 rounded-lg border border-line bg-surface p-3 sm:grid-cols-[1fr_auto] sm:items-center">
 							<div class="min-w-0">
 								<p class="font-semibold text-ink">
@@ -177,4 +236,12 @@
 			{/if}
 		{/if}
 	</div>
-</Disclosure>
+{/snippet}
+
+{#if embedded}
+	{@render body()}
+{:else}
+	<Disclosure title={m.settings_packs_registry_title()} bind:open={opened}>
+		{@render body()}
+	</Disclosure>
+{/if}

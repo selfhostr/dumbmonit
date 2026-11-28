@@ -13,8 +13,9 @@ it is saved in backups with the other packs and never published anywhere.
 
 ## Where
 
+**Add monitor → Import → Zabbix or snmp_exporter template**, or
 **Settings → Monitoring → Integration packs → Import a template**
-(administrators only).
+(administrators only). Both open the same import.
 
 1. Choose the file (YAML or XML, at most 2 MiB).
 2. Optionally set the pack id, its name, and the `sysObjectID` prefixes its

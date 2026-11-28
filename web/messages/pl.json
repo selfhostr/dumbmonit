@@ -11370,5 +11370,16 @@
 	"flows_traffic_empty": "Brak przepływów w tym okresie.",
 	"flows_traffic_error": "Nie udało się odczytać ruchu",
 	"flows_traffic_note": "Wolumeny są szacowane na podstawie próbkowanych przepływów. Z każdej minuty zachowywanych jest tylko 50 największych wymian; reszta liczy się jako pozostałe.",
-	"w2ops_audit_action_flows_settings": "Zmieniono ustawienia odbiornika przepływów"
+	"w2ops_audit_action_flows_settings": "Zmieniono ustawienia odbiornika przepływów",
+	"deviceform_packs_template_open": "Szablon Zabbix lub snmp_exporter",
+	"deviceform_packs_template_summary": "Zamienia plik szablonu na typ urządzenia.",
+	"deviceform_packs_template_title": "Szablon Zabbix lub snmp_exporter",
+	"deviceform_packs_registry_open": "Pakiety społeczności",
+	"deviceform_packs_registry_summary": "Typy urządzeń udostępniane przez społeczność.",
+	"deviceform_packs_registry_title": "Pakiety społeczności",
+	"settings_packs_registry_off_hint": "Rejestr społeczności jest domyślnie wyłączony: nic nie jest pobierane, dopóki nie wybierzesz adresu. Oficjalny rejestr zawiera pakiety udostępniane przez społeczność.",
+	"settings_packs_registry_use_official": "Użyj oficjalnego rejestru",
+	"settings_packs_registry_other_address": "Ustaw inny adres w Ustawieniach",
+	"settings_packs_registry_search": "Szukaj pakietów",
+	"settings_packs_registry_no_match": "Żaden pakiet nie pasuje do tego wyszukiwania."
 }

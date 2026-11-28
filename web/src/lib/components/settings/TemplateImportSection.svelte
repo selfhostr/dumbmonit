@@ -30,9 +30,11 @@
 	interface Props {
 		/** Called with the installed pack, so the list above can show it. */
 		oninstalled?: (pack: PackView) => void;
+		/** Shown inside a dialog (Add monitor): the body only, without its disclosure. */
+		embedded?: boolean;
 	}
 
-	let { oninstalled }: Props = $props();
+	let { oninstalled, embedded = false }: Props = $props();
 
 	let content = $state('');
 	let fileName = $state('');
@@ -150,8 +152,8 @@
 	const metrics = $derived(preview ? preview.summary.snmp_metrics + preview.summary.http_metrics : 0);
 </script>
 
-<Disclosure title={m.settings_tplimport_title()}>
-	<div class="mt-4 grid gap-4">
+{#snippet body()}
+	<div class={embedded ? 'grid gap-4' : 'mt-4 grid gap-4'}>
 		<p class="max-w-[68ch] text-sm text-ink-2">{m.settings_tplimport_intro()}</p>
 		<p class="max-w-[68ch] text-[0.8125rem] text-ink-2">{m.settings_tplimport_rights()}</p>
 
@@ -320,4 +322,12 @@
 			</section>
 		{/if}
 	</div>
-</Disclosure>
+{/snippet}
+
+{#if embedded}
+	{@render body()}
+{:else}
+	<Disclosure title={m.settings_tplimport_title()}>
+		{@render body()}
+	</Disclosure>
+{/if}

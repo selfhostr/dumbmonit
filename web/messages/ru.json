@@ -11354,5 +11354,16 @@
 	"flows_traffic_empty": "В этот период нет потоков.",
 	"flows_traffic_error": "Не удалось прочитать трафик",
 	"flows_traffic_note": "Объёмы оцениваются по выборочным потокам. Для каждой минуты сохраняются только 50 крупнейших обменов; остальное считается как «прочие».",
-	"w2ops_audit_action_flows_settings": "Изменены настройки приёмника потоков"
+	"w2ops_audit_action_flows_settings": "Изменены настройки приёмника потоков",
+	"deviceform_packs_template_open": "Шаблон Zabbix или snmp_exporter",
+	"deviceform_packs_template_summary": "Преобразует файл шаблона в тип устройства.",
+	"deviceform_packs_template_title": "Шаблон Zabbix или snmp_exporter",
+	"deviceform_packs_registry_open": "Пакеты сообщества",
+	"deviceform_packs_registry_summary": "Типы устройств, которыми делится сообщество.",
+	"deviceform_packs_registry_title": "Пакеты сообщества",
+	"settings_packs_registry_off_hint": "Реестр сообщества по умолчанию выключен: ничего не загружается, пока вы не укажете адрес. Официальный реестр содержит пакеты, которыми делится сообщество.",
+	"settings_packs_registry_use_official": "Использовать официальный реестр",
+	"settings_packs_registry_other_address": "Указать другой адрес в настройках",
+	"settings_packs_registry_search": "Поиск пакетов",
+	"settings_packs_registry_no_match": "Нет пакетов, подходящих под этот запрос."
 }

@@ -11110,5 +11110,16 @@
 	"flows_traffic_empty": "No flow in this window.",
 	"flows_traffic_error": "Could not read the traffic",
 	"flows_traffic_note": "Volumes are estimated from sampled flows. Only the 50 largest exchanges of each minute are kept; the rest is counted as others.",
-	"w2ops_audit_action_flows_settings": "Flow receiver settings changed"
+	"w2ops_audit_action_flows_settings": "Flow receiver settings changed",
+	"deviceform_packs_template_open": "Zabbix or snmp_exporter template",
+	"deviceform_packs_template_summary": "Turn a template file into a device type.",
+	"deviceform_packs_template_title": "Zabbix or snmp_exporter template",
+	"deviceform_packs_registry_open": "Community packs",
+	"deviceform_packs_registry_summary": "Device types shared by the community.",
+	"deviceform_packs_registry_title": "Community packs",
+	"settings_packs_registry_off_hint": "The community registry is off by default: nothing is fetched until you choose an address. The official registry lists packs shared by the community.",
+	"settings_packs_registry_use_official": "Use the official registry",
+	"settings_packs_registry_other_address": "Set another address in Settings",
+	"settings_packs_registry_search": "Search packs",
+	"settings_packs_registry_no_match": "No pack matches this search."
 }
