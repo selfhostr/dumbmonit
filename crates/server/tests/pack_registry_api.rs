@@ -86,3 +86,27 @@ async fn a_wrong_checksum_or_licence_is_refused() {
     assert_eq!(none.status, StatusCode::NOT_FOUND);
     assert_eq!(app.get("/api/packs/shelly-plug", Some(&admin)).await.status, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn the_registry_address_travels_with_the_backup() {
+    use dumbmonit_server::backup::{ExportOptions, collect, restore};
+    use dumbmonit_server::packs::registry::{self, Settings};
+    use dumbmonit_server::db;
+
+    let secret = "secret-de-test-suffisamment-long";
+    let dir = tempfile::tempdir().unwrap();
+    let source = db::open(&dir.path().join("source.db")).await.unwrap();
+    let cipher = db::init_cipher(&source, secret).await.unwrap();
+    let empty = collect(&source, &cipher, ExportOptions::default()).await.unwrap();
+    assert!(empty.pack_registry.is_none());
+
+    let url = "https://example.github.io/packs/index.json".to_string();
+    registry::save(&source, &Settings { url: url.clone() }).await.unwrap();
+    let bundle = collect(&source, &cipher, ExportOptions::default()).await.unwrap();
+    assert!(bundle.pack_registry.is_some());
+
+    let target = db::open(&dir.path().join("target.db")).await.unwrap();
+    let target_cipher = db::init_cipher(&target, secret).await.unwrap();
+    restore(&target, &target_cipher, &bundle, true).await.unwrap();
+    assert_eq!(registry::load(&target).await.unwrap().url, url);
+}
